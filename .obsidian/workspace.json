@@ -1,0 +1,235 @@
+{
+  "main": {
+    "id": "df1a7325b3c51eae",
+    "type": "split",
+    "children": [
+      {
+        "id": "8207dc1255d14bb7",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "775679aaecc0afef",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "1c4628c2b55d04ac",
+    "type": "split",
+    "children": [
+      {
+        "id": "095c540d7d6b87d2",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "c8c2908c4eb22556",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "ffb49446339e30f2",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "1a6dbdfc26000761",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "59c15443df6f97a0",
+    "type": "split",
+    "children": [
+      {
+        "id": "dbfc5f8f05b5bc76",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "20412cd2d3532048",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "BMC_Implementation_Verification_Plan.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks"
+            }
+          },
+          {
+            "id": "ad2985148aca4f78",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "BMC_Implementation_Verification_Plan.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links"
+            }
+          },
+          {
+            "id": "5b3bed09c3125006",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "5dc2a42ab237191d",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "305efe9e07d195b5",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "BMC_Implementation_Verification_Plan.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "775679aaecc0afef",
+  "lastOpenFiles": [
+    "BMC_Architecture_MicroArchitecture_Spec.md",
+    "scripts/axi_interconnect_wrap.py",
+    "docs/images/BMC_Architecture_Block_Diagrams-VGA Controller IP.drawio.png",
+    "docs/images/BMC_Architecture_Block_Diagrams-Top-Level SoC.drawio.png",
+    "docs/images/BMC_Architecture_Block_Diagrams-Recovery Policy IP.drawio.png",
+    "docs/images/BMC_Architecture_Block_Diagrams-Power_Reset Sequencer IP.drawio.png",
+    "docs/images/BMC_Architecture_Block_Diagrams-Heartbeat Monitor IP.drawio.png",
+    "docs/Project Abstract Guidelines.pdf",
+    "docs/Project_Abstract.docx",
+    "docs/BMC_Full_Project_Spec_Manual.docx",
+    "docs/walkthrough_bmc.md",
+    "docs/veer_el2_architecture.md",
+    "docs/implementation_plan.md",
+    "docs/BMC_Implementation_Verification_Plan.md",
+    "docs/BMC_Architecture_MicroArchitecture_Spec.md",
+    "docs/images",
+    "docs",
+    "~$C_Full_Project_Spec_Manual.docx",
+    "BMC_Architecture_Block_Diagrams-VGA Controller IP.drawio.png",
+    "BMC_Architecture_Block_Diagrams-Recovery Policy IP.drawio.png",
+    "BMC_Architecture_Block_Diagrams-Power_Reset Sequencer IP.drawio.png",
+    "BMC_Architecture_Block_Diagrams-Heartbeat Monitor IP.drawio.png",
+    "BMC_Architecture_Block_Diagrams-Top-Level SoC.drawio.png",
+    "BMC_Implementation_Verification_Plan.md",
+    "BMC_Architecture_Block_Diagrams.drawio",
+    "implementation_plan.md",
+    "veer_el2_architecture.md",
+    "rtl/core/Cores-VeeR-EL2/third_party/riscv-dv",
+    "rtl/core/Cores-VeeR-EL2/third_party/picolibc",
+    "rtl/core/Cores-VeeR-EL2/verification/top/README.md",
+    "rtl/core/Cores-VeeR-EL2/verification/block/README.md",
+    "rtl/core/Cores-VeeR-EL2/tools/riscv-dv/README.md",
+    "rtl/core/Cores-VeeR-EL2/tools/renode/README.md",
+    "rtl/core/Cores-VeeR-EL2/tools/riscof/README.md",
+    "rtl/core/Cores-VeeR-EL2/testbench/tests/modesw/README.md",
+    "rtl/core/Cores-VeeR-EL2/testbench/jtagdpi/README.md",
+    "rtl/core/Cores-VeeR-EL2/docs/source/verification.md",
+    "rtl/core/Cores-VeeR-EL2/docs/source/tock.md",
+    "rtl/core/Cores-VeeR-EL2/docs/source/user-mode.md",
+    "rtl/core/Cores-VeeR-EL2/docs/source/timers.md",
+    "rtl/core/Cores-VeeR-EL2/docs/source/tests.md",
+    "rtl/core/Cores-VeeR-EL2/docs/source/simulation-debugging.md",
+    "rtl/core/Cores-VeeR-EL2/docs/source/power.md",
+    "rtl/core/Cores-VeeR-EL2/docs/source/physical-memory-protection.md",
+    "rtl/core/Cores-VeeR-EL2/docs/source/performance.md"
+  ]
+}
