@@ -1,0 +1,3 @@
+Command Line: /home/student/snps_tools_target/verdi/U-2023.03-SP1/platform/LINUXAMD64/bin/Novas -dbdir /home/student/sriv_183/aes_core-master/sim/vcs_axi/simv.daidir -ssf /home/student/sriv_183/aes_core-master/sim/vcs_axi/wave.fsdb -sswr /home/student/sriv_183/aes_core-master/waves/axi_wave.rc
+uname(Linux vlsi43.vce.ac.in 4.18.0-553.83.1.el8_10.x86_64 #1 SMP Tue Nov 11 20:51:18 UTC 2025 x86_64)
+au time 958.047267 5.979495 9.022475 delta 333119488 333119488 total 904224768 904224768

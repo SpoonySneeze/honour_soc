@@ -1,0 +1,9 @@
+{"vcs1":{"timestamp_begin":1788592208.614778097, "rt":1.88, "ut":0.23, "st":0.06}}
+{"vcselab":{"timestamp_begin":1788592210.530609305, "rt":1.37, "ut":0.13, "st":0.03}}
+{"link":{"timestamp_begin":1788592211.925580548, "rt":0.10, "ut":0.07, "st":0.03}}
+{"SNPS_VCS_INTERNAL_ROOT_START_TIME": 1788592208.343562272}
+{"VCS_COMP_START_TIME": 1788592208.343562272}
+{"VCS_COMP_END_TIME": 1788592212.097623669}
+{"VCS_USER_OPTIONS": "-full64 -sverilog -debug_access+all -kdb -timescale=1ns/1ps +incdir+/home/student/Desktop/Honours-34/IPs/aes_core-master/rtl/verilog -top tb_debug -o /tmp/simv_debug /home/student/Desktop/Honours-34/IPs/aes_core-master/rtl/verilog/timescale.v /home/student/Desktop/Honours-34/IPs/aes_core-master/rtl/verilog/aes_rcon.v /home/student/Desktop/Honours-34/IPs/aes_core-master/rtl/verilog/aes_sbox.v /home/student/Desktop/Honours-34/IPs/aes_core-master/rtl/verilog/aes_inv_sbox.v /home/student/Desktop/Honours-34/IPs/aes_core-master/rtl/verilog/aes_key_expand_128.v /home/student/Desktop/Honours-34/IPs/aes_core-master/rtl/verilog/aes_cipher_top.v /home/student/Desktop/Honours-34/IPs/aes_core-master/rtl/verilog/aes_inv_cipher_top.v /home/student/Desktop/Honours-34/IPs/aes_core-master/rtl/verilog/aes_csr_regs.v /home/student/Desktop/Honours-34/IPs/aes_core-master/rtl/verilog/aes_axi_slave.v /home/student/Desktop/Honours-34/IPs/aes_core-master/rtl/verilog/aes_control_fsm.v /home/student/Desktop/Honours-34/IPs/aes_core-master/rtl/verilog/aes_axi.v /tmp/tb_debug.v"}
+{"vcs1": {"peak_mem": 534272}}
+{"vcselab": {"peak_mem": 251816}}

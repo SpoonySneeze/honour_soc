@@ -1,0 +1,63 @@
+Command: /home/student/Desktop/Honours-34/IPs/aes_core-master/sim/vcs_axi/./simv +vcs+fsdbon -l /home/student/Desktop/Honours-34/IPs/aes_core-master/sim/vcs_axi/log/sim.log
+Chronologic VCS simulator copyright 1991-2023
+Contains Synopsys proprietary information.
+Compiler version U-2023.03_Full64; Runtime version U-2023.03_Full64;  Sep  5 13:49 2026
+*Verdi* Loading libsscore_vcs202303.so
+FSDB Dumper for VCS, Release Verdi_U-2023.03-SP1, Linux x86_64/64bit, 05/28/2023
+(C) 1996 - 2023 by Synopsys, Inc.
+*Verdi* : Create FSDB file 'wave.fsdb'
+*Verdi* : Begin traversing the scope (tb_axi_master), layer (0).
+*Verdi* : End of traversing.
+
+=====================================================
+ AES AXI4-Lite Testbench Starting
+=====================================================
+
+--- Test 1: CSR Reset State ---
+PASS [CTRL  reset]: 00000000
+PASS [STATUS reset]: 00000000
+PASS [KEY0  reset]: 00000000
+PASS [TEXT0 reset]: 00000000
+PASS [OUT0  reset]: 00000000
+
+--- Test 2: CSR Read/Write ---
+PASS [KEY0 R/W]: deadbeef
+PASS [KEY1 R/W]: cafebabe
+PASS [OUT0 RO]: 00000000
+PASS [CTRL DECRYPT set]: 00000001
+
+--- Test 3: Encryption (NIST FIPS-197) ---
+  Key   : 2b7e151628aed2a6abf7158809cf4f3c
+  Plain : 3243f6a8885a308d313198a2e0370734
+  Expect: 3925841d02dc09fbdc118597196a0b32
+PASS [Encryption]: 3925841d02dc09fbdc118597196a0b32
+
+--- Test 4: Decryption (round-trip) ---
+PASS [Decryption]: 3243f6a8885a308d313198a2e0370734
+
+--- Test 5: STATUS.DONE Sticky + W1C ---
+PASS [DONE is set]: 00000001
+PASS [BUSY clear]: 00000000
+PASS [DONE sticky after read]: 00000001
+PASS [DONE cleared W1C]: 00000000
+
+--- Test 6: BUSY Assertion ---
+PASS [BUSY=1 during op]: 00000001
+PASS [BUSY=0 after done]: 00000000
+
+--- Test 7: Back-to-Back Operations ---
+PASS [BB enc1 (TV0)]: 0336763e966d92595a567cc9ce537f5e
+PASS [BB dec1 (TV0)]: f34481ec3cc627bacd5dc3fb08f273e6
+PASS [BB enc2 (NIST)]: 3925841d02dc09fbdc118597196a0b32
+PASS [BB dec2 (NIST)]: 3243f6a8885a308d313198a2e0370734
+
+=====================================================
+ ALL TESTS PASSED
+=====================================================
+
+$finish called from file "/home/student/Desktop/Honours-34/IPs/aes_core-master/bench/verilog/tb_axi_master.v", line 431.
+$finish at simulation time               758500
+           V C S   S i m u l a t i o n   R e p o r t 
+Time: 7585000 ps
+CPU Time:      0.160 seconds;       Data structure size:   0.1Mb
+Sat Sep  5 13:49:38 2026

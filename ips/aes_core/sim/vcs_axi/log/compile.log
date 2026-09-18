@@ -1,0 +1,108 @@
+
+Warning-[LNX_OS_VERUN] Unsupported Linux version
+  Linux version 'Rocky Linux release 8.10 (Green Obsidian)' is not supported 
+  on 'x86_64' officially, assuming linux compatibility by default. Set 
+  VCS_ARCH_OVERRIDE to linux or suse32 to override.
+  Please refer to release notes for information on supported platforms.
+
+Command: vcs -full64 -sverilog -debug_access+all -debug_region+cell -kdb -timescale=1ns/1ps \
++incdir+/home/student/sriv_183/aes_core-master_friend/rtl/verilog -top tb_axi_master \
+-o /home/student/sriv_183/aes_core-master_friend/sim/vcs_axi/simv /home/student/sriv_183/aes_core-master_friend/rtl/verilog/timescale.v \
+/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_rcon.v /home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_sbox.v \
+/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_inv_sbox.v /home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_key_expand_128.v \
+/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_cipher_top.v /home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_inv_cipher_top.v \
+/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_csr_regs.v /home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_axi_slave.v \
+/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_control_fsm.v /home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_axi.v \
+/home/student/sriv_183/aes_core-master_friend/bench/verilog/tb_axi_master.v -l /home/student/sriv_183/aes_core-master_friend/sim/vcs_axi/log/compile.log \
+
+                         Chronologic VCS (TM)
+         Version U-2023.03_Full64 -- Sat Sep  5 16:11:25 2026
+
+                    Copyright (c) 1991 - 2023 Synopsys, Inc.
+   This software and the associated documentation are proprietary to Synopsys,
+ Inc. This software may only be used in accordance with the terms and conditions
+ of a written license agreement with Synopsys, Inc. All other use, reproduction,
+   or distribution of this software is strictly prohibited.  Licensed Products
+     communicate with Synopsys servers for the purpose of providing software
+    updates, detecting software piracy and verifying that customers are using
+    Licensed Products in conformity with the applicable License Key for such
+  Licensed Products. Synopsys will use information gathered in connection with
+    this process to deliver software updates and pursue software pirates and
+                                   infringers.
+
+ Inclusivity & Diversity - Visit SolvNetPlus to read the "Synopsys Statement on
+            Inclusivity and Diversity" (Refer to article 000036315 at
+                        https://solvnetplus.synopsys.com)
+
+Parsing design file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/timescale.v'
+Parsing design file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_rcon.v'
+Parsing included file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/timescale.v'.
+Back to file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_rcon.v'.
+Parsing design file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_sbox.v'
+Parsing included file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/timescale.v'.
+Back to file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_sbox.v'.
+Parsing design file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_inv_sbox.v'
+Parsing included file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/timescale.v'.
+Back to file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_inv_sbox.v'.
+Parsing design file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_key_expand_128.v'
+Parsing included file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/timescale.v'.
+Back to file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_key_expand_128.v'.
+Parsing design file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_cipher_top.v'
+Parsing included file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/timescale.v'.
+Back to file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_cipher_top.v'.
+Parsing design file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_inv_cipher_top.v'
+Parsing included file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/timescale.v'.
+Back to file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_inv_cipher_top.v'.
+Parsing design file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_csr_regs.v'
+Parsing included file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/timescale.v'.
+Back to file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_csr_regs.v'.
+Parsing design file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_axi_slave.v'
+Parsing included file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/timescale.v'.
+Back to file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_axi_slave.v'.
+Parsing design file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_control_fsm.v'
+Parsing included file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/timescale.v'.
+Back to file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_control_fsm.v'.
+Parsing design file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_axi.v'
+Parsing included file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/timescale.v'.
+Back to file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_axi.v'.
+Parsing design file '/home/student/sriv_183/aes_core-master_friend/bench/verilog/tb_axi_master.v'
+Parsing included file '/home/student/sriv_183/aes_core-master_friend/rtl/verilog/timescale.v'.
+Back to file '/home/student/sriv_183/aes_core-master_friend/bench/verilog/tb_axi_master.v'.
+Top Level Modules:
+       tb_axi_master
+TimeScale is 1 ns / 10 ps
+
+Warning-[INAV] Index into non-array variable
+/home/student/sriv_183/aes_core-master_friend/bench/verilog/tb_axi_master.v, 179
+tb_axi_master, "decrypt[0]"
+  Bit/Part-select specified for non array variable.
+  Base object: decrypt
+  Of type: logic
+  Declared at:
+  "/home/student/sriv_183/aes_core-master_friend/bench/verilog/tb_axi_master.v",
+  177.
+
+Starting vcs inline pass...
+
+4 modules and 0 UDP read.
+recompiling module aes_sbox
+recompiling module aes_inv_sbox
+recompiling module aes_csr_regs
+recompiling module tb_axi_master
+All of 4 modules done
+rm -f _cuarc*.so _csrc*.so pre_vcsobj_*.so share_vcsobj_*.so
+if [ -x /home/student/sriv_183/aes_core-master_friend/sim/vcs_axi/simv ]; then chmod \
+a-x /home/student/sriv_183/aes_core-master_friend/sim/vcs_axi/simv; fi
+g++  -o /home/student/sriv_183/aes_core-master_friend/sim/vcs_axi/simv      -rdynamic \
+-Wl,-rpath='$ORIGIN'/simv.daidir -Wl,-rpath=./simv.daidir -Wl,-rpath=/home/student/snps_tools_target/vcs/U-2023.03/linux64/lib \
+-L/home/student/snps_tools_target/vcs/U-2023.03/linux64/lib  -Wl,-rpath-link=./  \
+/usr/lib64/libnuma.so.1   objs/amcQw_d.o   _66416_archive_1.so  SIM_l.o      rmapats_mop.o \
+rmapats.o rmar.o rmar_nd.o  rmar_llvm_0_1.o rmar_llvm_0_0.o            -lvirsim -lerrorinf \
+-lsnpsmalloc -lvfs    -lvcsnew -lsimprofile -luclinative /home/student/snps_tools_target/vcs/U-2023.03/linux64/lib/vcs_tls.o \
+-Wl,-whole-archive  -lvcsucli    -Wl,-no-whole-archive        _vcs_pli_stub_.o   \
+/home/student/snps_tools_target/vcs/U-2023.03/linux64/lib/vcs_save_restore_new.o \
+/home/student/snps_tools_target/verdi/U-2023.03-SP1/share/PLI/VCS/LINUX64/pli.a -ldl \
+-lc -lm -lpthread -ldl 
+/home/student/sriv_183/aes_core-master_friend/sim/vcs_axi/simv up to date
+CPU time: .385 seconds to compile + .153 seconds to elab + .154 seconds to link
+Verdi KDB elaboration done and the database successfully generated: 0 error(s), 0 warning(s)
