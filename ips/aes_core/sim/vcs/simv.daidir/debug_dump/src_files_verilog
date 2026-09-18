@@ -1,8 +1,0 @@
-/home/student/sriv_183/aes_core-master_friend/bench/verilog/test_bench_top.v
-/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_cipher_top.v
-/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_inv_cipher_top.v
-/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_inv_sbox.v
-/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_key_expand_128.v
-/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_rcon.v
-/home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_sbox.v
-/home/student/sriv_183/aes_core-master_friend/rtl/verilog/timescale.v

@@ -1,9 +1,0 @@
-{"vcs1":{"timestamp_begin":1788604924.355208130, "rt":2.00, "ut":0.23, "st":0.07}}
-{"vcselab":{"timestamp_begin":1788604926.394094835, "rt":1.29, "ut":0.11, "st":0.02}}
-{"link":{"timestamp_begin":1788604927.710705121, "rt":0.11, "ut":0.07, "st":0.03}}
-{"SNPS_VCS_INTERNAL_ROOT_START_TIME": 1788604924.085734005}
-{"VCS_COMP_START_TIME": 1788604924.085734005}
-{"VCS_COMP_END_TIME": 1788604927.900105134}
-{"VCS_USER_OPTIONS": "-full64 -sverilog -debug_access+all -debug_region+cell -kdb -timescale=1ns/1ps +incdir+/home/student/sriv_183/aes_core-master_friend/rtl/verilog -top test -o /home/student/sriv_183/aes_core-master_friend/sim/vcs/simv /home/student/sriv_183/aes_core-master_friend/rtl/verilog/timescale.v /home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_rcon.v /home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_sbox.v /home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_inv_sbox.v /home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_key_expand_128.v /home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_cipher_top.v /home/student/sriv_183/aes_core-master_friend/rtl/verilog/aes_inv_cipher_top.v /home/student/sriv_183/aes_core-master_friend/bench/verilog/test_bench_top.v -l /home/student/sriv_183/aes_core-master_friend/sim/vcs/log/compile.log"}
-{"vcs1": {"peak_mem": 534312}}
-{"vcselab": {"peak_mem": 251808}}
