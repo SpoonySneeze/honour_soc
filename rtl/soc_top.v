@@ -660,6 +660,46 @@ module soc_top (
     assign      m00_axi_rdata  = {uart_rdata_32, uart_rdata_32}; // replicated to both halves
     assign      m00_axi_rlast  = m00_axi_rvalid; // AXI-Lite: always single beat
 
+    
+    // ========================================================================
+    // UART Controller Instance
+    // ========================================================================
+    axi_uart_top u_uart (
+        .fixed_clk_i      (clk),
+        .axi_aclk_i       (clk),
+        .axi_aresetn_i    (rst_n),
+        
+        .axi_awid_i       (m00_axi_awid),
+        .axi_awaddr_i     (m00_axi_awaddr),
+        .axi_awvalid_i    (m00_axi_awvalid),
+        .axi_awready_o    (m00_axi_awready),
+        
+        .axi_wdata_i      (uart_wdata_32),
+        .axi_wstrb_i      (uart_wstrb_4),
+        .axi_wvalid_i     (m00_axi_wvalid),
+        .axi_wready_o     (m00_axi_wready),
+        
+        .axi_bid_o        (m00_axi_bid),
+        .axi_bresp_o      (m00_axi_bresp),
+        .axi_bvalid_o     (m00_axi_bvalid),
+        .axi_bready_i     (m00_axi_bready),
+        
+        .axi_arid_i       (m00_axi_arid),
+        .axi_araddr_i     (m00_axi_araddr),
+        .axi_arvalid_i    (m00_axi_arvalid),
+        .axi_arready_o    (m00_axi_arready),
+        
+        .axi_rid_o        (m00_axi_rid),
+        .axi_rdata_o      (uart_rdata_32),
+        .axi_rresp_o      (m00_axi_rresp),
+        .axi_rvalid_o     (m00_axi_rvalid),
+        .axi_rready_i     (m00_axi_rready),
+        
+        .uart_rx_i        (uart_rx),
+        .uart_tx_o        (uart_tx),
+        .read_interrupt_o (uart_irq)
+    );
+
     // ========================================================================
     // VeeR EL2 Core Instance (Placeholder / Interface Hook)
     // ========================================================================

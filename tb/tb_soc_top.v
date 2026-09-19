@@ -705,102 +705,63 @@ module tb_soc_top;
     // ========================================================================
     // Dedicated 64-to-32 bit AXI-to-Wishbone Bridges (7 Instances)
     // ========================================================================
-    axi4_to_wb_bridge #(.AXI_ADDR_WIDTH(32), .AXI_DATA_WIDTH(64), .AXI_ID_WIDTH(8), .WB_ADDR_WIDTH(8), .WB_DATA_WIDTH(32)) u_bridge_s0 (
-        .clk(clk), .rst_n(rst_n),
-        .s_axi_awid(m00_axi_awid), .s_axi_awaddr(m00_axi_awaddr), .s_axi_awlen(m00_axi_awlen), .s_axi_awsize(m00_axi_awsize),
-        .s_axi_awburst(m00_axi_awburst), .s_axi_awprot(m00_axi_awprot), .s_axi_awvalid(m00_axi_awvalid), .s_axi_awready(m00_axi_awready),
-        .s_axi_wdata(m00_axi_wdata), .s_axi_wstrb(m00_axi_wstrb), .s_axi_wlast(m00_axi_wlast), .s_axi_wvalid(m00_axi_wvalid), .s_axi_wready(m00_axi_wready),
-        .s_axi_bid(m00_axi_bid), .s_axi_bresp(m00_axi_bresp), .s_axi_bvalid(m00_axi_bvalid), .s_axi_bready(m00_axi_bready),
-        .s_axi_arid(m00_axi_arid), .s_axi_araddr(m00_axi_araddr), .s_axi_arlen(m00_axi_arlen), .s_axi_arsize(m00_axi_arsize),
-        .s_axi_arburst(m00_axi_arburst), .s_axi_arprot(m00_axi_arprot), .s_axi_arvalid(m00_axi_arvalid), .s_axi_arready(m00_axi_arready),
-        .s_axi_rid(m00_axi_rid), .s_axi_rdata(m00_axi_rdata), .s_axi_rresp(m00_axi_rresp), .s_axi_rlast(m00_axi_rlast), .s_axi_rvalid(m00_axi_rvalid), .s_axi_rready(m00_axi_rready),
-        .wb_adr_o(wbs0_adr), .wb_dat_o(wbs0_dat_o), .wb_dat_i(wbs0_dat_i), .wb_we_o(wbs0_we), .wb_sel_o(wbs0_sel),
-        .wb_stb_o(wbs0_stb), .wb_cyc_o(wbs0_cyc), .wb_ack_i(wbs0_ack), .wb_err_i(1'b0)
-    );
+    
 
-    axi4_to_wb_bridge #(.AXI_ADDR_WIDTH(32), .AXI_DATA_WIDTH(64), .AXI_ID_WIDTH(8), .WB_ADDR_WIDTH(8), .WB_DATA_WIDTH(32)) u_bridge_s1 (
-        .clk(clk), .rst_n(rst_n),
-        .s_axi_awid(m01_axi_awid), .s_axi_awaddr(m01_axi_awaddr), .s_axi_awlen(m01_axi_awlen), .s_axi_awsize(m01_axi_awsize),
-        .s_axi_awburst(m01_axi_awburst), .s_axi_awprot(m01_axi_awprot), .s_axi_awvalid(m01_axi_awvalid), .s_axi_awready(m01_axi_awready),
-        .s_axi_wdata(m01_axi_wdata), .s_axi_wstrb(m01_axi_wstrb), .s_axi_wlast(m01_axi_wlast), .s_axi_wvalid(m01_axi_wvalid), .s_axi_wready(m01_axi_wready),
-        .s_axi_bid(m01_axi_bid), .s_axi_bresp(m01_axi_bresp), .s_axi_bvalid(m01_axi_bvalid), .s_axi_bready(m01_axi_bready),
-        .s_axi_arid(m01_axi_arid), .s_axi_araddr(m01_axi_araddr), .s_axi_arlen(m01_axi_arlen), .s_axi_arsize(m01_axi_arsize),
-        .s_axi_arburst(m01_axi_arburst), .s_axi_arprot(m01_axi_arprot), .s_axi_arvalid(m01_axi_arvalid), .s_axi_arready(m01_axi_arready),
-        .s_axi_rid(m01_axi_rid), .s_axi_rdata(m01_axi_rdata), .s_axi_rresp(m01_axi_rresp), .s_axi_rlast(m01_axi_rlast), .s_axi_rvalid(m01_axi_rvalid), .s_axi_rready(m01_axi_rready),
-        .wb_adr_o(wbs1_adr), .wb_dat_o(wbs1_dat_o), .wb_dat_i(wbs1_dat_i), .wb_we_o(wbs1_we), .wb_sel_o(wbs1_sel),
-        .wb_stb_o(wbs1_stb), .wb_cyc_o(wbs1_cyc), .wb_ack_i(wbs1_ack), .wb_err_i(1'b0)
-    );
+    
 
-    axi4_to_wb_bridge #(.AXI_ADDR_WIDTH(32), .AXI_DATA_WIDTH(64), .AXI_ID_WIDTH(8), .WB_ADDR_WIDTH(8), .WB_DATA_WIDTH(32)) u_bridge_s2 (
-        .clk(clk), .rst_n(rst_n),
-        .s_axi_awid(m02_axi_awid), .s_axi_awaddr(m02_axi_awaddr), .s_axi_awlen(m02_axi_awlen), .s_axi_awsize(m02_axi_awsize),
-        .s_axi_awburst(m02_axi_awburst), .s_axi_awprot(m02_axi_awprot), .s_axi_awvalid(m02_axi_awvalid), .s_axi_awready(m02_axi_awready),
-        .s_axi_wdata(m02_axi_wdata), .s_axi_wstrb(m02_axi_wstrb), .s_axi_wlast(m02_axi_wlast), .s_axi_wvalid(m02_axi_wvalid), .s_axi_wready(m02_axi_wready),
-        .s_axi_bid(m02_axi_bid), .s_axi_bresp(m02_axi_bresp), .s_axi_bvalid(m02_axi_bvalid), .s_axi_bready(m02_axi_bready),
-        .s_axi_arid(m02_axi_arid), .s_axi_araddr(m02_axi_araddr), .s_axi_arlen(m02_axi_arlen), .s_axi_arsize(m02_axi_arsize),
-        .s_axi_arburst(m02_axi_arburst), .s_axi_arprot(m02_axi_arprot), .s_axi_arvalid(m02_axi_arvalid), .s_axi_arready(m02_axi_arready),
-        .s_axi_rid(m02_axi_rid), .s_axi_rdata(m02_axi_rdata), .s_axi_rresp(m02_axi_rresp), .s_axi_rlast(m02_axi_rlast), .s_axi_rvalid(m02_axi_rvalid), .s_axi_rready(m02_axi_rready),
-        .wb_adr_o(wbs2_adr), .wb_dat_o(wbs2_dat_o), .wb_dat_i(wbs2_dat_i), .wb_we_o(wbs2_we), .wb_sel_o(wbs2_sel),
-        .wb_stb_o(wbs2_stb), .wb_cyc_o(wbs2_cyc), .wb_ack_i(wbs2_ack), .wb_err_i(1'b0)
-    );
+    
 
-    axi4_to_wb_bridge #(.AXI_ADDR_WIDTH(32), .AXI_DATA_WIDTH(64), .AXI_ID_WIDTH(8), .WB_ADDR_WIDTH(8), .WB_DATA_WIDTH(32)) u_bridge_s3 (
-        .clk(clk), .rst_n(rst_n),
-        .s_axi_awid(m03_axi_awid), .s_axi_awaddr(m03_axi_awaddr), .s_axi_awlen(m03_axi_awlen), .s_axi_awsize(m03_axi_awsize),
-        .s_axi_awburst(m03_axi_awburst), .s_axi_awprot(m03_axi_awprot), .s_axi_awvalid(m03_axi_awvalid), .s_axi_awready(m03_axi_awready),
-        .s_axi_wdata(m03_axi_wdata), .s_axi_wstrb(m03_axi_wstrb), .s_axi_wlast(m03_axi_wlast), .s_axi_wvalid(m03_axi_wvalid), .s_axi_wready(m03_axi_wready),
-        .s_axi_bid(m03_axi_bid), .s_axi_bresp(m03_axi_bresp), .s_axi_bvalid(m03_axi_bvalid), .s_axi_bready(m03_axi_bready),
-        .s_axi_arid(m03_axi_arid), .s_axi_araddr(m03_axi_araddr), .s_axi_arlen(m03_axi_arlen), .s_axi_arsize(m03_axi_arsize),
-        .s_axi_arburst(m03_axi_arburst), .s_axi_arprot(m03_axi_arprot), .s_axi_arvalid(m03_axi_arvalid), .s_axi_arready(m03_axi_arready),
-        .s_axi_rid(m03_axi_rid), .s_axi_rdata(m03_axi_rdata), .s_axi_rresp(m03_axi_rresp), .s_axi_rlast(m03_axi_rlast), .s_axi_rvalid(m03_axi_rvalid), .s_axi_rready(m03_axi_rready),
-        .wb_adr_o(wbs3_adr), .wb_dat_o(wbs3_dat_o), .wb_dat_i(wbs3_dat_i), .wb_we_o(wbs3_we), .wb_sel_o(wbs3_sel),
-        .wb_stb_o(wbs3_stb), .wb_cyc_o(wbs3_cyc), .wb_ack_i(wbs3_ack), .wb_err_i(1'b0)
-    );
-
-    axi4_to_wb_bridge #(.AXI_ADDR_WIDTH(32), .AXI_DATA_WIDTH(64), .AXI_ID_WIDTH(8), .WB_ADDR_WIDTH(8), .WB_DATA_WIDTH(32)) u_bridge_s4 (
-        .clk(clk), .rst_n(rst_n),
-        .s_axi_awid(m04_axi_awid), .s_axi_awaddr(m04_axi_awaddr), .s_axi_awlen(m04_axi_awlen), .s_axi_awsize(m04_axi_awsize),
-        .s_axi_awburst(m04_axi_awburst), .s_axi_awprot(m04_axi_awprot), .s_axi_awvalid(m04_axi_awvalid), .s_axi_awready(m04_axi_awready),
-        .s_axi_wdata(m04_axi_wdata), .s_axi_wstrb(m04_axi_wstrb), .s_axi_wlast(m04_axi_wlast), .s_axi_wvalid(m04_axi_wvalid), .s_axi_wready(m04_axi_wready),
-        .s_axi_bid(m04_axi_bid), .s_axi_bresp(m04_axi_bresp), .s_axi_bvalid(m04_axi_bvalid), .s_axi_bready(m04_axi_bready),
-        .s_axi_arid(m04_axi_arid), .s_axi_araddr(m04_axi_araddr), .s_axi_arlen(m04_axi_arlen), .s_axi_arsize(m04_axi_arsize),
-        .s_axi_arburst(m04_axi_arburst), .s_axi_arprot(m04_axi_arprot), .s_axi_arvalid(m04_axi_arvalid), .s_axi_arready(m04_axi_arready),
-        .s_axi_rid(m04_axi_rid), .s_axi_rdata(m04_axi_rdata), .s_axi_rresp(m04_axi_rresp), .s_axi_rlast(m04_axi_rlast), .s_axi_rvalid(m04_axi_rvalid), .s_axi_rready(m04_axi_rready),
-        .wb_adr_o(wbs4_adr), .wb_dat_o(wbs4_dat_o), .wb_dat_i(wbs4_dat_i), .wb_we_o(wbs4_we), .wb_sel_o(wbs4_sel),
-        .wb_stb_o(wbs4_stb), .wb_cyc_o(wbs4_cyc), .wb_ack_i(wbs4_ack), .wb_err_i(1'b0)
-    );
-
-    axi4_to_wb_bridge #(.AXI_ADDR_WIDTH(32), .AXI_DATA_WIDTH(64), .AXI_ID_WIDTH(8), .WB_ADDR_WIDTH(8), .WB_DATA_WIDTH(32)) u_bridge_s5 (
-        .clk(clk), .rst_n(rst_n),
-        .s_axi_awid(m05_axi_awid), .s_axi_awaddr(m05_axi_awaddr), .s_axi_awlen(m05_axi_awlen), .s_axi_awsize(m05_axi_awsize),
-        .s_axi_awburst(m05_axi_awburst), .s_axi_awprot(m05_axi_awprot), .s_axi_awvalid(m05_axi_awvalid), .s_axi_awready(m05_axi_awready),
-        .s_axi_wdata(m05_axi_wdata), .s_axi_wstrb(m05_axi_wstrb), .s_axi_wlast(m05_axi_wlast), .s_axi_wvalid(m05_axi_wvalid), .s_axi_wready(m05_axi_wready),
-        .s_axi_bid(m05_axi_bid), .s_axi_bresp(m05_axi_bresp), .s_axi_bvalid(m05_axi_bvalid), .s_axi_bready(m05_axi_bready),
-        .s_axi_arid(m05_axi_arid), .s_axi_araddr(m05_axi_araddr), .s_axi_arlen(m05_axi_arlen), .s_axi_arsize(m05_axi_arsize),
-        .s_axi_arburst(m05_axi_arburst), .s_axi_arprot(m05_axi_arprot), .s_axi_arvalid(m05_axi_arvalid), .s_axi_arready(m05_axi_arready),
-        .s_axi_rid(m05_axi_rid), .s_axi_rdata(m05_axi_rdata), .s_axi_rresp(m05_axi_rresp), .s_axi_rlast(m05_axi_rlast), .s_axi_rvalid(m05_axi_rvalid), .s_axi_rready(m05_axi_rready),
-        .wb_adr_o(wbs5_adr), .wb_dat_o(wbs5_dat_o), .wb_dat_i(wbs5_dat_i), .wb_we_o(wbs5_we), .wb_sel_o(wbs5_sel),
-        .wb_stb_o(wbs5_stb), .wb_cyc_o(wbs5_cyc), .wb_ack_i(wbs5_ack), .wb_err_i(1'b0)
-    );
-
-    axi4_to_wb_bridge #(.AXI_ADDR_WIDTH(32), .AXI_DATA_WIDTH(64), .AXI_ID_WIDTH(8), .WB_ADDR_WIDTH(8), .WB_DATA_WIDTH(32)) u_bridge_s6 (
-        .clk(clk), .rst_n(rst_n),
-        .s_axi_awid(m06_axi_awid), .s_axi_awaddr(m06_axi_awaddr), .s_axi_awlen(m06_axi_awlen), .s_axi_awsize(m06_axi_awsize),
-        .s_axi_awburst(m06_axi_awburst), .s_axi_awprot(m06_axi_awprot), .s_axi_awvalid(m06_axi_awvalid), .s_axi_awready(m06_axi_awready),
-        .s_axi_wdata(m06_axi_wdata), .s_axi_wstrb(m06_axi_wstrb), .s_axi_wlast(m06_axi_wlast), .s_axi_wvalid(m06_axi_wvalid), .s_axi_wready(m06_axi_wready),
-        .s_axi_bid(m06_axi_bid), .s_axi_bresp(m06_axi_bresp), .s_axi_bvalid(m06_axi_bvalid), .s_axi_bready(m06_axi_bready),
-        .s_axi_arid(m06_axi_arid), .s_axi_araddr(m06_axi_araddr), .s_axi_arlen(m06_axi_arlen), .s_axi_arsize(m06_axi_arsize),
-        .s_axi_arburst(m06_axi_arburst), .s_axi_arprot(m06_axi_arprot), .s_axi_arvalid(m06_axi_arvalid), .s_axi_arready(m06_axi_arready),
-        .s_axi_rid(m06_axi_rid), .s_axi_rdata(m06_axi_rdata), .s_axi_rresp(m06_axi_rresp), .s_axi_rlast(m06_axi_rlast), .s_axi_rvalid(m06_axi_rvalid), .s_axi_rready(m06_axi_rready),
-        .wb_adr_o(wbs6_adr), .wb_dat_o(wbs6_dat_o), .wb_dat_i(wbs6_dat_i), .wb_we_o(wbs6_we), .wb_sel_o(wbs6_sel),
-        .wb_stb_o(wbs6_stb), .wb_cyc_o(wbs6_cyc), .wb_ack_i(wbs6_ack), .wb_err_i(1'b0)
-    );
+    
 
     // ========================================================================
     // Peripheral Stubs (S0, S1, S2, S6)
     // ========================================================================
-    assign wbs0_dat_i = 32'd0;
-    assign wbs0_ack   = wbs0_stb & wbs0_cyc;
+    
+    // UART Controller (Native AXI-Lite 32-bit mapped to 64-bit interconnect via steering)
+    reg         uart_awaddr2_r;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) uart_awaddr2_r <= 1'b0;
+        else if (m00_axi_awvalid & m00_axi_awready) uart_awaddr2_r <= m00_axi_awaddr[2];
+    end
+
+    wire [31:0] uart_wdata_32  = uart_awaddr2_r ? m00_axi_wdata[63:32] : m00_axi_wdata[31:0];
+    wire [3:0]  uart_wstrb_4   = uart_awaddr2_r ? m00_axi_wstrb[7:4]   : m00_axi_wstrb[3:0];
+    wire [31:0] uart_rdata_32;
+    assign      m00_axi_rdata  = {uart_rdata_32, uart_rdata_32};
+    assign      m00_axi_rlast  = m00_axi_rvalid;
+    
+    
+
+    axi_uart_top u_uart (
+        .fixed_clk_i      (clk),
+        .axi_aclk_i       (clk),
+        .axi_aresetn_i    (rst_n),
+        .axi_awid_i       (m00_axi_awid),
+        .axi_awaddr_i     (m00_axi_awaddr),
+        .axi_awvalid_i    (m00_axi_awvalid),
+        .axi_awready_o    (m00_axi_awready),
+        .axi_wdata_i      (uart_wdata_32),
+        .axi_wstrb_i      (uart_wstrb_4),
+        .axi_wvalid_i     (m00_axi_wvalid),
+        .axi_wready_o     (m00_axi_wready),
+        .axi_bid_o        (m00_axi_bid),
+        .axi_bresp_o      (m00_axi_bresp),
+        .axi_bvalid_o     (m00_axi_bvalid),
+        .axi_bready_i     (m00_axi_bready),
+        .axi_arid_i       (m00_axi_arid),
+        .axi_araddr_i     (m00_axi_araddr),
+        .axi_arvalid_i    (m00_axi_arvalid),
+        .axi_arready_o    (m00_axi_arready),
+        .axi_rid_o        (m00_axi_rid),
+        .axi_rdata_o      (uart_rdata_32),
+        .axi_rresp_o      (m00_axi_rresp),
+        .axi_rvalid_o     (m00_axi_rvalid),
+        .axi_rready_i     (m00_axi_rready),
+        .uart_rx_i        (1'b1),
+        .uart_tx_o        (uart_tx),
+        .read_interrupt_o (uart_irq)
+    );
+
 
     assign wbs1_dat_i = 32'd0;
     assign wbs1_ack   = wbs1_stb & wbs1_cyc;
@@ -808,33 +769,49 @@ module tb_soc_top;
     assign wbs2_dat_i = {30'd0, reset_out_w, heartbeat_in};
     assign wbs2_ack   = wbs2_stb & wbs2_cyc;
 
-    assign wbs6_dat_i = 32'd0;
-    assign wbs6_ack   = wbs6_stb & wbs6_cyc;
+    
 
-    // Heartbeat Monitor
-    heartbeat_monitor u_hbm (
-        .wb_clk_i(clk), .wb_rst_i(wb_rst),
-        .wb_adr_i(wbs3_adr), .wb_dat_i(wbs3_dat_o), .wb_dat_o(wbs3_dat_i),
-        .wb_we_i(wbs3_we), .wb_sel_i(wbs3_sel),
-        .wb_stb_i(wbs3_stb), .wb_cyc_i(wbs3_cyc), .wb_ack_o(wbs3_ack),
+    // Heartbeat Monitor (Native AXI)
+    axi_heartbeat_monitor u_hbm (
+        .clk(clk), .rst_n(rst_n),
+        .s_axi_awid(m03_axi_awid), .s_axi_awaddr(m03_axi_awaddr), .s_axi_awvalid(m03_axi_awvalid), .s_axi_awready(m03_axi_awready),
+        .s_axi_wdata(m03_axi_wdata), .s_axi_wvalid(m03_axi_wvalid), .s_axi_wready(m03_axi_wready),
+        .s_axi_bid(m03_axi_bid), .s_axi_bvalid(m03_axi_bvalid), .s_axi_bready(m03_axi_bready),
+        .s_axi_arid(m03_axi_arid), .s_axi_araddr(m03_axi_araddr), .s_axi_arvalid(m03_axi_arvalid), .s_axi_arready(m03_axi_arready),
+        .s_axi_rid(m03_axi_rid), .s_axi_rdata(m03_axi_rdata), .s_axi_rvalid(m03_axi_rvalid), .s_axi_rready(m03_axi_rready),
         .heartbeat_in(heartbeat_in), .hb_irq(hb_irq)
     );
 
-    // Reset Sequencer
-    reset_sequencer u_rst (
-        .wb_clk_i(clk), .wb_rst_i(wb_rst),
-        .wb_adr_i(wbs4_adr), .wb_dat_i(wbs4_dat_o), .wb_dat_o(wbs4_dat_i),
-        .wb_we_i(wbs4_we), .wb_sel_i(wbs4_sel),
-        .wb_stb_i(wbs4_stb), .wb_cyc_i(wbs4_cyc), .wb_ack_o(wbs4_ack),
+    // Reset Sequencer (Native AXI)
+    axi_reset_sequencer u_rst (
+        .clk(clk), .rst_n(rst_n),
+        .s_axi_awid(m04_axi_awid), .s_axi_awaddr(m04_axi_awaddr), .s_axi_awvalid(m04_axi_awvalid), .s_axi_awready(m04_axi_awready),
+        .s_axi_wdata(m04_axi_wdata), .s_axi_wvalid(m04_axi_wvalid), .s_axi_wready(m04_axi_wready),
+        .s_axi_bid(m04_axi_bid), .s_axi_bvalid(m04_axi_bvalid), .s_axi_bready(m04_axi_bready),
+        .s_axi_arid(m04_axi_arid), .s_axi_araddr(m04_axi_araddr), .s_axi_arvalid(m04_axi_arvalid), .s_axi_arready(m04_axi_arready),
+        .s_axi_rid(m04_axi_rid), .s_axi_rdata(m04_axi_rdata), .s_axi_rvalid(m04_axi_rvalid), .s_axi_rready(m04_axi_rready),
         .reset_out(reset_out_w)
     );
 
-    // Recovery Policy
-    recovery_policy u_pol (
-        .wb_clk_i(clk), .wb_rst_i(wb_rst),
-        .wb_adr_i(wbs5_adr), .wb_dat_i(wbs5_dat_o), .wb_dat_o(wbs5_dat_i),
-        .wb_we_i(wbs5_we), .wb_sel_i(wbs5_sel),
-        .wb_stb_i(wbs5_stb), .wb_cyc_i(wbs5_cyc), .wb_ack_o(wbs5_ack)
+    // Recovery Policy (Native AXI)
+    axi_recovery_policy u_pol (
+        .clk(clk), .rst_n(rst_n),
+        .s_axi_awid(m05_axi_awid), .s_axi_awaddr(m05_axi_awaddr), .s_axi_awvalid(m05_axi_awvalid), .s_axi_awready(m05_axi_awready),
+        .s_axi_wdata(m05_axi_wdata), .s_axi_wvalid(m05_axi_wvalid), .s_axi_wready(m05_axi_wready),
+        .s_axi_bid(m05_axi_bid), .s_axi_bvalid(m05_axi_bvalid), .s_axi_bready(m05_axi_bready),
+        .s_axi_arid(m05_axi_arid), .s_axi_araddr(m05_axi_araddr), .s_axi_arvalid(m05_axi_arvalid), .s_axi_arready(m05_axi_arready),
+        .s_axi_rid(m05_axi_rid), .s_axi_rdata(m05_axi_rdata), .s_axi_rvalid(m05_axi_rvalid), .s_axi_rready(m05_axi_rready)
+    );
+    
+    // VGA Controller (Native AXI)
+    axi_vga_controller u_vga (
+        .clk(clk), .rst_n(rst_n),
+        .s_axi_awid(m06_axi_awid), .s_axi_awaddr(m06_axi_awaddr), .s_axi_awvalid(m06_axi_awvalid), .s_axi_awready(m06_axi_awready),
+        .s_axi_wdata(m06_axi_wdata), .s_axi_wvalid(m06_axi_wvalid), .s_axi_wready(m06_axi_wready),
+        .s_axi_bid(m06_axi_bid), .s_axi_bvalid(m06_axi_bvalid), .s_axi_bready(m06_axi_bready),
+        .s_axi_arid(m06_axi_arid), .s_axi_araddr(m06_axi_araddr), .s_axi_arvalid(m06_axi_arvalid), .s_axi_arready(m06_axi_arready),
+        .s_axi_rid(m06_axi_rid), .s_axi_rdata(m06_axi_rdata), .s_axi_rvalid(m06_axi_rvalid), .s_axi_rready(m06_axi_rready),
+        .vga_hsync(vga_hsync), .vga_vsync(vga_vsync), .vga_rgb(vga_rgb)
     );
 
     assign reset_out = reset_out_w;

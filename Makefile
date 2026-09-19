@@ -33,9 +33,8 @@ SRC_ALL_INTERCON = $(wildcard $(INTERCON_DIR)/*.v)
 SRC_HBM = $(CUSTOM_DIR)/heartbeat_monitor.v $(CUSTOM_DIR)/axi_heartbeat_monitor.v
 SRC_RST = $(CUSTOM_DIR)/reset_sequencer.v $(CUSTOM_DIR)/axi_reset_sequencer.v
 SRC_POL = $(CUSTOM_DIR)/recovery_policy.v $(CUSTOM_DIR)/axi_recovery_policy.v
-SRC_VGA = $(CUSTOM_DIR)/vga_controller.v
+SRC_VGA = $(CUSTOM_DIR)/vga_controller.v $(CUSTOM_DIR)/axi_vga_controller.v
 SRC_BRG = $(CUSTOM_DIR)/axi4_to_wb_bridge.v
-SRC_WBI = $(CUSTOM_DIR)/wb_interconnect.v
 
 UART_IP_DIR  = $(RTL_DIR)/ips/axi-lite_uart-ipcore-develop
 UART_RTL_DIR = $(UART_IP_DIR)/src/rtl
@@ -50,7 +49,7 @@ SRC_UART = $(UART_RTL_DIR)/uart_parity_bit_compute.v \
            $(UART_RTL_DIR)/axi_uart_top.v
 
 # All custom RTL (now includes UART IP)
-SRC_ALL_CUSTOM = $(SRC_HBM) $(SRC_RST) $(SRC_POL) $(SRC_VGA) $(SRC_BRG) $(SRC_WBI) $(SRC_UART)
+SRC_ALL_CUSTOM = $(SRC_HBM) $(SRC_RST) $(SRC_POL) $(SRC_VGA) $(SRC_BRG)  $(SRC_UART)
 
 # VCS include flags for UART IP
 VCS_UART_INC = +incdir+$(UART_INC_DIR)
@@ -259,6 +258,12 @@ iverilog:
 	@echo "Using Icarus Verilog..."
 
 veri_all: veri_hbm veri_rst veri_pol
+
+veri_soc: $(SRC_ALL_INTERCON) $(SRC_ALL_CUSTOM) $(TB_SOC) | build
+	@echo ">>> Compiling SoC System Integration Testbench with Icarus Verilog..."
+	$(IVERILOG) $(IVERILOG_FLAGS) -I$(UART_INC_DIR) -o build/veri_soc $(SRC_ALL_INTERCON) $(SRC_ALL_CUSTOM) $(TB_SOC)
+	@echo ">>> Running Icarus Verilog SoC Test..."
+	vvp build/veri_soc
 	@echo "================================================================"
 	@echo " All AXI Wrapper tests completed successfully!"
 	@echo "================================================================"
