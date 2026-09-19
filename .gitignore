@@ -6,6 +6,7 @@
 *~
 
 # Simulation & Compilation (VCS)
+build/
 **/csrc/
 **/simv
 **/simv.daidir/

@@ -299,31 +299,124 @@ module soc_top (
     // Active-high reset derived from active-low rst_n
     wire rst = ~rst_n;
 
-    // ---- AXI4 bus signals (VeeR LSU/SB master → bridge) ----
-    // Write Address Channel
-    wire [31:0] axi_awaddr;
-    wire [2:0]  axi_awprot;
-    wire        axi_awvalid;
-    wire        axi_awready;
-    // Write Data Channel
-    wire [31:0] axi_wdata;
-    wire [3:0]  axi_wstrb;
-    wire        axi_wvalid;
-    wire        axi_wready;
-    // Write Response Channel
-    wire [1:0]  axi_bresp;
-    wire        axi_bvalid;
-    wire        axi_bready;
-    // Read Address Channel
-    wire [31:0] axi_araddr;
-    wire [2:0]  axi_arprot;
-    wire        axi_arvalid;
-    wire        axi_arready;
-    // Read Data Channel
-    wire [31:0] axi_rdata;
-    wire [1:0]  axi_rresp;
-    wire        axi_rvalid;
-    wire        axi_rready;
+    // ---- AXI4 Master 0: VeeR Load/Store Unit (LSU) ----
+    wire [7:0]  lsu_axi_awid;
+    wire [31:0] lsu_axi_awaddr;
+    wire [7:0]  lsu_axi_awlen;
+    wire [2:0]  lsu_axi_awsize;
+    wire [1:0]  lsu_axi_awburst;
+    wire        lsu_axi_awlock;
+    wire [3:0]  lsu_axi_awcache;
+    wire [2:0]  lsu_axi_awprot;
+    wire [3:0]  lsu_axi_awqos;
+    wire        lsu_axi_awvalid;
+    wire        lsu_axi_awready;
+    wire [63:0] lsu_axi_wdata;
+    wire [7:0]  lsu_axi_wstrb;
+    wire        lsu_axi_wlast;
+    wire        lsu_axi_wvalid;
+    wire        lsu_axi_wready;
+    wire [7:0]  lsu_axi_bid;
+    wire [1:0]  lsu_axi_bresp;
+    wire        lsu_axi_bvalid;
+    wire        lsu_axi_bready;
+    wire [7:0]  lsu_axi_arid;
+    wire [31:0] lsu_axi_araddr;
+    wire [7:0]  lsu_axi_arlen;
+    wire [2:0]  lsu_axi_arsize;
+    wire [1:0]  lsu_axi_arburst;
+    wire        lsu_axi_arlock;
+    wire [3:0]  lsu_axi_arcache;
+    wire [2:0]  lsu_axi_arprot;
+    wire [3:0]  lsu_axi_arqos;
+    wire        lsu_axi_arvalid;
+    wire        lsu_axi_arready;
+    wire [7:0]  lsu_axi_rid;
+    wire [63:0] lsu_axi_rdata;
+    wire [1:0]  lsu_axi_rresp;
+    wire        lsu_axi_rlast;
+    wire        lsu_axi_rvalid;
+    wire        lsu_axi_rready;
+
+    // ---- AXI4 Master 1: VeeR System Bus / Debug (SB) ----
+    wire [7:0]  sb_axi_awid;
+    wire [31:0] sb_axi_awaddr;
+    wire [7:0]  sb_axi_awlen;
+    wire [2:0]  sb_axi_awsize;
+    wire [1:0]  sb_axi_awburst;
+    wire        sb_axi_awlock;
+    wire [3:0]  sb_axi_awcache;
+    wire [2:0]  sb_axi_awprot;
+    wire [3:0]  sb_axi_awqos;
+    wire        sb_axi_awvalid;
+    wire        sb_axi_awready;
+    wire [63:0] sb_axi_wdata;
+    wire [7:0]  sb_axi_wstrb;
+    wire        sb_axi_wlast;
+    wire        sb_axi_wvalid;
+    wire        sb_axi_wready;
+    wire [7:0]  sb_axi_bid;
+    wire [1:0]  sb_axi_bresp;
+    wire        sb_axi_bvalid;
+    wire        sb_axi_bready;
+    wire [7:0]  sb_axi_arid;
+    wire [31:0] sb_axi_araddr;
+    wire [7:0]  sb_axi_arlen;
+    wire [2:0]  sb_axi_arsize;
+    wire [1:0]  sb_axi_arburst;
+    wire        sb_axi_arlock;
+    wire [3:0]  sb_axi_arcache;
+    wire [2:0]  sb_axi_arprot;
+    wire [3:0]  sb_axi_arqos;
+    wire        sb_axi_arvalid;
+    wire        sb_axi_arready;
+    wire [7:0]  sb_axi_rid;
+    wire [63:0] sb_axi_rdata;
+    wire [1:0]  sb_axi_rresp;
+    wire        sb_axi_rlast;
+    wire        sb_axi_rvalid;
+    wire        sb_axi_rready;
+
+    // ---- AXI4 Interconnect Master Output (M00 → Bridge) ----
+    wire [8:0]  m_axi_awid;
+    wire [31:0] m_axi_awaddr;
+    wire [7:0]  m_axi_awlen;
+    wire [2:0]  m_axi_awsize;
+    wire [1:0]  m_axi_awburst;
+    wire        m_axi_awlock;
+    wire [3:0]  m_axi_awcache;
+    wire [2:0]  m_axi_awprot;
+    wire [3:0]  m_axi_awqos;
+    wire [3:0]  m_axi_awregion;
+    wire        m_axi_awvalid;
+    wire        m_axi_awready;
+    wire [63:0] m_axi_wdata;
+    wire [7:0]  m_axi_wstrb;
+    wire        m_axi_wlast;
+    wire        m_axi_wvalid;
+    wire        m_axi_wready;
+    wire [8:0]  m_axi_bid;
+    wire [1:0]  m_axi_bresp;
+    wire        m_axi_bvalid;
+    wire        m_axi_bready;
+    wire [8:0]  m_axi_arid;
+    wire [31:0] m_axi_araddr;
+    wire [7:0]  m_axi_arlen;
+    wire [2:0]  m_axi_arsize;
+    wire [1:0]  m_axi_arburst;
+    wire        m_axi_arlock;
+    wire [3:0]  m_axi_arcache;
+    wire [2:0]  m_axi_arprot;
+    wire [3:0]  m_axi_arqos;
+    wire [3:0]  m_axi_arregion;
+    wire        m_axi_arvalid;
+    wire        m_axi_arready;
+    wire [8:0]  m_axi_rid;
+    wire [63:0] m_axi_rdata;
+    wire [1:0]  m_axi_rresp;
+    wire        m_axi_rlast;
+    wire        m_axi_rvalid;
+    wire        m_axi_rready;
 
     // ---- Wishbone master bus (bridge → interconnect) ----
     wire [31:0] wbm_adr;
@@ -374,91 +467,245 @@ module soc_top (
     wire [3:0]  wbs6_sel;
 
     // ---- Point-to-point inter-IP signals ----
-    wire        hb_irq;            // Heartbeat Monitor → PIC (optional)
+    wire        hb_irq;            // Heartbeat Monitor → PIC
     wire        reset_out_internal; // Reset Sequencer → GPIO output
 
     // ========================================================================
-    // VeeR EL2 Core
+    // VeeR EL2 Core Instance (Placeholder / Interface Hook)
     // ========================================================================
-    // NOTE: The actual VeeR EL2 instantiation depends on the specific
-    // configuration generated by the VeeR config tool. The AXI master
-    // interface signals from the LSU (Load/Store Unit) system bus port
-    // are connected to the AXI-to-Wishbone bridge for peripheral access.
-    //
-    // The core's ICCM and DCCM are internal to el2_veer_wrapper and handle
-    // instruction fetch and data memory directly via tightly-coupled paths.
-    //
-    // For the peripheral bus, we use the System Bus (SB) AXI master port,
-    // which the core uses for non-TCM address ranges.
-    //
-    // TODO: Instantiate el2_veer_wrapper with proper parameter configuration.
-    //       The SB AXI master signals (sb_axi_*) connect to the bridge.
-    //       Interrupt input: extintsrc_req[1] <= hb_irq (optional)
+    // In full SoC integration, u_veer connects to lsu_axi_* and sb_axi_*.
+    // Tying off master request signals when core is uninstantiated:
+    assign lsu_axi_awid    = 8'h0;
+    assign lsu_axi_awaddr  = 32'h0;
+    assign lsu_axi_awlen   = 8'h0;
+    assign lsu_axi_awsize  = 3'h2;
+    assign lsu_axi_awburst = 2'h1;
+    assign lsu_axi_awlock  = 1'b0;
+    assign lsu_axi_awcache = 4'h0;
+    assign lsu_axi_awprot  = 3'h0;
+    assign lsu_axi_awqos   = 4'h0;
+    assign lsu_axi_awvalid = 1'b0;
+    assign lsu_axi_wdata   = 64'h0;
+    assign lsu_axi_wstrb   = 8'h0;
+    assign lsu_axi_wlast   = 1'b0;
+    assign lsu_axi_wvalid  = 1'b0;
+    assign lsu_axi_bready  = 1'b0;
+    assign lsu_axi_arid    = 8'h0;
+    assign lsu_axi_araddr  = 32'h0;
+    assign lsu_axi_arlen   = 8'h0;
+    assign lsu_axi_arsize  = 3'h2;
+    assign lsu_axi_arburst = 2'h1;
+    assign lsu_axi_arlock  = 1'b0;
+    assign lsu_axi_arcache = 4'h0;
+    assign lsu_axi_arprot  = 3'h0;
+    assign lsu_axi_arqos   = 4'h0;
+    assign lsu_axi_arvalid = 1'b0;
+    assign lsu_axi_rready  = 1'b0;
+
+    assign sb_axi_awid     = 8'h0;
+    assign sb_axi_awaddr   = 32'h0;
+    assign sb_axi_awlen    = 8'h0;
+    assign sb_axi_awsize   = 3'h2;
+    assign sb_axi_awburst  = 2'h1;
+    assign sb_axi_awlock   = 1'b0;
+    assign sb_axi_awcache  = 4'h0;
+    assign sb_axi_awprot   = 3'h0;
+    assign sb_axi_awqos    = 4'h0;
+    assign sb_axi_awvalid  = 1'b0;
+    assign sb_axi_wdata    = 64'h0;
+    assign sb_axi_wstrb    = 8'h0;
+    assign sb_axi_wlast    = 1'b0;
+    assign sb_axi_wvalid   = 1'b0;
+    assign sb_axi_bready   = 1'b0;
+    assign sb_axi_arid     = 8'h0;
+    assign sb_axi_araddr   = 32'h0;
+    assign sb_axi_arlen    = 8'h0;
+    assign sb_axi_arsize   = 3'h2;
+    assign sb_axi_arburst  = 2'h1;
+    assign sb_axi_arlock   = 1'b0;
+    assign sb_axi_arcache  = 4'h0;
+    assign sb_axi_arprot   = 3'h0;
+    assign sb_axi_arqos    = 4'h0;
+    assign sb_axi_arvalid  = 1'b0;
+    assign sb_axi_rready   = 1'b0;
 
     // ========================================================================
-    // Placeholder: VeeR EL2 Core Instance
+    // AXI4 Interconnect (2 Masters x 1 Slave)
     // ========================================================================
-    // In a full build, this would be:
-    //
-    //   el2_veer_wrapper #(.parameters...) u_veer (
-    //       .clk           (clk),
-    //       .rst_l         (rst_n),
-    //       .dbg_rst_l     (rst_n),
-    //       // SB AXI master → peripheral bus
-    //       .sb_axi_awaddr (axi_awaddr),
-    //       .sb_axi_awvalid(axi_awvalid),
-    //       .sb_axi_awready(axi_awready),
-    //       .sb_axi_wdata  (axi_wdata),
-    //       .sb_axi_wstrb  (axi_wstrb),
-    //       .sb_axi_wvalid (axi_wvalid),
-    //       .sb_axi_wready (axi_wready),
-    //       .sb_axi_bresp  (axi_bresp),
-    //       .sb_axi_bvalid (axi_bvalid),
-    //       .sb_axi_bready (axi_bready),
-    //       .sb_axi_araddr (axi_araddr),
-    //       .sb_axi_arvalid(axi_arvalid),
-    //       .sb_axi_arready(axi_arready),
-    //       .sb_axi_rdata  (axi_rdata),
-    //       .sb_axi_rresp  (axi_rresp),
-    //       .sb_axi_rvalid (axi_rvalid),
-    //       .sb_axi_rready (axi_rready),
-    //       // JTAG
-    //       .jtag_tck      (jtag_tck),
-    //       .jtag_tms      (jtag_tms),
-    //       .jtag_tdi      (jtag_tdi),
-    //       .jtag_tdo      (jtag_tdo),
-    //       // Interrupts
-    //       .extintsrc_req ({...hb_irq...}),
-    //       ...
-    //   );
+    axi_interconnect #(
+        .DATA_WIDTH (64),
+        .ADDR_WIDTH (32),
+        .S_ID_WIDTH (8),
+        .M_ID_WIDTH (9)
+    ) u_axi_intercon (
+        .clk             (clk),
+        .rst_n           (rst_n),
+
+        // Master 0 Interface (S00) — VeeR LSU
+        .s00_axi_awid    (lsu_axi_awid),
+        .s00_axi_awaddr  (lsu_axi_awaddr),
+        .s00_axi_awlen   (lsu_axi_awlen),
+        .s00_axi_awsize  (lsu_axi_awsize),
+        .s00_axi_awburst (lsu_axi_awburst),
+        .s00_axi_awlock  (lsu_axi_awlock),
+        .s00_axi_awcache (lsu_axi_awcache),
+        .s00_axi_awprot  (lsu_axi_awprot),
+        .s00_axi_awqos   (lsu_axi_awqos),
+        .s00_axi_awvalid (lsu_axi_awvalid),
+        .s00_axi_awready (lsu_axi_awready),
+        .s00_axi_wdata   (lsu_axi_wdata),
+        .s00_axi_wstrb   (lsu_axi_wstrb),
+        .s00_axi_wlast   (lsu_axi_wlast),
+        .s00_axi_wvalid  (lsu_axi_wvalid),
+        .s00_axi_wready  (lsu_axi_wready),
+        .s00_axi_bid     (lsu_axi_bid),
+        .s00_axi_bresp   (lsu_axi_bresp),
+        .s00_axi_bvalid  (lsu_axi_bvalid),
+        .s00_axi_bready  (lsu_axi_bready),
+        .s00_axi_arid    (lsu_axi_arid),
+        .s00_axi_araddr  (lsu_axi_araddr),
+        .s00_axi_arlen   (lsu_axi_arlen),
+        .s00_axi_arsize  (lsu_axi_arsize),
+        .s00_axi_arburst (lsu_axi_arburst),
+        .s00_axi_arlock  (lsu_axi_arlock),
+        .s00_axi_arcache (lsu_axi_arcache),
+        .s00_axi_arprot  (lsu_axi_arprot),
+        .s00_axi_arqos   (lsu_axi_arqos),
+        .s00_axi_arvalid (lsu_axi_arvalid),
+        .s00_axi_arready (lsu_axi_arready),
+        .s00_axi_rid     (lsu_axi_rid),
+        .s00_axi_rdata   (lsu_axi_rdata),
+        .s00_axi_rresp   (lsu_axi_rresp),
+        .s00_axi_rlast   (lsu_axi_rlast),
+        .s00_axi_rvalid  (lsu_axi_rvalid),
+        .s00_axi_rready  (lsu_axi_rready),
+
+        // Master 1 Interface (S01) — VeeR SB / Debug
+        .s01_axi_awid    (sb_axi_awid),
+        .s01_axi_awaddr  (sb_axi_awaddr),
+        .s01_axi_awlen   (sb_axi_awlen),
+        .s01_axi_awsize  (sb_axi_awsize),
+        .s01_axi_awburst (sb_axi_awburst),
+        .s01_axi_awlock  (sb_axi_awlock),
+        .s01_axi_awcache (sb_axi_awcache),
+        .s01_axi_awprot  (sb_axi_awprot),
+        .s01_axi_awqos   (sb_axi_awqos),
+        .s01_axi_awvalid (sb_axi_awvalid),
+        .s01_axi_awready (sb_axi_awready),
+        .s01_axi_wdata   (sb_axi_wdata),
+        .s01_axi_wstrb   (sb_axi_wstrb),
+        .s01_axi_wlast   (sb_axi_wlast),
+        .s01_axi_wvalid  (sb_axi_wvalid),
+        .s01_axi_wready  (sb_axi_wready),
+        .s01_axi_bid     (sb_axi_bid),
+        .s01_axi_bresp   (sb_axi_bresp),
+        .s01_axi_bvalid  (sb_axi_bvalid),
+        .s01_axi_bready  (sb_axi_bready),
+        .s01_axi_arid    (sb_axi_arid),
+        .s01_axi_araddr  (sb_axi_araddr),
+        .s01_axi_arlen   (sb_axi_arlen),
+        .s01_axi_arsize  (sb_axi_arsize),
+        .s01_axi_arburst (sb_axi_arburst),
+        .s01_axi_arlock  (sb_axi_arlock),
+        .s01_axi_arcache (sb_axi_arcache),
+        .s01_axi_arprot  (sb_axi_arprot),
+        .s01_axi_arqos   (sb_axi_arqos),
+        .s01_axi_arvalid (sb_axi_arvalid),
+        .s01_axi_arready (sb_axi_arready),
+        .s01_axi_rid     (sb_axi_rid),
+        .s01_axi_rdata   (sb_axi_rdata),
+        .s01_axi_rresp   (sb_axi_rresp),
+        .s01_axi_rlast   (sb_axi_rlast),
+        .s01_axi_rvalid  (sb_axi_rvalid),
+        .s01_axi_rready  (sb_axi_rready),
+
+        // Slave 0 Interface (M00) — to AXI-to-WB Bridge
+        .m00_axi_awid    (m_axi_awid),
+        .m00_axi_awaddr  (m_axi_awaddr),
+        .m00_axi_awlen   (m_axi_awlen),
+        .m00_axi_awsize  (m_axi_awsize),
+        .m00_axi_awburst (m_axi_awburst),
+        .m00_axi_awlock  (m_axi_awlock),
+        .m00_axi_awcache (m_axi_awcache),
+        .m00_axi_awprot  (m_axi_awprot),
+        .m00_axi_awqos   (m_axi_awqos),
+        .m00_axi_awregion(m_axi_awregion),
+        .m00_axi_awvalid (m_axi_awvalid),
+        .m00_axi_awready (m_axi_awready),
+        .m00_axi_wdata   (m_axi_wdata),
+        .m00_axi_wstrb   (m_axi_wstrb),
+        .m00_axi_wlast   (m_axi_wlast),
+        .m00_axi_wvalid  (m_axi_wvalid),
+        .m00_axi_wready  (m_axi_wready),
+        .m00_axi_bid     (m_axi_bid),
+        .m00_axi_bresp   (m_axi_bresp),
+        .m00_axi_bvalid  (m_axi_bvalid),
+        .m00_axi_bready  (m_axi_bready),
+        .m00_axi_arid    (m_axi_arid),
+        .m00_axi_araddr  (m_axi_araddr),
+        .m00_axi_arlen   (m_axi_arlen),
+        .m00_axi_arsize  (m_axi_arsize),
+        .m00_axi_arburst (m_axi_arburst),
+        .m00_axi_arlock  (m_axi_arlock),
+        .m00_axi_arcache (m_axi_arcache),
+        .m00_axi_arprot  (m_axi_arprot),
+        .m00_axi_arqos   (m_axi_arqos),
+        .m00_axi_arregion(m_axi_arregion),
+        .m00_axi_arvalid (m_axi_arvalid),
+        .m00_axi_arready (m_axi_arready),
+        .m00_axi_rid     (m_axi_rid),
+        .m00_axi_rdata   (m_axi_rdata),
+        .m00_axi_rresp   (m_axi_rresp),
+        .m00_axi_rlast   (m_axi_rlast),
+        .m00_axi_rvalid  (m_axi_rvalid),
+        .m00_axi_rready  (m_axi_rready)
+    );
 
     // ========================================================================
-    // AXI4-Lite to Wishbone Bridge
+    // AXI4 to Wishbone Bridge
     // ========================================================================
-    axi4_to_wb_bridge u_axi2wb (
+    axi4_to_wb_bridge #(
+        .AXI_ADDR_WIDTH (32),
+        .AXI_DATA_WIDTH (64),
+        .AXI_ID_WIDTH   (9),
+        .WB_ADDR_WIDTH  (32),
+        .WB_DATA_WIDTH  (32)
+    ) u_axi2wb (
         .clk            (clk),
         .rst_n          (rst_n),
 
-        // AXI4-Lite slave (from VeeR SB master)
-        .s_axi_awaddr   (axi_awaddr),
-        .s_axi_awprot   (axi_awprot),
-        .s_axi_awvalid  (axi_awvalid),
-        .s_axi_awready  (axi_awready),
-        .s_axi_wdata    (axi_wdata),
-        .s_axi_wstrb    (axi_wstrb),
-        .s_axi_wvalid   (axi_wvalid),
-        .s_axi_wready   (axi_wready),
-        .s_axi_bresp    (axi_bresp),
-        .s_axi_bvalid   (axi_bvalid),
-        .s_axi_bready   (axi_bready),
-        .s_axi_araddr   (axi_araddr),
-        .s_axi_arprot   (axi_arprot),
-        .s_axi_arvalid  (axi_arvalid),
-        .s_axi_arready  (axi_arready),
-        .s_axi_rdata    (axi_rdata),
-        .s_axi_rresp    (axi_rresp),
-        .s_axi_rvalid   (axi_rvalid),
-        .s_axi_rready   (axi_rready),
+        // AXI4 slave interface (driven by interconnect M00)
+        .s_axi_awid     (m_axi_awid),
+        .s_axi_awaddr   (m_axi_awaddr),
+        .s_axi_awlen    (m_axi_awlen),
+        .s_axi_awsize   (m_axi_awsize),
+        .s_axi_awburst  (m_axi_awburst),
+        .s_axi_awprot   (m_axi_awprot),
+        .s_axi_awvalid  (m_axi_awvalid),
+        .s_axi_awready  (m_axi_awready),
+        .s_axi_wdata    (m_axi_wdata),
+        .s_axi_wstrb    (m_axi_wstrb),
+        .s_axi_wlast    (m_axi_wlast),
+        .s_axi_wvalid   (m_axi_wvalid),
+        .s_axi_wready   (m_axi_wready),
+        .s_axi_bid      (m_axi_bid),
+        .s_axi_bresp    (m_axi_bresp),
+        .s_axi_bvalid   (m_axi_bvalid),
+        .s_axi_bready   (m_axi_bready),
+        .s_axi_arid     (m_axi_arid),
+        .s_axi_araddr   (m_axi_araddr),
+        .s_axi_arlen    (m_axi_arlen),
+        .s_axi_arsize   (m_axi_arsize),
+        .s_axi_arburst  (m_axi_arburst),
+        .s_axi_arprot   (m_axi_arprot),
+        .s_axi_arvalid  (m_axi_arvalid),
+        .s_axi_arready  (m_axi_arready),
+        .s_axi_rid      (m_axi_rid),
+        .s_axi_rdata    (m_axi_rdata),
+        .s_axi_rresp    (m_axi_rresp),
+        .s_axi_rlast    (m_axi_rlast),
+        .s_axi_rvalid   (m_axi_rvalid),
+        .s_axi_rready   (m_axi_rready),
 
         // Wishbone master (to interconnect)
         .wb_adr_o       (wbm_adr),

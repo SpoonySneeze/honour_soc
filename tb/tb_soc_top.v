@@ -59,26 +59,85 @@ module tb_soc_top;
     wire        vga_hsync, vga_vsync;
     wire [11:0] vga_rgb;
 
-    // AXI interface — we drive these directly to emulate the CPU
+    // AXI Master 0 interface (driving LSU port of interconnect)
+    reg  [7:0]  axi_awid;
     reg  [31:0] axi_awaddr;
+    reg  [7:0]  axi_awlen;
+    reg  [2:0]  axi_awsize;
+    reg  [1:0]  axi_awburst;
+    reg         axi_awlock;
+    reg  [3:0]  axi_awcache;
     reg  [2:0]  axi_awprot;
+    reg  [3:0]  axi_awqos;
     reg         axi_awvalid;
     wire        axi_awready;
-    reg  [31:0] axi_wdata;
-    reg  [3:0]  axi_wstrb;
+    reg  [63:0] axi_wdata;
+    reg  [7:0]  axi_wstrb;
+    reg         axi_wlast;
     reg         axi_wvalid;
     wire        axi_wready;
+    wire [7:0]  axi_bid;
     wire [1:0]  axi_bresp;
     wire        axi_bvalid;
     reg         axi_bready;
+    reg  [7:0]  axi_arid;
     reg  [31:0] axi_araddr;
+    reg  [7:0]  axi_arlen;
+    reg  [2:0]  axi_arsize;
+    reg  [1:0]  axi_arburst;
+    reg         axi_arlock;
+    reg  [3:0]  axi_arcache;
     reg  [2:0]  axi_arprot;
+    reg  [3:0]  axi_arqos;
     reg         axi_arvalid;
     wire        axi_arready;
-    wire [31:0] axi_rdata;
+    wire [7:0]  axi_rid;
+    wire [63:0] axi_rdata;
     wire [1:0]  axi_rresp;
+    wire        axi_rlast;
     wire        axi_rvalid;
     reg         axi_rready;
+
+    // Crossbar master output signals (M00 -> Bridge)
+    wire [8:0]  m_axi_awid;
+    wire [31:0] m_axi_awaddr;
+    wire [7:0]  m_axi_awlen;
+    wire [2:0]  m_axi_awsize;
+    wire [1:0]  m_axi_awburst;
+    wire        m_axi_awlock;
+    wire [3:0]  m_axi_awcache;
+    wire [2:0]  m_axi_awprot;
+    wire [3:0]  m_axi_awqos;
+    wire [3:0]  m_axi_awregion;
+    wire        m_axi_awvalid;
+    wire        m_axi_awready;
+    wire [63:0] m_axi_wdata;
+    wire [7:0]  m_axi_wstrb;
+    wire        m_axi_wlast;
+    wire        m_axi_wvalid;
+    wire        m_axi_wready;
+    wire [8:0]  m_axi_bid;
+    wire [1:0]  m_axi_bresp;
+    wire        m_axi_bvalid;
+    wire        m_axi_bready;
+    wire [8:0]  m_axi_arid;
+    wire [31:0] m_axi_araddr;
+    wire [7:0]  m_axi_arlen;
+    wire [2:0]  m_axi_arsize;
+    wire [1:0]  m_axi_arburst;
+    wire        m_axi_arlock;
+    wire [3:0]  m_axi_arcache;
+    wire [2:0]  m_axi_arprot;
+    wire [3:0]  m_axi_arqos;
+    wire [3:0]  m_axi_arregion;
+    wire        m_axi_arvalid;
+    wire        m_axi_arready;
+    wire [8:0]  m_axi_rid;
+    wire [63:0] m_axi_rdata;
+    wire [1:0]  m_axi_rresp;
+    wire        m_axi_rlast;
+    wire        m_axi_rvalid;
+    wire        m_axi_rready;
 
     // Test tracking
     integer test_num;
@@ -87,12 +146,8 @@ module tb_soc_top;
     reg [31:0] read_data;
 
     // ========================================================================
-    // DUT — Instantiate just the peripheral subsystem (bridge + interconnect
-    // + all custom IPs) since VeeR core is a placeholder in soc_top
+    // DUT — Instantiate the complete peripheral subsystem with AXI interconnect
     // ========================================================================
-    // We instantiate the subsystem components directly to test them
-    // without needing the full VeeR core.
-
     wire        wb_rst = ~rst_n;
 
     // Bridge outputs
@@ -123,29 +178,177 @@ module tb_soc_top;
     wire        hb_irq;
     wire        reset_out_w;
 
+    // AXI Interconnect (2 Masters x 1 Slave)
+    axi_interconnect #(
+        .DATA_WIDTH (64),
+        .ADDR_WIDTH (32),
+        .S_ID_WIDTH (8),
+        .M_ID_WIDTH (9)
+    ) u_axi_intercon (
+        .clk             (clk),
+        .rst_n           (rst_n),
+
+        // Master 0 (driven by testbench)
+        .s00_axi_awid    (axi_awid),
+        .s00_axi_awaddr  (axi_awaddr),
+        .s00_axi_awlen   (axi_awlen),
+        .s00_axi_awsize  (axi_awsize),
+        .s00_axi_awburst (axi_awburst),
+        .s00_axi_awlock  (axi_awlock),
+        .s00_axi_awcache (axi_awcache),
+        .s00_axi_awprot  (axi_awprot),
+        .s00_axi_awqos   (axi_awqos),
+        .s00_axi_awvalid (axi_awvalid),
+        .s00_axi_awready (axi_awready),
+        .s00_axi_wdata   (axi_wdata),
+        .s00_axi_wstrb   (axi_wstrb),
+        .s00_axi_wlast   (axi_wlast),
+        .s00_axi_wvalid  (axi_wvalid),
+        .s00_axi_wready  (axi_wready),
+        .s00_axi_bid     (axi_bid),
+        .s00_axi_bresp   (axi_bresp),
+        .s00_axi_bvalid  (axi_bvalid),
+        .s00_axi_bready  (axi_bready),
+        .s00_axi_arid    (axi_arid),
+        .s00_axi_araddr  (axi_araddr),
+        .s00_axi_arlen   (axi_arlen),
+        .s00_axi_arsize  (axi_arsize),
+        .s00_axi_arburst (axi_arburst),
+        .s00_axi_arlock  (axi_arlock),
+        .s00_axi_arcache (axi_arcache),
+        .s00_axi_arprot  (axi_arprot),
+        .s00_axi_arqos   (axi_arqos),
+        .s00_axi_arvalid (axi_arvalid),
+        .s00_axi_arready (axi_arready),
+        .s00_axi_rid     (axi_rid),
+        .s00_axi_rdata   (axi_rdata),
+        .s00_axi_rresp   (axi_rresp),
+        .s00_axi_rlast   (axi_rlast),
+        .s00_axi_rvalid  (axi_rvalid),
+        .s00_axi_rready  (axi_rready),
+
+        // Master 1 (idle)
+        .s01_axi_awid    (8'h0),
+        .s01_axi_awaddr  (32'h0),
+        .s01_axi_awlen   (8'h0),
+        .s01_axi_awsize  (3'h3),
+        .s01_axi_awburst (2'h1),
+        .s01_axi_awlock  (1'b0),
+        .s01_axi_awcache (4'h0),
+        .s01_axi_awprot  (3'h0),
+        .s01_axi_awqos   (4'h0),
+        .s01_axi_awvalid (1'b0),
+        .s01_axi_awready (),
+        .s01_axi_wdata   (64'h0),
+        .s01_axi_wstrb   (8'h0),
+        .s01_axi_wlast   (1'b0),
+        .s01_axi_wvalid  (1'b0),
+        .s01_axi_wready  (),
+        .s01_axi_bid     (),
+        .s01_axi_bresp   (),
+        .s01_axi_bvalid  (),
+        .s01_axi_bready  (1'b0),
+        .s01_axi_arid    (8'h0),
+        .s01_axi_araddr  (32'h0),
+        .s01_axi_arlen   (8'h0),
+        .s01_axi_arsize  (3'h3),
+        .s01_axi_arburst (2'h1),
+        .s01_axi_arlock  (1'b0),
+        .s01_axi_arcache (4'h0),
+        .s01_axi_arprot  (3'h0),
+        .s01_axi_arqos   (4'h0),
+        .s01_axi_arvalid (1'b0),
+        .s01_axi_arready (),
+        .s01_axi_rid     (),
+        .s01_axi_rdata   (),
+        .s01_axi_rresp   (),
+        .s01_axi_rlast   (),
+        .s01_axi_rvalid  (),
+        .s01_axi_rready  (1'b0),
+
+        // Slave 0 (M00 -> Bridge)
+        .m00_axi_awid    (m_axi_awid),
+        .m00_axi_awaddr  (m_axi_awaddr),
+        .m00_axi_awlen   (m_axi_awlen),
+        .m00_axi_awsize  (m_axi_awsize),
+        .m00_axi_awburst (m_axi_awburst),
+        .m00_axi_awlock  (m_axi_awlock),
+        .m00_axi_awcache (m_axi_awcache),
+        .m00_axi_awprot  (m_axi_awprot),
+        .m00_axi_awqos   (m_axi_awqos),
+        .m00_axi_awregion(m_axi_awregion),
+        .m00_axi_awvalid (m_axi_awvalid),
+        .m00_axi_awready (m_axi_awready),
+        .m00_axi_wdata   (m_axi_wdata),
+        .m00_axi_wstrb   (m_axi_wstrb),
+        .m00_axi_wlast   (m_axi_wlast),
+        .m00_axi_wvalid  (m_axi_wvalid),
+        .m00_axi_wready  (m_axi_wready),
+        .m00_axi_bid     (m_axi_bid),
+        .m00_axi_bresp   (m_axi_bresp),
+        .m00_axi_bvalid  (m_axi_bvalid),
+        .m00_axi_bready  (m_axi_bready),
+        .m00_axi_arid    (m_axi_arid),
+        .m00_axi_araddr  (m_axi_araddr),
+        .m00_axi_arlen   (m_axi_arlen),
+        .m00_axi_arsize  (m_axi_arsize),
+        .m00_axi_arburst (m_axi_arburst),
+        .m00_axi_arlock  (m_axi_arlock),
+        .m00_axi_arcache (m_axi_arcache),
+        .m00_axi_arprot  (m_axi_arprot),
+        .m00_axi_arqos   (m_axi_arqos),
+        .m00_axi_arregion(m_axi_arregion),
+        .m00_axi_arvalid (m_axi_arvalid),
+        .m00_axi_arready (m_axi_arready),
+        .m00_axi_rid     (m_axi_rid),
+        .m00_axi_rdata   (m_axi_rdata),
+        .m00_axi_rresp   (m_axi_rresp),
+        .m00_axi_rlast   (m_axi_rlast),
+        .m00_axi_rvalid  (m_axi_rvalid),
+        .m00_axi_rready  (m_axi_rready)
+    );
+
     // AXI-to-WB Bridge
-    axi4_to_wb_bridge u_bridge (
+    axi4_to_wb_bridge #(
+        .AXI_ADDR_WIDTH (32),
+        .AXI_DATA_WIDTH (64),
+        .AXI_ID_WIDTH   (9),
+        .WB_ADDR_WIDTH  (32),
+        .WB_DATA_WIDTH  (32)
+    ) u_bridge (
         .clk           (clk),
         .rst_n         (rst_n),
-        .s_axi_awaddr  (axi_awaddr),
-        .s_axi_awprot  (axi_awprot),
-        .s_axi_awvalid (axi_awvalid),
-        .s_axi_awready (axi_awready),
-        .s_axi_wdata   (axi_wdata),
-        .s_axi_wstrb   (axi_wstrb),
-        .s_axi_wvalid  (axi_wvalid),
-        .s_axi_wready  (axi_wready),
-        .s_axi_bresp   (axi_bresp),
-        .s_axi_bvalid  (axi_bvalid),
-        .s_axi_bready  (axi_bready),
-        .s_axi_araddr  (axi_araddr),
-        .s_axi_arprot  (axi_arprot),
-        .s_axi_arvalid (axi_arvalid),
-        .s_axi_arready (axi_arready),
-        .s_axi_rdata   (axi_rdata),
-        .s_axi_rresp   (axi_rresp),
-        .s_axi_rvalid  (axi_rvalid),
-        .s_axi_rready  (axi_rready),
+        .s_axi_awid    (m_axi_awid),
+        .s_axi_awaddr  (m_axi_awaddr),
+        .s_axi_awlen   (m_axi_awlen),
+        .s_axi_awsize  (m_axi_awsize),
+        .s_axi_awburst (m_axi_awburst),
+        .s_axi_awprot  (m_axi_awprot),
+        .s_axi_awvalid (m_axi_awvalid),
+        .s_axi_awready (m_axi_awready),
+        .s_axi_wdata   (m_axi_wdata),
+        .s_axi_wstrb   (m_axi_wstrb),
+        .s_axi_wlast   (m_axi_wlast),
+        .s_axi_wvalid  (m_axi_wvalid),
+        .s_axi_wready  (m_axi_wready),
+        .s_axi_bid     (m_axi_bid),
+        .s_axi_bresp   (m_axi_bresp),
+        .s_axi_bvalid  (m_axi_bvalid),
+        .s_axi_bready  (m_axi_bready),
+        .s_axi_arid    (m_axi_arid),
+        .s_axi_araddr  (m_axi_araddr),
+        .s_axi_arlen   (m_axi_arlen),
+        .s_axi_arsize  (m_axi_arsize),
+        .s_axi_arburst (m_axi_arburst),
+        .s_axi_arprot  (m_axi_arprot),
+        .s_axi_arvalid (m_axi_arvalid),
+        .s_axi_arready (m_axi_arready),
+        .s_axi_rid     (m_axi_rid),
+        .s_axi_rdata   (m_axi_rdata),
+        .s_axi_rresp   (m_axi_rresp),
+        .s_axi_rlast   (m_axi_rlast),
+        .s_axi_rvalid  (m_axi_rvalid),
+        .s_axi_rready  (m_axi_rready),
         .wb_adr_o      (wbm_adr),
         .wb_dat_o      (wbm_dat_m2s),
         .wb_dat_i      (wbm_dat_s2m),
@@ -234,37 +437,60 @@ module tb_soc_top;
     // AXI Bus Transaction Tasks
     // ========================================================================
     task axi_write(input [31:0] addr, input [31:0] data);
+        reg aw_done, w_done;
         begin
             @(posedge clk);
             // Present address and data simultaneously
+            axi_awid    <= 8'h01;
             axi_awaddr  <= addr;
+            axi_awlen   <= 8'd0;
+            axi_awsize  <= 3'd3;
+            axi_awburst <= 2'b01;
+            axi_awlock  <= 1'b0;
+            axi_awcache <= 4'd0;
             axi_awprot  <= 3'd0;
+            axi_awqos   <= 4'd0;
             axi_awvalid <= 1'b1;
-            axi_wdata   <= data;
-            axi_wstrb   <= 4'hF;
+
+            axi_wdata   <= addr[2] ? {data, 32'h0} : {32'h0, data};
+            axi_wstrb   <= addr[2] ? 8'hF0 : 8'h0F;
+            axi_wlast   <= 1'b1;
             axi_wvalid  <= 1'b1;
             axi_bready  <= 1'b1;
 
-            // Wait for address accepted
-            @(posedge clk);
-            while (!axi_awready) @(posedge clk);
-            axi_awvalid <= 1'b0;
-
-            while (!axi_wready) @(posedge clk);
-            axi_wvalid <= 1'b0;
+            aw_done = 0;
+            w_done  = 0;
+            while (!aw_done || !w_done) begin
+                @(posedge clk);
+                if (axi_awvalid && axi_awready) begin
+                    axi_awvalid <= 1'b0;
+                    aw_done = 1;
+                end
+                if (axi_wvalid && axi_wready) begin
+                    axi_wvalid <= 1'b0;
+                    w_done = 1;
+                end
+            end
 
             // Wait for write response
             while (!axi_bvalid) @(posedge clk);
-            axi_bready <= 1'b0;
             @(posedge clk);
+            axi_bready <= 1'b0;
         end
     endtask
 
     task axi_read(input [31:0] addr, output [31:0] data);
         begin
             @(posedge clk);
+            axi_arid    <= 8'h02;
             axi_araddr  <= addr;
+            axi_arlen   <= 8'd0;
+            axi_arsize  <= 3'd3;
+            axi_arburst <= 2'b01;
+            axi_arlock  <= 1'b0;
+            axi_arcache <= 4'd0;
             axi_arprot  <= 3'd0;
+            axi_arqos   <= 4'd0;
             axi_arvalid <= 1'b1;
             axi_rready  <= 1'b1;
 
@@ -274,9 +500,9 @@ module tb_soc_top;
 
             // Wait for read data
             while (!axi_rvalid) @(posedge clk);
-            data = axi_rdata;
-            axi_rready <= 1'b0;
+            data = addr[2] ? axi_rdata[63:32] : axi_rdata[31:0];
             @(posedge clk);
+            axi_rready <= 1'b0;
         end
     endtask
 
