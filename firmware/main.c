@@ -22,7 +22,7 @@
 
 // VGA Registers
 #define VGA_CTRL *(volatile uint32_t*)(VGA_BASE + 0x00)
-#define VGA_TEXT_BUFFER (volatile uint32_t*)(VGA_BASE + 0x08)
+#define VGA_TEXT_BUFFER ((volatile uint32_t*)(VGA_BASE + 0x08))
 
 // Simple blocking UART print
 void uart_putc(char c) {

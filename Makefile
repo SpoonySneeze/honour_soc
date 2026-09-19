@@ -19,7 +19,7 @@ OBJCOPY = $(CROSS_COMPILE)objcopy
 OBJDUMP = $(CROSS_COMPILE)objdump
 
 # We use 32-bit RISC-V with Integer, Multiply, and Compressed Instructions
-CFLAGS  = -march=rv32imc -mabi=ilp32 -mcmodel=medany -Wall -O2 -ffreestanding -nostdlib
+CFLAGS  = -march=rv32imc_zicsr -mabi=ilp32 -mcmodel=medany -Wall -O2 -ffreestanding -nostdlib
 LDFLAGS = -T firmware/link.ld -nostartfiles -Wl,--no-relax
 
 # Target test program (defaults to 'firmware/main.c')
