@@ -609,6 +609,68 @@ module soc_top (
     wire        m06_axi_rvalid;
     wire        m06_axi_rready;
 
+    wire [7:0]  m07_axi_awid;
+    wire [31:0] m07_axi_awaddr;
+    wire [7:0]  m07_axi_awlen;
+    wire [2:0]  m07_axi_awsize;
+    wire [1:0]  m07_axi_awburst;
+    wire [2:0]  m07_axi_awprot;
+    wire        m07_axi_awvalid;
+    wire        m07_axi_awready;
+    wire [63:0] m07_axi_wdata;
+    wire [7:0]  m07_axi_wstrb;
+    wire        m07_axi_wlast;
+    wire        m07_axi_wvalid;
+    wire        m07_axi_wready;
+    wire [7:0]  m07_axi_bid;
+    wire [1:0]  m07_axi_bresp;
+    wire        m07_axi_bvalid;
+    wire        m07_axi_bready;
+    wire [7:0]  m07_axi_arid;
+    wire [31:0] m07_axi_araddr;
+    wire [7:0]  m07_axi_arlen;
+    wire [2:0]  m07_axi_arsize;
+    wire [1:0]  m07_axi_arburst;
+    wire [2:0]  m07_axi_arprot;
+    wire        m07_axi_arvalid;
+    wire        m07_axi_arready;
+    wire [7:0]  m07_axi_rid;
+    wire [63:0] m07_axi_rdata;
+    wire [1:0]  m07_axi_rresp;
+    wire        m07_axi_rlast;
+    wire        m07_axi_rvalid;
+    wire        m07_axi_rready;    wire [7:0]  ifu_axi_awid;
+    wire [31:0] ifu_axi_awaddr;
+    wire [7:0]  ifu_axi_awlen;
+    wire [2:0]  ifu_axi_awsize;
+    wire [1:0]  ifu_axi_awburst;
+    wire [2:0]  ifu_axi_awprot;
+    wire        ifu_axi_awvalid;
+    wire        ifu_axi_awready;
+    wire [63:0] ifu_axi_wdata;
+    wire [7:0]  ifu_axi_wstrb;
+    wire        ifu_axi_wlast;
+    wire        ifu_axi_wvalid;
+    wire        ifu_axi_wready;
+    wire [7:0]  ifu_axi_bid;
+    wire [1:0]  ifu_axi_bresp;
+    wire        ifu_axi_bvalid;
+    wire        ifu_axi_bready;
+    wire [7:0]  ifu_axi_arid;
+    wire [31:0] ifu_axi_araddr;
+    wire [7:0]  ifu_axi_arlen;
+    wire [2:0]  ifu_axi_arsize;
+    wire [1:0]  ifu_axi_arburst;
+    wire [2:0]  ifu_axi_arprot;
+    wire        ifu_axi_arvalid;
+    wire        ifu_axi_arready;
+    wire [7:0]  ifu_axi_rid;
+    wire [63:0] ifu_axi_rdata;
+    wire [1:0]  ifu_axi_rresp;
+    wire        ifu_axi_rlast;
+    wire        ifu_axi_rvalid;
+    wire        ifu_axi_rready;
+
     // ---- Wishbone slave interfaces (interconnect → peripherals) ----
     // NOTE: Slave 0 (UART) now connects directly over AXI — no wbs0 needed.
     // Slave 1: Timer
@@ -642,6 +704,8 @@ module soc_top (
     wire        hb_irq;            // Heartbeat Monitor → PIC
     wire        reset_out_internal; // Reset Sequencer → GPIO output
     wire        uart_irq;          // UART RX interrupt
+    wire        lockout_irq;
+    wire        vblank_irq;
 
     // ---- UART direct-AXI data-width steering (64-bit bus → 32-bit UART) ----
     // The AXI interconnect operates at 64-bit; axi_uart_top is 32-bit AXI-Lite.
@@ -705,65 +769,12 @@ module soc_top (
     // ========================================================================
     // In full SoC integration, u_veer connects to lsu_axi_* and sb_axi_*.
     // Tying off master request signals when core is uninstantiated:
-    assign lsu_axi_awid    = 8'h0;
-    assign lsu_axi_awaddr  = 32'h0;
-    assign lsu_axi_awlen   = 8'h0;
-    assign lsu_axi_awsize  = 3'h2;
-    assign lsu_axi_awburst = 2'h1;
-    assign lsu_axi_awlock  = 1'b0;
-    assign lsu_axi_awcache = 4'h0;
-    assign lsu_axi_awprot  = 3'h0;
-    assign lsu_axi_awqos   = 4'h0;
-    assign lsu_axi_awvalid = 1'b0;
-    assign lsu_axi_wdata   = 64'h0;
-    assign lsu_axi_wstrb   = 8'h0;
-    assign lsu_axi_wlast   = 1'b0;
-    assign lsu_axi_wvalid  = 1'b0;
-    assign lsu_axi_bready  = 1'b0;
-    assign lsu_axi_arid    = 8'h0;
-    assign lsu_axi_araddr  = 32'h0;
-    assign lsu_axi_arlen   = 8'h0;
-    assign lsu_axi_arsize  = 3'h2;
-    assign lsu_axi_arburst = 2'h1;
-    assign lsu_axi_arlock  = 1'b0;
-    assign lsu_axi_arcache = 4'h0;
-    assign lsu_axi_arprot  = 3'h0;
-    assign lsu_axi_arqos   = 4'h0;
-    assign lsu_axi_arvalid = 1'b0;
-    assign lsu_axi_rready  = 1'b0;
-
-    assign sb_axi_awid     = 8'h0;
-    assign sb_axi_awaddr   = 32'h0;
-    assign sb_axi_awlen    = 8'h0;
-    assign sb_axi_awsize   = 3'h2;
-    assign sb_axi_awburst  = 2'h1;
-    assign sb_axi_awlock   = 1'b0;
-    assign sb_axi_awcache  = 4'h0;
-    assign sb_axi_awprot   = 3'h0;
-    assign sb_axi_awqos    = 4'h0;
-    assign sb_axi_awvalid  = 1'b0;
-    assign sb_axi_wdata    = 64'h0;
-    assign sb_axi_wstrb    = 8'h0;
-    assign sb_axi_wlast    = 1'b0;
-    assign sb_axi_wvalid   = 1'b0;
-    assign sb_axi_bready   = 1'b0;
-    assign sb_axi_arid     = 8'h0;
-    assign sb_axi_araddr   = 32'h0;
-    assign sb_axi_arlen    = 8'h0;
-    assign sb_axi_arsize   = 3'h2;
-    assign sb_axi_arburst  = 2'h1;
-    assign sb_axi_arlock   = 1'b0;
-    assign sb_axi_arcache  = 4'h0;
-    assign sb_axi_arprot   = 3'h0;
-    assign sb_axi_arqos    = 4'h0;
-    assign sb_axi_arvalid  = 1'b0;
-    assign sb_axi_rready   = 1'b0;
 
     // ========================================================================
     // AXI4 Interconnect (2 Masters x 7 Slaves)
     // Generated using scripts/axi_interconnect_wrap.py
     // ========================================================================
-    axi_interconnect_wrap_2x7 #(
+    axi_interconnect_wrap_3x8 #(
         .DATA_WIDTH        (64),
         .ADDR_WIDTH        (32),
         .STRB_WIDTH        (8),
@@ -819,97 +830,138 @@ module soc_top (
         .M06_CONNECT_READ  (2'b11),
         .M06_CONNECT_WRITE (2'b11),
         .M06_SECURE        (1'b0)
+    ,
+        .M07_BASE_ADDR     (32'h8000_0000),
+        .M07_ADDR_WIDTH    (32'd13)
     ) u_axi_intercon (
         .clk             (clk),
         .rst             (rst),
 
+        .s00_axi_awid (ifu_axi_awid),
+        .s00_axi_awaddr (ifu_axi_awaddr),
+        .s00_axi_awlen (ifu_axi_awlen),
+        .s00_axi_awsize (ifu_axi_awsize),
+        .s00_axi_awburst (ifu_axi_awburst),
+        .s00_axi_awlock (ifu_axi_awlock),
+        .s00_axi_awcache (ifu_axi_awcache),
+        .s00_axi_awprot (ifu_axi_awprot),
+        .s00_axi_awqos (ifu_axi_awqos),
+        .s00_axi_awvalid (ifu_axi_awvalid),
+        .s00_axi_awready (ifu_axi_awready),
+        .s00_axi_wdata (ifu_axi_wdata),
+        .s00_axi_wstrb (ifu_axi_wstrb),
+        .s00_axi_wlast (ifu_axi_wlast),
+        .s00_axi_wvalid (ifu_axi_wvalid),
+        .s00_axi_wready (ifu_axi_wready),
+        .s00_axi_bid (ifu_axi_bid),
+        .s00_axi_bresp (ifu_axi_bresp),
+        .s00_axi_bvalid (ifu_axi_bvalid),
+        .s00_axi_bready (ifu_axi_bready),
+        .s00_axi_arid (ifu_axi_arid),
+        .s00_axi_araddr (ifu_axi_araddr),
+        .s00_axi_arlen (ifu_axi_arlen),
+        .s00_axi_arsize (ifu_axi_arsize),
+        .s00_axi_arburst (ifu_axi_arburst),
+        .s00_axi_arlock (ifu_axi_arlock),
+        .s00_axi_arcache (ifu_axi_arcache),
+        .s00_axi_arprot (ifu_axi_arprot),
+        .s00_axi_arqos (ifu_axi_arqos),
+        .s00_axi_arvalid (ifu_axi_arvalid),
+        .s00_axi_arready (ifu_axi_arready),
+        .s00_axi_rid (ifu_axi_rid),
+        .s00_axi_rdata (ifu_axi_rdata),
+        .s00_axi_rresp (ifu_axi_rresp),
+        .s00_axi_rlast (ifu_axi_rlast),
+        .s00_axi_rvalid (ifu_axi_rvalid),
+        .s00_axi_rready (ifu_axi_rready),
+
         // Master 0 Interface (S00) — VeeR LSU
-        .s00_axi_awid    (lsu_axi_awid),
-        .s00_axi_awaddr  (lsu_axi_awaddr),
-        .s00_axi_awlen   (lsu_axi_awlen),
-        .s00_axi_awsize  (lsu_axi_awsize),
-        .s00_axi_awburst (lsu_axi_awburst),
-        .s00_axi_awlock  (lsu_axi_awlock),
-        .s00_axi_awcache (lsu_axi_awcache),
-        .s00_axi_awprot  (lsu_axi_awprot),
-        .s00_axi_awqos   (lsu_axi_awqos),
-        .s00_axi_awuser  (1'b0),
-        .s00_axi_awvalid (lsu_axi_awvalid),
-        .s00_axi_awready (lsu_axi_awready),
-        .s00_axi_wdata   (lsu_axi_wdata),
-        .s00_axi_wstrb   (lsu_axi_wstrb),
-        .s00_axi_wlast   (lsu_axi_wlast),
-        .s00_axi_wuser   (1'b0),
-        .s00_axi_wvalid  (lsu_axi_wvalid),
-        .s00_axi_wready  (lsu_axi_wready),
-        .s00_axi_bid     (lsu_axi_bid),
-        .s00_axi_bresp   (lsu_axi_bresp),
-        .s00_axi_buser   (),
-        .s00_axi_bvalid  (lsu_axi_bvalid),
-        .s00_axi_bready  (lsu_axi_bready),
-        .s00_axi_arid    (lsu_axi_arid),
-        .s00_axi_araddr  (lsu_axi_araddr),
-        .s00_axi_arlen   (lsu_axi_arlen),
-        .s00_axi_arsize  (lsu_axi_arsize),
-        .s00_axi_arburst (lsu_axi_arburst),
-        .s00_axi_arlock  (lsu_axi_arlock),
-        .s00_axi_arcache (lsu_axi_arcache),
-        .s00_axi_arprot  (lsu_axi_arprot),
-        .s00_axi_arqos   (lsu_axi_arqos),
-        .s00_axi_aruser  (1'b0),
-        .s00_axi_arvalid (lsu_axi_arvalid),
-        .s00_axi_arready (lsu_axi_arready),
-        .s00_axi_rid     (lsu_axi_rid),
-        .s00_axi_rdata   (lsu_axi_rdata),
-        .s00_axi_rresp   (lsu_axi_rresp),
-        .s00_axi_rlast   (lsu_axi_rlast),
-        .s00_axi_ruser   (),
-        .s00_axi_rvalid  (lsu_axi_rvalid),
-        .s00_axi_rready  (lsu_axi_rready),
+        .s01_axi_awid    (lsu_axi_awid),
+        .s01_axi_awaddr  (lsu_axi_awaddr),
+        .s01_axi_awlen   (lsu_axi_awlen),
+        .s01_axi_awsize  (lsu_axi_awsize),
+        .s01_axi_awburst (lsu_axi_awburst),
+        .s01_axi_awlock  (lsu_axi_awlock),
+        .s01_axi_awcache (lsu_axi_awcache),
+        .s01_axi_awprot  (lsu_axi_awprot),
+        .s01_axi_awqos   (lsu_axi_awqos),
+        .s01_axi_awuser  (1'b0),
+        .s01_axi_awvalid (lsu_axi_awvalid),
+        .s01_axi_awready (lsu_axi_awready),
+        .s01_axi_wdata   (lsu_axi_wdata),
+        .s01_axi_wstrb   (lsu_axi_wstrb),
+        .s01_axi_wlast   (lsu_axi_wlast),
+        .s01_axi_wuser   (1'b0),
+        .s01_axi_wvalid  (lsu_axi_wvalid),
+        .s01_axi_wready  (lsu_axi_wready),
+        .s01_axi_bid     (lsu_axi_bid),
+        .s01_axi_bresp   (lsu_axi_bresp),
+        .s01_axi_buser   (),
+        .s01_axi_bvalid  (lsu_axi_bvalid),
+        .s01_axi_bready  (lsu_axi_bready),
+        .s01_axi_arid    (lsu_axi_arid),
+        .s01_axi_araddr  (lsu_axi_araddr),
+        .s01_axi_arlen   (lsu_axi_arlen),
+        .s01_axi_arsize  (lsu_axi_arsize),
+        .s01_axi_arburst (lsu_axi_arburst),
+        .s01_axi_arlock  (lsu_axi_arlock),
+        .s01_axi_arcache (lsu_axi_arcache),
+        .s01_axi_arprot  (lsu_axi_arprot),
+        .s01_axi_arqos   (lsu_axi_arqos),
+        .s01_axi_aruser  (1'b0),
+        .s01_axi_arvalid (lsu_axi_arvalid),
+        .s01_axi_arready (lsu_axi_arready),
+        .s01_axi_rid     (lsu_axi_rid),
+        .s01_axi_rdata   (lsu_axi_rdata),
+        .s01_axi_rresp   (lsu_axi_rresp),
+        .s01_axi_rlast   (lsu_axi_rlast),
+        .s01_axi_ruser   (),
+        .s01_axi_rvalid  (lsu_axi_rvalid),
+        .s01_axi_rready  (lsu_axi_rready),
 
         // Master 1 Interface (S01) — VeeR SB / Debug
-        .s01_axi_awid    (sb_axi_awid),
-        .s01_axi_awaddr  (sb_axi_awaddr),
-        .s01_axi_awlen   (sb_axi_awlen),
-        .s01_axi_awsize  (sb_axi_awsize),
-        .s01_axi_awburst (sb_axi_awburst),
-        .s01_axi_awlock  (sb_axi_awlock),
-        .s01_axi_awcache (sb_axi_awcache),
-        .s01_axi_awprot  (sb_axi_awprot),
-        .s01_axi_awqos   (sb_axi_awqos),
-        .s01_axi_awuser  (1'b0),
-        .s01_axi_awvalid (sb_axi_awvalid),
-        .s01_axi_awready (sb_axi_awready),
-        .s01_axi_wdata   (sb_axi_wdata),
-        .s01_axi_wstrb   (sb_axi_wstrb),
-        .s01_axi_wlast   (sb_axi_wlast),
-        .s01_axi_wuser   (1'b0),
-        .s01_axi_wvalid  (sb_axi_wvalid),
-        .s01_axi_wready  (sb_axi_wready),
-        .s01_axi_bid     (sb_axi_bid),
-        .s01_axi_bresp   (sb_axi_bresp),
-        .s01_axi_buser   (),
-        .s01_axi_bvalid  (sb_axi_bvalid),
-        .s01_axi_bready  (sb_axi_bready),
-        .s01_axi_arid    (sb_axi_arid),
-        .s01_axi_araddr  (sb_axi_araddr),
-        .s01_axi_arlen   (sb_axi_arlen),
-        .s01_axi_arsize  (sb_axi_arsize),
-        .s01_axi_arburst (sb_axi_arburst),
-        .s01_axi_arlock  (sb_axi_arlock),
-        .s01_axi_arcache (sb_axi_arcache),
-        .s01_axi_arprot  (sb_axi_arprot),
-        .s01_axi_arqos   (sb_axi_arqos),
-        .s01_axi_aruser  (1'b0),
-        .s01_axi_arvalid (sb_axi_arvalid),
-        .s01_axi_arready (sb_axi_arready),
-        .s01_axi_rid     (sb_axi_rid),
-        .s01_axi_rdata   (sb_axi_rdata),
-        .s01_axi_rresp   (sb_axi_rresp),
-        .s01_axi_rlast   (sb_axi_rlast),
-        .s01_axi_ruser   (),
-        .s01_axi_rvalid  (sb_axi_rvalid),
-        .s01_axi_rready  (sb_axi_rready),
+        .s02_axi_awid    (sb_axi_awid),
+        .s02_axi_awaddr  (sb_axi_awaddr),
+        .s02_axi_awlen   (sb_axi_awlen),
+        .s02_axi_awsize  (sb_axi_awsize),
+        .s02_axi_awburst (sb_axi_awburst),
+        .s02_axi_awlock  (sb_axi_awlock),
+        .s02_axi_awcache (sb_axi_awcache),
+        .s02_axi_awprot  (sb_axi_awprot),
+        .s02_axi_awqos   (sb_axi_awqos),
+        .s02_axi_awuser  (1'b0),
+        .s02_axi_awvalid (sb_axi_awvalid),
+        .s02_axi_awready (sb_axi_awready),
+        .s02_axi_wdata   (sb_axi_wdata),
+        .s02_axi_wstrb   (sb_axi_wstrb),
+        .s02_axi_wlast   (sb_axi_wlast),
+        .s02_axi_wuser   (1'b0),
+        .s02_axi_wvalid  (sb_axi_wvalid),
+        .s02_axi_wready  (sb_axi_wready),
+        .s02_axi_bid     (sb_axi_bid),
+        .s02_axi_bresp   (sb_axi_bresp),
+        .s02_axi_buser   (),
+        .s02_axi_bvalid  (sb_axi_bvalid),
+        .s02_axi_bready  (sb_axi_bready),
+        .s02_axi_arid    (sb_axi_arid),
+        .s02_axi_araddr  (sb_axi_araddr),
+        .s02_axi_arlen   (sb_axi_arlen),
+        .s02_axi_arsize  (sb_axi_arsize),
+        .s02_axi_arburst (sb_axi_arburst),
+        .s02_axi_arlock  (sb_axi_arlock),
+        .s02_axi_arcache (sb_axi_arcache),
+        .s02_axi_arprot  (sb_axi_arprot),
+        .s02_axi_arqos   (sb_axi_arqos),
+        .s02_axi_aruser  (1'b0),
+        .s02_axi_arvalid (sb_axi_arvalid),
+        .s02_axi_arready (sb_axi_arready),
+        .s02_axi_rid     (sb_axi_rid),
+        .s02_axi_rdata   (sb_axi_rdata),
+        .s02_axi_rresp   (sb_axi_rresp),
+        .s02_axi_rlast   (sb_axi_rlast),
+        .s02_axi_ruser   (),
+        .s02_axi_rvalid  (sb_axi_rvalid),
+        .s02_axi_rready  (sb_axi_rready),
 
         // Slave 0 Interface (M00) — UART
         .m00_axi_awid    (m00_axi_awid),
@@ -1232,7 +1284,44 @@ module soc_top (
         .m06_axi_ruser   (1'b0),
         .m06_axi_rvalid  (m06_axi_rvalid),
         .m06_axi_rready  (m06_axi_rready)
-    );
+    ,
+        .m07_axi_awid (m07_axi_awid),
+        .m07_axi_awaddr (m07_axi_awaddr),
+        .m07_axi_awlen (m07_axi_awlen),
+        .m07_axi_awsize (m07_axi_awsize),
+        .m07_axi_awburst (m07_axi_awburst),
+        .m07_axi_awlock (m07_axi_awlock),
+        .m07_axi_awcache (m07_axi_awcache),
+        .m07_axi_awprot (m07_axi_awprot),
+        .m07_axi_awqos (m07_axi_awqos),
+        .m07_axi_awvalid (m07_axi_awvalid),
+        .m07_axi_awready (m07_axi_awready),
+        .m07_axi_wdata (m07_axi_wdata),
+        .m07_axi_wstrb (m07_axi_wstrb),
+        .m07_axi_wlast (m07_axi_wlast),
+        .m07_axi_wvalid (m07_axi_wvalid),
+        .m07_axi_wready (m07_axi_wready),
+        .m07_axi_bid (m07_axi_bid),
+        .m07_axi_bresp (m07_axi_bresp),
+        .m07_axi_bvalid (m07_axi_bvalid),
+        .m07_axi_bready (m07_axi_bready),
+        .m07_axi_arid (m07_axi_arid),
+        .m07_axi_araddr (m07_axi_araddr),
+        .m07_axi_arlen (m07_axi_arlen),
+        .m07_axi_arsize (m07_axi_arsize),
+        .m07_axi_arburst (m07_axi_arburst),
+        .m07_axi_arlock (m07_axi_arlock),
+        .m07_axi_arcache (m07_axi_arcache),
+        .m07_axi_arprot (m07_axi_arprot),
+        .m07_axi_arqos (m07_axi_arqos),
+        .m07_axi_arvalid (m07_axi_arvalid),
+        .m07_axi_arready (m07_axi_arready),
+        .m07_axi_rid (m07_axi_rid),
+        .m07_axi_rdata (m07_axi_rdata),
+        .m07_axi_rresp (m07_axi_rresp),
+        .m07_axi_rlast (m07_axi_rlast),
+        .m07_axi_rvalid (m07_axi_rvalid),
+        .m07_axi_rready (m07_axi_rready));
 
     // ========================================================================
     // Dedicated 64-to-32 bit AXI-to-Wishbone Bridges (Slaves 1–6)
@@ -1392,18 +1481,41 @@ module soc_top (
     //   0x00 (RST_CTRL, WO):        [0] trigger (self-clearing)
     //   0x04 (RST_HOLD_CYCLES, R/W):[31:0] reset pulse duration in clock cycles
     //   0x08 (RST_STATUS, RO):      [0] in_progress, [1] complete (sticky)
-    reset_sequencer u_reset_seq (
-        .wb_clk_i     (clk),
-        .wb_rst_i     (rst),
-        .wb_adr_i     (wbs4_adr),
-        .wb_dat_i     (wbs4_dat_o),
-        .wb_dat_o     (wbs4_dat_i),
-        .wb_we_i      (wbs4_we),
-        .wb_sel_i     (wbs4_sel),
-        .wb_stb_i     (wbs4_stb),
-        .wb_cyc_i     (wbs4_cyc),
-        .wb_ack_o     (wbs4_ack),
-        .reset_out    (reset_out_internal)
+    axi_reset_sequencer u_reset_seq (
+        .clk           (clk),
+        .rst_n         (rst_n),
+        .s_axi_awid    (m04_axi_awid),
+        .s_axi_awaddr  (m04_axi_awaddr),
+        .s_axi_awlen   (m04_axi_awlen),
+        .s_axi_awsize  (m04_axi_awsize),
+        .s_axi_awburst (m04_axi_awburst),
+        .s_axi_awprot  (m04_axi_awprot),
+        .s_axi_awvalid (m04_axi_awvalid),
+        .s_axi_awready (m04_axi_awready),
+        .s_axi_wdata   (m04_axi_wdata),
+        .s_axi_wstrb   (m04_axi_wstrb),
+        .s_axi_wlast   (m04_axi_wlast),
+        .s_axi_wvalid  (m04_axi_wvalid),
+        .s_axi_wready  (m04_axi_wready),
+        .s_axi_bid     (m04_axi_bid),
+        .s_axi_bresp   (m04_axi_bresp),
+        .s_axi_bvalid  (m04_axi_bvalid),
+        .s_axi_bready  (m04_axi_bready),
+        .s_axi_arid    (m04_axi_arid),
+        .s_axi_araddr  (m04_axi_araddr),
+        .s_axi_arlen   (m04_axi_arlen),
+        .s_axi_arsize  (m04_axi_arsize),
+        .s_axi_arburst (m04_axi_arburst),
+        .s_axi_arprot  (m04_axi_arprot),
+        .s_axi_arvalid (m04_axi_arvalid),
+        .s_axi_arready (m04_axi_arready),
+        .s_axi_rid     (m04_axi_rid),
+        .s_axi_rdata   (m04_axi_rdata),
+        .s_axi_rresp   (m04_axi_rresp),
+        .s_axi_rlast   (m04_axi_rlast),
+        .s_axi_rvalid  (m04_axi_rvalid),
+        .s_axi_rready  (m04_axi_rready),
+        .reset_out     (reset_out_internal)
     );
 
     // Reset output to external pad
@@ -1422,17 +1534,41 @@ module soc_top (
     //   0x14 (LOG_READ_IDX, R/W):  [3:0] read index for circular log buffer (0-15)
     //   0x18 (LOG_READ_DATA, RO):  [31:0] timestamp stored at LOG_READ_IDX
     //   0x1C (LOG_COUNT, RO):      [31:0] cumulative recovery events logged
-    recovery_policy u_rec_policy (
-        .wb_clk_i     (clk),
-        .wb_rst_i     (rst),
-        .wb_adr_i     (wbs5_adr),
-        .wb_dat_i     (wbs5_dat_o),
-        .wb_dat_o     (wbs5_dat_i),
-        .wb_we_i      (wbs5_we),
-        .wb_sel_i     (wbs5_sel),
-        .wb_stb_i     (wbs5_stb),
-        .wb_cyc_i     (wbs5_cyc),
-        .wb_ack_o     (wbs5_ack)
+    axi_recovery_policy u_rec_policy (
+        .clk           (clk),
+        .rst_n         (rst_n),
+        .s_axi_awid    (m05_axi_awid),
+        .s_axi_awaddr  (m05_axi_awaddr),
+        .s_axi_awlen   (m05_axi_awlen),
+        .s_axi_awsize  (m05_axi_awsize),
+        .s_axi_awburst (m05_axi_awburst),
+        .s_axi_awprot  (m05_axi_awprot),
+        .s_axi_awvalid (m05_axi_awvalid),
+        .s_axi_awready (m05_axi_awready),
+        .s_axi_wdata   (m05_axi_wdata),
+        .s_axi_wstrb   (m05_axi_wstrb),
+        .s_axi_wlast   (m05_axi_wlast),
+        .s_axi_wvalid  (m05_axi_wvalid),
+        .s_axi_wready  (m05_axi_wready),
+        .s_axi_bid     (m05_axi_bid),
+        .s_axi_bresp   (m05_axi_bresp),
+        .s_axi_bvalid  (m05_axi_bvalid),
+        .s_axi_bready  (m05_axi_bready),
+        .s_axi_arid    (m05_axi_arid),
+        .s_axi_araddr  (m05_axi_araddr),
+        .s_axi_arlen   (m05_axi_arlen),
+        .s_axi_arsize  (m05_axi_arsize),
+        .s_axi_arburst (m05_axi_arburst),
+        .s_axi_arprot  (m05_axi_arprot),
+        .s_axi_arvalid (m05_axi_arvalid),
+        .s_axi_arready (m05_axi_arready),
+        .s_axi_rid     (m05_axi_rid),
+        .s_axi_rdata   (m05_axi_rdata),
+        .s_axi_rresp   (m05_axi_rresp),
+        .s_axi_rlast   (m05_axi_rlast),
+        .s_axi_rvalid  (m05_axi_rvalid),
+        .s_axi_rready  (m05_axi_rready),
+        .lockout_irq   (lockout_irq)
     );
 
     // ========================================================================
@@ -1485,6 +1621,268 @@ module soc_top (
     // ========================================================================
     // JTAG Stub (directly connected to VeeR core when instantiated)
     // ========================================================================
-    assign jtag_tdo = 1'b0;  // Stub — replaced by core connection
+
+    // ========================================================================
+    // VeeR EL2 Core
+    // ========================================================================
+    el2_veer_wrapper u_veer (
+        .clk               (clk),
+        .rst_l             (reset_out_internal), // Core warm reset
+        .dbg_rst_l         (rst_n),              // Debug cold reset
+        .rst_vec           (31'h4000_0000),      // Boot from 0x8000_0000
+        .nmi_int           (1'b0),
+        .nmi_vec           (31'h0),
+        .jtag_id           (31'h0),
+        
+        // Interrupts
+        .extintsrc_req     ({27'd0, lockout_irq, vblank_irq, hb_irq, uart_irq}),
+        .timer_int         (1'b0),
+        .soft_int          (1'b0),
+        
+        // IFU AXI
+        .ifu_axi_awvalid   (ifu_axi_awvalid),
+        .ifu_axi_awready   (ifu_axi_awready),
+        .ifu_axi_awid      (ifu_axi_awid),
+        .ifu_axi_awaddr    (ifu_axi_awaddr),
+        .ifu_axi_awregion  (),
+        .ifu_axi_awlen     (ifu_axi_awlen),
+        .ifu_axi_awsize    (ifu_axi_awsize),
+        .ifu_axi_awburst   (ifu_axi_awburst),
+        .ifu_axi_awlock    (ifu_axi_awlock),
+        .ifu_axi_awcache   (ifu_axi_awcache),
+        .ifu_axi_awprot    (ifu_axi_awprot),
+        .ifu_axi_awqos     (ifu_axi_awqos),
+        .ifu_axi_wvalid    (ifu_axi_wvalid),
+        .ifu_axi_wready    (ifu_axi_wready),
+        .ifu_axi_wdata     (ifu_axi_wdata),
+        .ifu_axi_wstrb     (ifu_axi_wstrb),
+        .ifu_axi_wlast     (ifu_axi_wlast),
+        .ifu_axi_bvalid    (ifu_axi_bvalid),
+        .ifu_axi_bready    (ifu_axi_bready),
+        .ifu_axi_bresp     (ifu_axi_bresp),
+        .ifu_axi_bid       (ifu_axi_bid),
+        .ifu_axi_arvalid   (ifu_axi_arvalid),
+        .ifu_axi_arready   (ifu_axi_arready),
+        .ifu_axi_arid      (ifu_axi_arid),
+        .ifu_axi_araddr    (ifu_axi_araddr),
+        .ifu_axi_arregion  (),
+        .ifu_axi_arlen     (ifu_axi_arlen),
+        .ifu_axi_arsize    (ifu_axi_arsize),
+        .ifu_axi_arburst   (ifu_axi_arburst),
+        .ifu_axi_arlock    (ifu_axi_arlock),
+        .ifu_axi_arcache   (ifu_axi_arcache),
+        .ifu_axi_arprot    (ifu_axi_arprot),
+        .ifu_axi_arqos     (ifu_axi_arqos),
+        .ifu_axi_rvalid    (ifu_axi_rvalid),
+        .ifu_axi_rready    (ifu_axi_rready),
+        .ifu_axi_rid       (ifu_axi_rid),
+        .ifu_axi_rdata     (ifu_axi_rdata),
+        .ifu_axi_rresp     (ifu_axi_rresp),
+        .ifu_axi_rlast     (ifu_axi_rlast),
+        
+        // LSU AXI
+        .lsu_axi_awvalid   (lsu_axi_awvalid),
+        .lsu_axi_awready   (lsu_axi_awready),
+        .lsu_axi_awid      (lsu_axi_awid),
+        .lsu_axi_awaddr    (lsu_axi_awaddr),
+        .lsu_axi_awregion  (),
+        .lsu_axi_awlen     (lsu_axi_awlen),
+        .lsu_axi_awsize    (lsu_axi_awsize),
+        .lsu_axi_awburst   (lsu_axi_awburst),
+        .lsu_axi_awlock    (lsu_axi_awlock),
+        .lsu_axi_awcache   (lsu_axi_awcache),
+        .lsu_axi_awprot    (lsu_axi_awprot),
+        .lsu_axi_awqos     (lsu_axi_awqos),
+        .lsu_axi_wvalid    (lsu_axi_wvalid),
+        .lsu_axi_wready    (lsu_axi_wready),
+        .lsu_axi_wdata     (lsu_axi_wdata),
+        .lsu_axi_wstrb     (lsu_axi_wstrb),
+        .lsu_axi_wlast     (lsu_axi_wlast),
+        .lsu_axi_bvalid    (lsu_axi_bvalid),
+        .lsu_axi_bready    (lsu_axi_bready),
+        .lsu_axi_bresp     (lsu_axi_bresp),
+        .lsu_axi_bid       (lsu_axi_bid),
+        .lsu_axi_arvalid   (lsu_axi_arvalid),
+        .lsu_axi_arready   (lsu_axi_arready),
+        .lsu_axi_arid      (lsu_axi_arid),
+        .lsu_axi_araddr    (lsu_axi_araddr),
+        .lsu_axi_arregion  (),
+        .lsu_axi_arlen     (lsu_axi_arlen),
+        .lsu_axi_arsize    (lsu_axi_arsize),
+        .lsu_axi_arburst   (lsu_axi_arburst),
+        .lsu_axi_arlock    (lsu_axi_arlock),
+        .lsu_axi_arcache   (lsu_axi_arcache),
+        .lsu_axi_arprot    (lsu_axi_arprot),
+        .lsu_axi_arqos     (lsu_axi_arqos),
+        .lsu_axi_rvalid    (lsu_axi_rvalid),
+        .lsu_axi_rready    (lsu_axi_rready),
+        .lsu_axi_rid       (lsu_axi_rid),
+        .lsu_axi_rdata     (lsu_axi_rdata),
+        .lsu_axi_rresp     (lsu_axi_rresp),
+        .lsu_axi_rlast     (lsu_axi_rlast),
+
+        // SB AXI
+        .sb_axi_awvalid    (sb_axi_awvalid),
+        .sb_axi_awready    (sb_axi_awready),
+        .sb_axi_awid       (sb_axi_awid),
+        .sb_axi_awaddr     (sb_axi_awaddr),
+        .sb_axi_awregion   (),
+        .sb_axi_awlen      (sb_axi_awlen),
+        .sb_axi_awsize     (sb_axi_awsize),
+        .sb_axi_awburst    (sb_axi_awburst),
+        .sb_axi_awlock     (sb_axi_awlock),
+        .sb_axi_awcache    (sb_axi_awcache),
+        .sb_axi_awprot     (sb_axi_awprot),
+        .sb_axi_awqos      (sb_axi_awqos),
+        .sb_axi_wvalid     (sb_axi_wvalid),
+        .sb_axi_wready     (sb_axi_wready),
+        .sb_axi_wdata      (sb_axi_wdata),
+        .sb_axi_wstrb      (sb_axi_wstrb),
+        .sb_axi_wlast      (sb_axi_wlast),
+        .sb_axi_bvalid     (sb_axi_bvalid),
+        .sb_axi_bready     (sb_axi_bready),
+        .sb_axi_bresp      (sb_axi_bresp),
+        .sb_axi_bid        (sb_axi_bid),
+        .sb_axi_arvalid    (sb_axi_arvalid),
+        .sb_axi_arready    (sb_axi_arready),
+        .sb_axi_arid       (sb_axi_arid),
+        .sb_axi_araddr     (sb_axi_araddr),
+        .sb_axi_arregion   (),
+        .sb_axi_arlen      (sb_axi_arlen),
+        .sb_axi_arsize     (sb_axi_arsize),
+        .sb_axi_arburst    (sb_axi_arburst),
+        .sb_axi_arlock     (sb_axi_arlock),
+        .sb_axi_arcache    (sb_axi_arcache),
+        .sb_axi_arprot     (sb_axi_arprot),
+        .sb_axi_arqos      (sb_axi_arqos),
+        .sb_axi_rvalid     (sb_axi_rvalid),
+        .sb_axi_rready     (sb_axi_rready),
+        .sb_axi_rid        (sb_axi_rid),
+        .sb_axi_rdata      (sb_axi_rdata),
+        .sb_axi_rresp      (sb_axi_rresp),
+        .sb_axi_rlast      (sb_axi_rlast),
+        
+        // DMA AXI (Tie off slave ports)
+        .dma_axi_awvalid   (1'b0),
+        .dma_axi_awready   (),
+        .dma_axi_awid      (8'd0),
+        .dma_axi_awaddr    (32'd0),
+        .dma_axi_awsize    (3'd0),
+        .dma_axi_awprot    (3'd0),
+        .dma_axi_awlen     (8'd0),
+        .dma_axi_awburst   (2'd0),
+        .dma_axi_wvalid    (1'b0),
+        .dma_axi_wready    (),
+        .dma_axi_wdata     (64'd0),
+        .dma_axi_wstrb     (8'd0),
+        .dma_axi_wlast     (1'b0),
+        .dma_axi_bvalid    (),
+        .dma_axi_bready    (1'b1),
+        .dma_axi_bresp     (),
+        .dma_axi_bid       (),
+        .dma_axi_arvalid   (1'b0),
+        .dma_axi_arready   (),
+        .dma_axi_arid      (8'd0),
+        .dma_axi_araddr    (32'd0),
+        .dma_axi_arsize    (3'd0),
+        .dma_axi_arprot    (3'd0),
+        .dma_axi_arlen     (8'd0),
+        .dma_axi_arburst   (2'd0),
+        .dma_axi_rvalid    (),
+        .dma_axi_rready    (1'b1),
+        .dma_axi_rid       (),
+        .dma_axi_rdata     (),
+        .dma_axi_rresp     (),
+        .dma_axi_rlast     (),
+        
+        // AHB DMA (Tie off)
+        .dma_hsel          (1'b0),
+        .dma_haddr         (32'd0),
+        .dma_hburst        (3'd0),
+        .dma_hmastlock     (1'b0),
+        .dma_hprot         (4'd0),
+        .dma_hsize         (3'd0),
+        .dma_htrans        (2'd0),
+        .dma_hwrite        (1'b0),
+        .dma_hwdata        (64'd0),
+        .dma_hreadyin      (1'b1),
+        .dma_hrdata        (),
+        .dma_hreadyout     (),
+        .dma_hresp         (),
+        
+        // JTAG
+        .jtag_tck          (jtag_tck),
+        .jtag_tms          (jtag_tms),
+        .jtag_tdi          (jtag_tdi),
+        .jtag_tdo          (jtag_tdo),
+        .jtag_tdoEn        (),
+        .jtag_trst_n       (rst_n),
+        
+        // Trace / Core status
+        .trace_rv_i_insn_ip      (),
+        .trace_rv_i_address_ip   (),
+        .trace_rv_i_valid_ip     (),
+        .trace_rv_i_exception_ip (),
+        .trace_rv_i_ecause_ip    (),
+        .trace_rv_i_interrupt_ip (),
+        .trace_rv_i_tval_ip      (),
+        .dec_tlu_perfcnt0        (),
+        .dec_tlu_perfcnt1        (),
+        .dec_tlu_perfcnt2        (),
+        .dec_tlu_perfcnt3        (),
+        .dccm_clk_override       (1'b0),
+        .icm_clk_override        (1'b0),
+        .dec_tlu_core_ecc_err    (),
+        .mpc_debug_halt_req      (1'b0),
+        .mpc_debug_halt_ack      (),
+        .mpc_debug_run_req       (1'b0),
+        .mpc_debug_run_ack       (),
+        .debug_brkpt_status      (),
+        .dec_tlu_ireg_we0        (),
+        .dec_tlu_ireg_wdata0     (),
+        .dec_tlu_mhartstart      (),
+        
+        // PMU
+        .pmu_core_en             (1'b1)
+    );
+
+
+
+    // ========================================================================
+    // Slave 7: External AXI ROM
+    // ========================================================================
+    axi_rom u_rom (
+        .clk           (clk),
+        .rst_n         (rst_n),
+        .s_axi_arid    (m07_axi_arid),
+        .s_axi_araddr  (m07_axi_araddr),
+        .s_axi_arlen   (m07_axi_arlen),
+        .s_axi_arsize  (m07_axi_arsize),
+        .s_axi_arburst (m07_axi_arburst),
+        .s_axi_arvalid (m07_axi_arvalid),
+        .s_axi_arready (m07_axi_arready),
+        .s_axi_rid     (m07_axi_rid),
+        .s_axi_rdata   (m07_axi_rdata),
+        .s_axi_rresp   (m07_axi_rresp),
+        .s_axi_rlast   (m07_axi_rlast),
+        .s_axi_rvalid  (m07_axi_rvalid),
+        .s_axi_rready  (m07_axi_rready),
+        .s_axi_awid    (m07_axi_awid),
+        .s_axi_awaddr  (m07_axi_awaddr),
+        .s_axi_awlen   (m07_axi_awlen),
+        .s_axi_awsize  (m07_axi_awsize),
+        .s_axi_awburst (m07_axi_awburst),
+        .s_axi_awvalid (m07_axi_awvalid),
+        .s_axi_awready (m07_axi_awready),
+        .s_axi_wdata   (m07_axi_wdata),
+        .s_axi_wstrb   (m07_axi_wstrb),
+        .s_axi_wlast   (m07_axi_wlast),
+        .s_axi_wvalid  (m07_axi_wvalid),
+        .s_axi_wready  (m07_axi_wready),
+        .s_axi_bid     (m07_axi_bid),
+        .s_axi_bresp   (m07_axi_bresp),
+        .s_axi_bvalid  (m07_axi_bvalid),
+        .s_axi_bready  (m07_axi_bready)
+    );
 
 endmodule

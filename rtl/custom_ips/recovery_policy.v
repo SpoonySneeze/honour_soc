@@ -28,6 +28,7 @@ module recovery_policy (
     input  wire        reg_we,
     input  wire [7:0]  reg_addr,
     input  wire [31:0] reg_wdata,
+    output wire        lockout_irq,
     output reg  [31:0] reg_rdata,
     output reg         reg_ack
 );

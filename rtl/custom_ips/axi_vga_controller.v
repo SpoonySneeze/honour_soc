@@ -1,5 +1,5 @@
 // ============================================================================
-// VGA Controller — Native AXI4 Wrapper
+// VGA Controller  Native AXI4 Wrapper
 // ============================================================================
 module axi_vga_controller (
     input  wire        clk,
@@ -49,7 +49,8 @@ module axi_vga_controller (
     // Functional
     output wire        vga_hsync,
     output wire        vga_vsync,
-    output wire [11:0] vga_rgb
+    output wire [11:0] vga_rgb,
+    output wire        vblank_irq
 );
 
     // Internal signals for generic register interface
@@ -73,7 +74,8 @@ module axi_vga_controller (
         .reg_ack   (reg_ack),
         .vga_hsync (vga_hsync),
         .vga_vsync (vga_vsync),
-        .vga_rgb   (vga_rgb)
+        .vga_rgb   (vga_rgb),
+        .vblank_irq(vblank_irq)
     );
 
     // AXI4 Slave FSM

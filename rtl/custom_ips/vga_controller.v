@@ -29,7 +29,8 @@ module vga_controller (
     // ---- VGA Output Signals ----
     output reg         vga_hsync,
     output reg         vga_vsync,
-    output reg  [11:0] vga_rgb
+    output reg  [11:0] vga_rgb,
+    output wire        vblank_irq
 );
 
     // ========================================================================

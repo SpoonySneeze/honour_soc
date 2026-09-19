@@ -1,5 +1,5 @@
 // ============================================================================
-// Recovery Policy — Native AXI4 Wrapper
+// Recovery Policy  Native AXI4 Wrapper
 // ============================================================================
 module axi_recovery_policy (
     input  wire        clk,
@@ -44,7 +44,8 @@ module axi_recovery_policy (
     output reg  [1:0]  s_axi_rresp,
     output reg         s_axi_rlast,
     output reg         s_axi_rvalid,
-    input  wire        s_axi_rready
+    input  wire        s_axi_rready,
+    output wire        lockout_irq
 );
 
     // Internal signals for generic register interface
@@ -65,7 +66,8 @@ module axi_recovery_policy (
         .reg_addr  (reg_addr),
         .reg_wdata (reg_wdata),
         .reg_rdata (reg_rdata),
-        .reg_ack   (reg_ack)
+        .reg_ack   (reg_ack),
+        .lockout_irq(lockout_irq)
     );
 
     // AXI4 Slave FSM
