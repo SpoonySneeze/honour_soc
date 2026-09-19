@@ -253,4 +253,11 @@ module vga_controller (
             vga_refresh_flag <= 1'b0;  // Clear at frame start
     end
 
+
+    // ========================================================================
+    // Hardware Interrupt Generation
+    // ========================================================================
+    // Pulse vblank_irq for exactly one system clock cycle at the start of VBLANK
+    assign vblank_irq = (v_count == V_ACTIVE && h_count == 10'd0 && pixel_clk_en) ? 1'b1 : 1'b0;
+
 endmodule

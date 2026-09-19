@@ -204,4 +204,17 @@ module recovery_policy (
         end
     end
 
+
+    // ========================================================================
+    // Hardware Interrupt Generation
+    // ========================================================================
+    reg lockout_prev;
+    always @(posedge clk) begin
+        if (!rst_n) lockout_prev <= 1'b0;
+        else lockout_prev <= lockout_flag;
+    end
+    
+    // Pulse lockout_irq for one clock cycle on rising edge of lockout_flag
+    assign lockout_irq = lockout_flag & ~lockout_prev;
+
 endmodule
