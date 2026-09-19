@@ -24,6 +24,7 @@ LDFLAGS = -T firmware/link.ld -nostartfiles -Wl,--no-relax
 
 # Target test program (defaults to 'firmware/main.c')
 TEST ?= main
+DEBUG ?= 0
 
 # ----------------------------------------------------------------------------
 # 2. Firmware Compilation Rules
@@ -61,9 +62,9 @@ sim_xsim: build_firmware
 	@# Check if we are running in WSL or native Windows. 
 	@# If WSL, we invoke cmd.exe to run the batch script.
 	@if [ -f "/proc/sys/fs/binfmt_misc/WSLInterop" ]; then \
-		cmd.exe /c run_xsim.bat; \
+		cmd.exe /c run_xsim.bat $(DEBUG); \
 	else \
-		./run_xsim.bat; \
+		./run_xsim.bat $(DEBUG); \
 	fi
 
 # ----------------------------------------------------------------------------
@@ -73,4 +74,4 @@ sim_xsim: build_firmware
 clean:
 	@echo "Cleaning firmware binaries and simulator logs..."
 	rm -f program.elf program.hex firmware.hex program.dump
-	rm -rf xsim.dir *.log *.pb *.jou *.wdb
+	rm -rf xsim.dir *.log *.pb *.jou *.wdb waves.vcd dump.tcl

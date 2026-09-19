@@ -12,4 +12,17 @@ xelab -debug typical -top tb_soc_top -snapshot tb_soc_top_snap
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 echo "Running simulation..."
-xsim tb_soc_top_snap -R
+
+if "%1"=="1" (
+    echo open_vcd waves.vcd > dump.tcl
+    echo log_vcd -recursive * >> dump.tcl
+    echo run all >> dump.tcl
+    echo close_vcd >> dump.tcl
+    echo quit >> dump.tcl
+    echo "Running simulation with VCD waveform dumping..."
+    xsim tb_soc_top_snap -tclbatch dump.tcl
+) else (
+    echo "Running simulation (No Waveforms)..."
+    xsim tb_soc_top_snap -R
+)
+
