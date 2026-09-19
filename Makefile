@@ -24,6 +24,7 @@ LDFLAGS = -T firmware/link.ld -nostartfiles -Wl,--no-relax
 
 # Target test program (defaults to 'firmware/main.c')
 TEST ?= main
+export RV_ROOT = rtl/core/Cores-VeeR-EL2
 DEBUG ?= 0
 
 # ----------------------------------------------------------------------------
@@ -67,11 +68,44 @@ sim_xsim: build_firmware
 		./run_xsim.bat $(DEBUG); \
 	fi
 
+
 # ----------------------------------------------------------------------------
-# 4. Cleanup
+# 5. Simulation Targets (Synopsys VCS on Linux)
+# ----------------------------------------------------------------------------
+VCS = vcs
+VCS_FLAGS = -full64 -sverilog -notice -debug_access+all -quiet -timescale=1ns/1ps
+
+# Gather all SoC files
+SOC_FILES = $(wildcard rtl/interconnect/*.v) \
+            $(wildcard rtl/custom_ips/*.v) \
+            $(wildcard rtl/ips/axi-lite_uart-ipcore-develop/src/rtl/*.v) \
+            rtl/soc_top.v \
+            tb/tb_soc_top.v
+
+INC_DIRS = +incdir+$(RV_ROOT)/design/include \
+           +incdir+$(RV_ROOT)/snapshots/default \
+           +incdir+rtl/ips/axi-lite_uart-ipcore-develop/src/include
+
+.PHONY: sim_vcs
+sim_vcs: build_firmware
+	@echo "================================================================"
+	@echo " [SIMULATION] Compiling with Synopsys VCS..."
+	@echo "================================================================"
+	$(VCS) $(VCS_FLAGS) $(INC_DIRS) -f $(RV_ROOT)/design/flist $(SOC_FILES) -o simv
+	@echo "================================================================"
+	@echo " [SIMULATION] Running VCS..."
+	@echo "================================================================"
+	@if [ "$(DEBUG)" = "1" ]; then \
+		./simv +vcs+dumpvars+waves.vpd; \
+	else \
+		./simv; \
+	fi
+
+# ----------------------------------------------------------------------------
+# 6. Cleanup
 # ----------------------------------------------------------------------------
 .PHONY: clean
 clean:
 	@echo "Cleaning firmware binaries and simulator logs..."
 	rm -f program.elf program.hex firmware.hex program.dump
-	rm -rf xsim.dir *.log *.pb *.jou *.wdb waves.vcd dump.tcl
+	rm -rf xsim.dir *.log *.pb *.jou *.wdb waves.vcd waves.vpd dump.tcl simv* csrc *.daidir
