@@ -465,3 +465,222 @@ Below is the production-ready C definition header matching this hardware registe
 
 #endif /* BMC_REGS_H */
 ```
+
+---
+
+## 11. Firmware Programming Sequences & C Driver Examples
+
+The following C driver routines demonstrate the exact programming sequence for operating the BMC hardware pipeline.
+
+### 11.1 System Initialization
+Executed once during BMC core boot:
+```c
+#include "bmc_regs.h"
+
+void bmc_init(uint32_t hb_timeout_cycles, uint32_t window_cycles, uint8_t max_recoveries) {
+    /* 1. Disable Heartbeat Monitor during configuration */
+    HB_CTRL = 0;
+
+    /* 2. Configure detection timeout (e.g., 50,000,000 cycles for 500ms @ 100MHz) */
+    HB_THRESHOLD = hb_timeout_cycles;
+
+    /* 3. Configure Reset Sequencer hold duration (default 100 cycles) */
+    RST_HOLD_CYCLES = 100;
+
+    /* 4. Configure Recovery Policy rolling window and crash-loop threshold */
+    POL_WINDOW = window_cycles;
+    POL_THRESHOLD = max_recoveries;
+
+    /* 5. Enable Heartbeat Monitor */
+    HB_CTRL = HB_CTRL_ENABLE;
+
+    /* 6. Enable VGA live status display */
+    VGA_CTRL = VGA_CTRL_ENABLE;
+}
+```
+
+### 11.2 Detection & Automated Recovery Loop
+The main polling routine executed by firmware:
+```c
+void bmc_run_management_cycle(void) {
+    uint32_t hb_status = HB_STATUS;
+    uint32_t pol_status = POL_STATUS;
+
+    /* Check if host system has stopped pulsing */
+    if (hb_status & HB_STAT_UNRESP) {
+        
+        /* Check if system is currently locked out from automated reboots */
+        if (pol_status & POL_STAT_LOCKOUT) {
+            /* Escalation: Crash loop detected! Do not reboot host. */
+            bmc_vga_display_state("CRASH LOOP LOCKED OUT  ");
+            return;
+        }
+
+        /* 1. Sample current hardware timestamp */
+        uint32_t current_ts = TMR_CTR;
+
+        /* 2. Trigger hardware reset sequence (active-low pulse) */
+        RST_CTRL = RST_CTRL_TRIGGER;
+
+        /* 3. Wait for hardware pulse completion */
+        while (!(RST_STATUS & RST_STAT_COMP)) {
+            /* Hardware automatically manages exact countdown timing */
+        }
+
+        /* 4. Stage timestamp and record event in circular log */
+        POL_EVENT_TS = current_ts;
+        POL_CTRL = POL_CTRL_RECORD;
+
+        /* 5. Acknowledge and clear unresponsive flag */
+        HB_CTRL = HB_CTRL_ENABLE | HB_CTRL_CLEAR;
+    }
+}
+```
+
+### 11.3 Reading Historical Event Log Entries
+Routine to dump all recorded failure timestamps over UART:
+```c
+void bmc_dump_log(void) {
+    uint32_t total_events = LOG_COUNT;
+    uint32_t entries_to_read = (total_events > 16) ? 16 : total_events;
+
+    for (uint32_t i = 0; i < entries_to_read; i++) {
+        /* Set index pointer into circular buffer */
+        LOG_READ_IDX = i;
+        /* Read timestamp */
+        uint32_t ts = LOG_READ_DATA;
+        /* Print or process ts */
+    }
+}
+```
+
+### 11.4 Updating the Live VGA Dashboard
+Writes text directly into the 120-character frame buffer:
+```c
+void bmc_vga_write_row(int row, const char *str) {
+    /* 3 rows, 40 characters per row (10 32-bit words per row) */
+    uint32_t start_word = row * 10;
+
+    for (int w = 0; w < 10; w++) {
+        uint32_t packed = 0;
+        for (int b = 0; b < 4; b++) {
+            char c = *str ? *str++ : ' ';
+            packed = (packed << 8) | (uint8_t)c;
+        }
+        VGA_BUF_WORD(start_word + w) = packed;
+    }
+}
+```
+
+---
+
+## 12. Hardware State Machine (FSM) Specifications
+
+### 12.1 Heartbeat Monitor FSM
+Implemented in [`heartbeat_monitor.v`](file:///home/student/sriv_183/honour_soc/rtl/custom_ips/heartbeat_monitor.v):
+
+```
+                     +--------------+
+        +----------->| ST_DISABLED  |<------------------------+
+        |            |   (2'b00)    |                         |
+        |            +--------------+                         |
+        |                   | (hb_enable == 1)                |
+        |                   v                                 |
+        |            +--------------+                         |
+        |            |   ST_IDLE    |<-------------+          |
+        |            |   (2'b01)    |              |          |
+        |            +--------------+              |          |
+(!hb_enable)                | (rising edge)        |          | (!hb_enable)
+        |                   v                      |          |
+        |            +--------------+              |          |
+        |            | ST_COUNTING  |              |          |
+        |            |   (2'b10)    |              |          |
+        +------------+--------------+              |          |
+                            |                      |          |
+              (counter >= threshold)       (clear_flag_req)   |
+                            |                      |          |
+                            v                      |          |
+                     +--------------+              |          |
+                     |ST_UNRESPONSIV|--------------+----------+
+                     |   (2'b11)    |
+                     +--------------+
+```
+
+- **`ST_DISABLED` (`2'b00`)**: Counter halted at 0, unresponsive flag held low.
+- **`ST_IDLE` (`2'b01`)**: Waiting for first rising edge of `heartbeat_in` to synchronize.
+- **`ST_COUNTING` (`2'b10`)**: Increments `hb_counter` every cycle. Resets counter to 0 on each detected rising edge. Transitions to `ST_UNRESPONSIVE` if counter reaches `HB_THRESHOLD`.
+- **`ST_UNRESPONSIVE` (`2'b11`)**: `hb_unresponsive_flag` latched HIGH. Counter continues incrementing for readback of total freeze time. Transitions back to `ST_IDLE` upon writing `HB_CTRL[1] = 1`.
+
+---
+
+### 12.2 Power/Reset Sequencer FSM
+Implemented in [`reset_sequencer.v`](file:///home/student/sriv_183/honour_soc/rtl/custom_ips/reset_sequencer.v):
+
+```
+       +-------------------------------------------------------+
+       |                                                       |
+       v                                                       |
++--------------+   trigger_req    +--------------+             |
+|   ST_IDLE    |----------------->|  ST_ASSERT   |             |
+|   (2'b00)    |  (rst_out = 1)   |   (2'b01)    |             |
++--------------+                  +--------------+             |
+       ^                                 |                     |
+       |                                 | (countdown == 0)    |
+       |                                 v                     |
++--------------+                  +--------------+             |
+|   ST_DONE    |<-----------------| ST_DEASSERT  |             |
+|   (2'b11)    |  (rst_out = 1)   |   (2'b10)    |             |
++--------------+                  +--------------+             |
+       |                                                       |
+       +-------------------------------------------------------+
+```
+
+- **`ST_IDLE` (`2'b00`)**: `reset_out = 1` (deasserted). Waiting for `RST_CTRL[0] = 1`.
+- **`ST_ASSERT` (`2'b01`)**: `reset_out = 0` (actively asserted). `rst_countdown` decrements from `RST_HOLD_CYCLES` to 0.
+- **`ST_DEASSERT` (`2'b10`)**: `reset_out = 1` (returned HIGH).
+- **`ST_DONE` (`2'b11`)**: `rst_complete` latched HIGH. Returns to `ST_IDLE` on next clock.
+
+---
+
+### 12.3 Recovery Policy Circular Buffer & Window Logic
+Implemented in [`recovery_policy.v`](file:///home/student/sriv_183/honour_soc/rtl/custom_ips/recovery_policy.v):
+
+- **Circular Buffer Mechanics**:
+  - Buffer depth: 16 words (`reg [31:0] log_buffer [0:15]`).
+  - Write pointer `log_wr_ptr` wraps automatically: `log_wr_ptr <= log_wr_ptr + 4'd1`.
+  - Cumulative counter `log_count` increments up to saturating limit `0xFFFFFFFF`.
+- **Fixed-Window Lockout Policy**:
+  - `window_counter` increments every cycle up to `POL_WINDOW`.
+  - When `window_counter >= POL_WINDOW`: `window_counter <= 0` and `window_recovery_count <= 0`.
+  - On each `record_event`: `window_recovery_count <= window_recovery_count + 1`.
+  - If `(window_recovery_count + 1) >= POL_THRESHOLD`: `lockout_flag <= 1` (sticky).
+  - Cleared only by firmware writing `POL_CTRL[1] = 1`.
+
+---
+
+## 13. Bus Timing, Error Handling & Protocol Rules
+
+1. **Transaction Timing**:
+   - Single-cycle acknowledge (`wb_ack_o = wb_stb_i & wb_cyc_i & ~wb_ack_o`).
+   - Every valid read and write completes in 1 clock cycle without wait states.
+2. **Bus Error Generation**:
+   - The interconnect asserts `wbm_err_o = 1` whenever `wbm_adr_i[15:8] > 8'h06` (access to unmapped peripheral space).
+3. **Write-Only / Read-Only Behavior**:
+   - Writing to read-only addresses (`HB_STATUS`, `HB_ELAPSED`, `RST_STATUS`, `POL_STATUS`, `LOG_READ_DATA`, `LOG_COUNT`, `VGA_STATUS`) is safely ignored.
+   - Reading write-only addresses (`RST_CTRL`, `POL_CTRL`, `POL_EVENT_TS`) returns `32'h0000_0000`.
+4. **Self-Clearing Bits**:
+   - Control strobes (`HB_CTRL[1]`, `RST_CTRL[0]`, `POL_CTRL[0]`, `POL_CTRL[1]`) are active for exactly **one clock cycle** and automatically deassert in hardware.
+
+---
+
+## 14. Interrupt Architecture
+
+In addition to register polling, the Heartbeat Monitor provides an optional hardware interrupt:
+- **Signal**: `hb_irq` (output from `heartbeat_monitor.v`).
+- **Trigger**: Directly mirrors `hb_unresponsive_flag`. Asserts HIGH when a heartbeat timeout occurs.
+- **Connection**: Mapped to the VeeR EL2 Programmable Interrupt Controller (PIC) external interrupt source line:
+  ```verilog
+  .extintsrc_req ({...hb_irq...})
+  ```
+- **Clearing**: Writing `HB_CTRL[1] = 1` deasserts the flag and clears the interrupt line simultaneously.
+
