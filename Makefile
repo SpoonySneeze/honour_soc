@@ -30,9 +30,9 @@ BUILD_DIR    = build
 SRC_ALL_INTERCON = $(wildcard $(INTERCON_DIR)/*.v)
 
 # Source files — Custom IPs
-SRC_HBM = $(CUSTOM_DIR)/heartbeat_monitor.v
-SRC_RST = $(CUSTOM_DIR)/reset_sequencer.v
-SRC_POL = $(CUSTOM_DIR)/recovery_policy.v
+SRC_HBM = $(CUSTOM_DIR)/heartbeat_monitor.v $(CUSTOM_DIR)/axi_heartbeat_monitor.v
+SRC_RST = $(CUSTOM_DIR)/reset_sequencer.v $(CUSTOM_DIR)/axi_reset_sequencer.v
+SRC_POL = $(CUSTOM_DIR)/recovery_policy.v $(CUSTOM_DIR)/axi_recovery_policy.v
 SRC_VGA = $(CUSTOM_DIR)/vga_controller.v
 SRC_BRG = $(CUSTOM_DIR)/axi4_to_wb_bridge.v
 SRC_WBI = $(CUSTOM_DIR)/wb_interconnect.v
@@ -230,3 +230,35 @@ clean:
 	rm -rf simv* csrc *.daidir ucli.key vc_hdrs.h *.vpd *.fsdb *.vcd
 	rm -rf novas.* verdiLog
 	@echo "Clean completed."
+
+# ============================================================================
+# Icarus Verilog Build Targets for AXI Wrappers
+# ============================================================================
+IVERILOG       = iverilog
+IVERILOG_FLAGS = -Wall -g2012
+
+veri_hbm: rtl/custom_ips/heartbeat_monitor.v rtl/custom_ips/axi_heartbeat_monitor.v tb/tb_heartbeat_monitor.v | build
+	@echo ">>> Compiling AXI Heartbeat Monitor with Icarus Verilog..."
+	$(IVERILOG) $(IVERILOG_FLAGS) -o build/veri_hbm rtl/custom_ips/heartbeat_monitor.v rtl/custom_ips/axi_heartbeat_monitor.v tb/tb_heartbeat_monitor.v
+	@echo ">>> Running Icarus Verilog AXI Heartbeat Monitor Test..."
+	vvp build/veri_hbm
+
+veri_rst: rtl/custom_ips/reset_sequencer.v rtl/custom_ips/axi_reset_sequencer.v tb/tb_reset_sequencer.v | build
+	@echo ">>> Compiling AXI Reset Sequencer with Icarus Verilog..."
+	$(IVERILOG) $(IVERILOG_FLAGS) -o build/veri_rst rtl/custom_ips/reset_sequencer.v rtl/custom_ips/axi_reset_sequencer.v tb/tb_reset_sequencer.v
+	@echo ">>> Running Icarus Verilog AXI Reset Sequencer Test..."
+	vvp build/veri_rst
+
+veri_pol: rtl/custom_ips/recovery_policy.v rtl/custom_ips/axi_recovery_policy.v tb/tb_recovery_policy.v | build
+	@echo ">>> Compiling AXI Recovery Policy with Icarus Verilog..."
+	$(IVERILOG) $(IVERILOG_FLAGS) -o build/veri_pol rtl/custom_ips/recovery_policy.v rtl/custom_ips/axi_recovery_policy.v tb/tb_recovery_policy.v
+	@echo ">>> Running Icarus Verilog AXI Recovery Policy Test..."
+	vvp build/veri_pol
+
+iverilog:
+	@echo "Using Icarus Verilog..."
+
+veri_all: veri_hbm veri_rst veri_pol
+	@echo "================================================================"
+	@echo " All AXI Wrapper tests completed successfully!"
+	@echo "================================================================"

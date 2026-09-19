@@ -17,16 +17,14 @@
 
 module vga_controller (
     // ---- Wishbone Slave Interface ----
-    input  wire        wb_clk_i,
-    input  wire        wb_rst_i,
-    input  wire [7:0]  wb_adr_i,
-    input  wire [31:0] wb_dat_i,
-    output reg  [31:0] wb_dat_o,
-    input  wire        wb_we_i,
-    input  wire [3:0]  wb_sel_i,
-    input  wire        wb_stb_i,
-    input  wire        wb_cyc_i,
-    output reg         wb_ack_o,
+    input  wire        clk,
+    input  wire        rst_n,
+    input  wire        reg_en,
+    input  wire        reg_we,
+    input  wire [7:0]  reg_addr,
+    input  wire [31:0] reg_wdata,
+    output reg  [31:0] reg_rdata,
+    output reg         reg_ack,
 
     // ---- VGA Output Signals ----
     output reg         vga_hsync,
@@ -89,8 +87,8 @@ module vga_controller (
     // Pixel Clock Divider
     // ========================================================================
     // Generate pixel clock enable (1-in-4 for 100MHz sys clock → 25MHz pixel)
-    always @(posedge wb_clk_i) begin
-        if (wb_rst_i)
+    always @(posedge clk) begin
+        if (!rst_n)
             pixel_clk_div <= 2'd0;
         else
             pixel_clk_div <= pixel_clk_div + 2'd1;
@@ -101,30 +99,30 @@ module vga_controller (
     // ========================================================================
     // Wishbone Bus Interface
     // ========================================================================
-    always @(posedge wb_clk_i) begin
-        if (wb_rst_i)
-            wb_ack_o <= 1'b0;
+    always @(posedge clk) begin
+        if (!rst_n)
+            reg_ack <= 1'b0;
         else
-            wb_ack_o <= wb_stb_i & wb_cyc_i & ~wb_ack_o;
+            reg_ack <= reg_en & ~reg_ack;
     end
 
     // Register writes
     integer j;
-    always @(posedge wb_clk_i) begin
-        if (wb_rst_i) begin
+    always @(posedge clk) begin
+        if (!rst_n) begin
             vga_enable       <= 1'b0;
             vga_refresh_flag <= 1'b0;
             for (j = 0; j < 30; j = j + 1)
                 dashboard_buffer[j] <= 32'h20202020;  // Spaces
-        end else if (wb_stb_i && wb_cyc_i && wb_we_i && !wb_ack_o) begin
-            case (wb_adr_i)
+        end else if (reg_en && reg_we && !reg_ack) begin
+            case (reg_addr)
                 ADDR_VGA_CTRL: begin
-                    vga_enable <= wb_dat_i[0];
+                    vga_enable <= reg_wdata[0];
                 end
                 default: begin
                     // Buffer writes: address 0x08–0x7F
-                    if (wb_adr_i >= 8'h08 && wb_adr_i <= 8'h7F) begin
-                        dashboard_buffer[(wb_adr_i - 8'h08) >> 2] <= wb_dat_i;
+                    if (reg_addr >= 8'h08 && reg_addr <= 8'h7F) begin
+                        dashboard_buffer[(reg_addr - 8'h08) >> 2] <= reg_wdata;
                         vga_refresh_flag <= 1'b1;
                     end
                 end
@@ -134,15 +132,15 @@ module vga_controller (
 
     // Register reads
     always @(*) begin
-        wb_dat_o = 32'd0;
-        case (wb_adr_i)
-            ADDR_VGA_CTRL:   wb_dat_o = {31'd0, vga_enable};
-            ADDR_VGA_STATUS: wb_dat_o = {31'd0, vga_refresh_flag};
+        reg_rdata = 32'd0;
+        case (reg_addr)
+            ADDR_VGA_CTRL:   reg_rdata = {31'd0, vga_enable};
+            ADDR_VGA_STATUS: reg_rdata = {31'd0, vga_refresh_flag};
             default: begin
-                if (wb_adr_i >= 8'h08 && wb_adr_i <= 8'h7F)
-                    wb_dat_o = dashboard_buffer[(wb_adr_i - 8'h08) >> 2];
+                if (reg_addr >= 8'h08 && reg_addr <= 8'h7F)
+                    reg_rdata = dashboard_buffer[(reg_addr - 8'h08) >> 2];
                 else
-                    wb_dat_o = 32'd0;
+                    reg_rdata = 32'd0;
             end
         endcase
     end
@@ -150,8 +148,8 @@ module vga_controller (
     // ========================================================================
     // Scan Counters
     // ========================================================================
-    always @(posedge wb_clk_i) begin
-        if (wb_rst_i) begin
+    always @(posedge clk) begin
+        if (!rst_n) begin
             h_count <= 10'd0;
             v_count <= 10'd0;
         end else if (pixel_clk_en) begin
@@ -173,8 +171,8 @@ module vga_controller (
     // ========================================================================
     // Sync Signal Generation
     // ========================================================================
-    always @(posedge wb_clk_i) begin
-        if (wb_rst_i) begin
+    always @(posedge clk) begin
+        if (!rst_n) begin
             vga_hsync <= 1'b1;
             vga_vsync <= 1'b1;
         end else if (pixel_clk_en) begin
@@ -231,8 +229,8 @@ module vga_controller (
     // ========================================================================
     // RGB Output
     // ========================================================================
-    always @(posedge wb_clk_i) begin
-        if (wb_rst_i) begin
+    always @(posedge clk) begin
+        if (!rst_n) begin
             vga_rgb <= 12'h000;
         end else if (pixel_clk_en) begin
             if (!vga_enable || !active_video)
@@ -247,8 +245,8 @@ module vga_controller (
     // ========================================================================
     // Refresh flag — clear at start of each frame
     // ========================================================================
-    always @(posedge wb_clk_i) begin
-        if (wb_rst_i)
+    always @(posedge clk) begin
+        if (!rst_n)
             vga_refresh_flag <= 1'b0;
         else if (pixel_clk_en && h_count == 10'd0 && v_count == 10'd0)
             vga_refresh_flag <= 1'b0;  // Clear at frame start

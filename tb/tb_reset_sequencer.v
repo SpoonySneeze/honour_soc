@@ -28,16 +28,38 @@ module tb_reset_sequencer;
     // ========================================================================
     reg         clk;
     reg         rst;
-    reg  [7:0]  wb_adr;
-    reg  [31:0] wb_dat_wr;
-    wire [31:0] wb_dat_rd;
-    reg         wb_we;
-    reg  [3:0]  wb_sel;
-    reg         wb_stb;
-    reg         wb_cyc;
-    wire        wb_ack;
-    wire        reset_out;
+    reg  [7:0]  axi_awaddr;
+    reg         axi_awvalid;
+    wire        axi_awready;
+    reg  [63:0] axi_wdata;
+    reg  [3:0]  axi_wstrb;
+    reg         axi_wvalid;
+    wire        axi_wready;
+    wire [1:0]  axi_bresp;
+    wire        axi_bvalid;
+    reg         axi_bready;
+    reg  [7:0]  axi_araddr;
+    reg         axi_arvalid;
+    wire        axi_arready;
+    wire [63:0] axi_rdata;
+    wire [1:0]  axi_rresp;
+    wire        axi_rvalid;
+    reg         axi_rready;
 
+    // Concurrent handshake clear logic
+    always @(posedge clk) begin
+        if (rst) begin
+            axi_awvalid <= 1'b0;
+            axi_wvalid  <= 1'b0;
+            axi_arvalid <= 1'b0;
+        end else begin
+            if (axi_awvalid && axi_awready) axi_awvalid <= 1'b0;
+            if (axi_wvalid && axi_wready)   axi_wvalid <= 1'b0;
+            if (axi_arvalid && axi_arready) axi_arvalid <= 1'b0;
+        end
+    end
+
+    wire        reset_out;
     // Test tracking
     integer test_num;
     integer pass_count;
@@ -47,18 +69,29 @@ module tb_reset_sequencer;
     // ========================================================================
     // DUT Instantiation
     // ========================================================================
-    reset_sequencer dut (
-        .wb_clk_i  (clk),
-        .wb_rst_i  (rst),
-        .wb_adr_i  (wb_adr),
-        .wb_dat_i  (wb_dat_wr),
-        .wb_dat_o  (wb_dat_rd),
-        .wb_we_i   (wb_we),
-        .wb_sel_i  (wb_sel),
-        .wb_stb_i  (wb_stb),
-        .wb_cyc_i  (wb_cyc),
-        .wb_ack_o  (wb_ack),
-        .reset_out (reset_out)
+    axi_reset_sequencer dut (
+        .clk         (clk),
+        .rst_n       (~rst),
+        .s_axi_awaddr (axi_awaddr),
+        .s_axi_awprot (3'b0),
+        .s_axi_awvalid(axi_awvalid),
+        .s_axi_awready(axi_awready),
+        .s_axi_wdata  (axi_wdata),
+        .s_axi_wstrb  (axi_wstrb),
+        .s_axi_wvalid (axi_wvalid),
+        .s_axi_wready (axi_wready),
+        .s_axi_bresp  (axi_bresp),
+        .s_axi_bvalid (axi_bvalid),
+        .s_axi_bready (axi_bready),
+        .s_axi_araddr (axi_araddr),
+        .s_axi_arprot (3'b0),
+        .s_axi_arvalid(axi_arvalid),
+        .s_axi_arready(axi_arready),
+        .s_axi_rdata  (axi_rdata),
+        .s_axi_rresp  (axi_rresp),
+        .s_axi_rvalid (axi_rvalid),
+        .s_axi_rready (axi_rready),
+        .reset_out(reset_out)
     );
 
     // ========================================================================
@@ -68,39 +101,38 @@ module tb_reset_sequencer;
     always #(CLK_PERIOD/2) clk = ~clk;
 
     // ========================================================================
-    // Wishbone Bus Tasks
+    // AXI-Lite Bus Tasks
     // ========================================================================
-    task wb_write(input [7:0] addr, input [31:0] data);
+    task axi_write(input [7:0] addr, input [31:0] data);
         begin
             @(posedge clk);
-            wb_adr    <= addr;
-            wb_dat_wr <= data;
-            wb_we     <= 1'b1;
-            wb_sel    <= 4'hF;
-            wb_stb    <= 1'b1;
-            wb_cyc    <= 1'b1;
-            @(posedge clk);
-            while (!wb_ack) @(posedge clk);
-            wb_stb <= 1'b0;
-            wb_cyc <= 1'b0;
-            wb_we  <= 1'b0;
+            axi_awaddr  <= addr;
+            axi_awvalid <= 1'b1;
+            axi_wdata   <= addr[2] ? {data, 32'd0} : {32'd0, data};
+            axi_wstrb   <= 4'hF;
+            axi_wvalid  <= 1'b1;
+            axi_bready  <= 1'b1;
+            
+            while (axi_awvalid || axi_wvalid) @(posedge clk);
+            
+            while (!axi_bvalid) @(posedge clk);
+            axi_bready <= 1'b0;
             @(posedge clk);
         end
     endtask
 
-    task wb_read(input [7:0] addr, output [31:0] data);
+    task axi_read(input [7:0] addr, output [31:0] data);
         begin
             @(posedge clk);
-            wb_adr <= addr;
-            wb_we  <= 1'b0;
-            wb_sel <= 4'hF;
-            wb_stb <= 1'b1;
-            wb_cyc <= 1'b1;
-            @(posedge clk);
-            while (!wb_ack) @(posedge clk);
-            data = wb_dat_rd;
-            wb_stb <= 1'b0;
-            wb_cyc <= 1'b0;
+            axi_araddr  <= addr;
+            axi_arvalid <= 1'b1;
+            axi_rready  <= 1'b1;
+            
+            while (axi_arvalid) @(posedge clk);
+            
+            while (!axi_rvalid) @(posedge clk);
+            data = addr[2] ? axi_rdata[63:32] : axi_rdata[31:0];
+            axi_rready <= 1'b0;
             @(posedge clk);
         end
     endtask
@@ -136,12 +168,15 @@ module tb_reset_sequencer;
 
         // Initialize
         rst            = 1;
-        wb_adr         = 0;
-        wb_dat_wr      = 0;
-        wb_we          = 0;
-        wb_sel         = 0;
-        wb_stb         = 0;
-        wb_cyc         = 0;
+        axi_awaddr  = 0;
+        axi_awvalid = 0;
+        axi_wdata   = 0;
+        axi_wstrb   = 0;
+        axi_wvalid  = 0;
+        axi_bready  = 0;
+        axi_araddr  = 0;
+        axi_arvalid = 0;
+        axi_rready  = 0;
         test_num       = 0;
         pass_count     = 0;
         fail_count     = 0;
@@ -161,17 +196,17 @@ module tb_reset_sequencer;
         test_num = 1;
         $display("\n=== TEST %0d: Basic Reset Pulse (50 cycles) ===", test_num);
 
-        wb_write(ADDR_RST_HOLD_CYCLES, 32'd50);
+        axi_write(ADDR_RST_HOLD_CYCLES, 32'd50);
         reset_low_count = 0;
 
         // Trigger
-        wb_write(ADDR_RST_CTRL, 32'h0001);
+        axi_write(ADDR_RST_CTRL, 32'h0001);
 
         // Wait for completion
         repeat (70) @(posedge clk);
 
         // Check status — should be complete
-        wb_read(ADDR_RST_STATUS, read_data);
+        axi_read(ADDR_RST_STATUS, read_data);
         check(32'h0002, read_data & 32'h0003, "RST_STATUS: complete=1, in_progress=0");
 
         // Check reset_out returned high
@@ -193,20 +228,20 @@ module tb_reset_sequencer;
         test_num = 2;
         $display("\n=== TEST %0d: Status Flags ===", test_num);
 
-        wb_write(ADDR_RST_HOLD_CYCLES, 32'd100);
+        axi_write(ADDR_RST_HOLD_CYCLES, 32'd100);
 
         // Trigger
-        wb_write(ADDR_RST_CTRL, 32'h0001);
+        axi_write(ADDR_RST_CTRL, 32'h0001);
 
         // Read status immediately — should be in_progress
         repeat (3) @(posedge clk);
-        wb_read(ADDR_RST_STATUS, read_data);
+        axi_read(ADDR_RST_STATUS, read_data);
         check(32'h0001, read_data & 32'h0001, "in_progress=1 during sequence");
 
         // Wait for completion
         repeat (120) @(posedge clk);
 
-        wb_read(ADDR_RST_STATUS, read_data);
+        axi_read(ADDR_RST_STATUS, read_data);
         check(32'h0002, read_data & 32'h0003, "complete=1 after sequence");
 
         // ==================================================================
@@ -215,15 +250,15 @@ module tb_reset_sequencer;
         test_num = 3;
         $display("\n=== TEST %0d: Re-trigger While Busy ===", test_num);
 
-        wb_write(ADDR_RST_HOLD_CYCLES, 32'd80);
+        axi_write(ADDR_RST_HOLD_CYCLES, 32'd80);
         reset_low_count = 0;
 
         // Trigger first sequence
-        wb_write(ADDR_RST_CTRL, 32'h0001);
+        axi_write(ADDR_RST_CTRL, 32'h0001);
         repeat (20) @(posedge clk);
 
         // Try to re-trigger (should be ignored)
-        wb_write(ADDR_RST_CTRL, 32'h0001);
+        axi_write(ADDR_RST_CTRL, 32'h0001);
 
         // Wait for original sequence to complete
         repeat (100) @(posedge clk);
@@ -247,13 +282,13 @@ module tb_reset_sequencer;
         test_num = 4;
         $display("\n=== TEST %0d: Configurable Hold Duration (10 cycles) ===", test_num);
 
-        wb_write(ADDR_RST_HOLD_CYCLES, 32'd10);
+        axi_write(ADDR_RST_HOLD_CYCLES, 32'd10);
         reset_low_count = 0;
 
-        wb_write(ADDR_RST_CTRL, 32'h0001);
+        axi_write(ADDR_RST_CTRL, 32'h0001);
         repeat (30) @(posedge clk);
 
-        wb_read(ADDR_RST_STATUS, read_data);
+        axi_read(ADDR_RST_STATUS, read_data);
         check(32'h0002, read_data & 32'h0003, "Complete after short hold");
 
         $display("  [INFO] reset_out was low for %0d cycles", reset_low_count);
@@ -271,19 +306,19 @@ module tb_reset_sequencer;
         test_num = 5;
         $display("\n=== TEST %0d: Back-to-Back Sequential Triggers ===", test_num);
 
-        wb_write(ADDR_RST_HOLD_CYCLES, 32'd15);
+        axi_write(ADDR_RST_HOLD_CYCLES, 32'd15);
 
         // First trigger
-        wb_write(ADDR_RST_CTRL, 32'h0001);
+        axi_write(ADDR_RST_CTRL, 32'h0001);
         repeat (30) @(posedge clk);
-        wb_read(ADDR_RST_STATUS, read_data);
+        axi_read(ADDR_RST_STATUS, read_data);
         check(32'h0002, read_data & 32'h0003, "First sequential trigger complete");
 
         // Second trigger
         reset_low_count = 0;
-        wb_write(ADDR_RST_CTRL, 32'h0001);
+        axi_write(ADDR_RST_CTRL, 32'h0001);
         repeat (30) @(posedge clk);
-        wb_read(ADDR_RST_STATUS, read_data);
+        axi_read(ADDR_RST_STATUS, read_data);
         check(32'h0002, read_data & 32'h0003, "Second sequential trigger complete");
 
         // ==================================================================

@@ -636,11 +636,7 @@ module soc_top (
     wire [31:0] wbs5_dat_o, wbs5_dat_i;
     wire        wbs5_we, wbs5_stb, wbs5_cyc, wbs5_ack;
     wire [3:0]  wbs5_sel;
-    // Slave 6: VGA Controller
-    wire [7:0]  wbs6_adr;
-    wire [31:0] wbs6_dat_o, wbs6_dat_i;
-    wire        wbs6_we, wbs6_stb, wbs6_cyc, wbs6_ack;
-    wire [3:0]  wbs6_sel;
+    
 
     // ---- Point-to-point inter-IP signals ----
     wire        hb_irq;            // Heartbeat Monitor → PIC
@@ -1307,14 +1303,10 @@ module soc_top (
         .wb_err_i      (1'b0)
     );
 
-    // Bridge 3: Heartbeat Monitor
-    axi4_to_wb_bridge #(
-        .AXI_ADDR_WIDTH (32),
-        .AXI_DATA_WIDTH (64),
-        .AXI_ID_WIDTH   (8),
-        .WB_ADDR_WIDTH  (8),
-        .WB_DATA_WIDTH  (32)
-    ) u_bridge_s3 (
+    // ========================================================================
+    // Slave 3: Heartbeat Monitor (AXI Wrapper)
+    // ========================================================================
+    axi_heartbeat_monitor u_heartbeat (
         .clk           (clk),
         .rst_n         (rst_n),
         .s_axi_awid    (m03_axi_awid),
@@ -1348,282 +1340,8 @@ module soc_top (
         .s_axi_rlast   (m03_axi_rlast),
         .s_axi_rvalid  (m03_axi_rvalid),
         .s_axi_rready  (m03_axi_rready),
-        .wb_adr_o      (wbs3_adr),
-        .wb_dat_o      (wbs3_dat_o),
-        .wb_dat_i      (wbs3_dat_i),
-        .wb_we_o       (wbs3_we),
-        .wb_sel_o      (wbs3_sel),
-        .wb_stb_o      (wbs3_stb),
-        .wb_cyc_o      (wbs3_cyc),
-        .wb_ack_i      (wbs3_ack),
-        .wb_err_i      (1'b0)
-    );
-
-    // Bridge 4: Reset Sequencer
-    axi4_to_wb_bridge #(
-        .AXI_ADDR_WIDTH (32),
-        .AXI_DATA_WIDTH (64),
-        .AXI_ID_WIDTH   (8),
-        .WB_ADDR_WIDTH  (8),
-        .WB_DATA_WIDTH  (32)
-    ) u_bridge_s4 (
-        .clk           (clk),
-        .rst_n         (rst_n),
-        .s_axi_awid    (m04_axi_awid),
-        .s_axi_awaddr  (m04_axi_awaddr),
-        .s_axi_awlen   (m04_axi_awlen),
-        .s_axi_awsize  (m04_axi_awsize),
-        .s_axi_awburst (m04_axi_awburst),
-        .s_axi_awprot  (m04_axi_awprot),
-        .s_axi_awvalid (m04_axi_awvalid),
-        .s_axi_awready (m04_axi_awready),
-        .s_axi_wdata   (m04_axi_wdata),
-        .s_axi_wstrb   (m04_axi_wstrb),
-        .s_axi_wlast   (m04_axi_wlast),
-        .s_axi_wvalid  (m04_axi_wvalid),
-        .s_axi_wready  (m04_axi_wready),
-        .s_axi_bid     (m04_axi_bid),
-        .s_axi_bresp   (m04_axi_bresp),
-        .s_axi_bvalid  (m04_axi_bvalid),
-        .s_axi_bready  (m04_axi_bready),
-        .s_axi_arid    (m04_axi_arid),
-        .s_axi_araddr  (m04_axi_araddr),
-        .s_axi_arlen   (m04_axi_arlen),
-        .s_axi_arsize  (m04_axi_arsize),
-        .s_axi_arburst (m04_axi_arburst),
-        .s_axi_arprot  (m04_axi_arprot),
-        .s_axi_arvalid (m04_axi_arvalid),
-        .s_axi_arready (m04_axi_arready),
-        .s_axi_rid     (m04_axi_rid),
-        .s_axi_rdata   (m04_axi_rdata),
-        .s_axi_rresp   (m04_axi_rresp),
-        .s_axi_rlast   (m04_axi_rlast),
-        .s_axi_rvalid  (m04_axi_rvalid),
-        .s_axi_rready  (m04_axi_rready),
-        .wb_adr_o      (wbs4_adr),
-        .wb_dat_o      (wbs4_dat_o),
-        .wb_dat_i      (wbs4_dat_i),
-        .wb_we_o       (wbs4_we),
-        .wb_sel_o      (wbs4_sel),
-        .wb_stb_o      (wbs4_stb),
-        .wb_cyc_o      (wbs4_cyc),
-        .wb_ack_i      (wbs4_ack),
-        .wb_err_i      (1'b0)
-    );
-
-    // Bridge 5: Recovery Policy
-    axi4_to_wb_bridge #(
-        .AXI_ADDR_WIDTH (32),
-        .AXI_DATA_WIDTH (64),
-        .AXI_ID_WIDTH   (8),
-        .WB_ADDR_WIDTH  (8),
-        .WB_DATA_WIDTH  (32)
-    ) u_bridge_s5 (
-        .clk           (clk),
-        .rst_n         (rst_n),
-        .s_axi_awid    (m05_axi_awid),
-        .s_axi_awaddr  (m05_axi_awaddr),
-        .s_axi_awlen   (m05_axi_awlen),
-        .s_axi_awsize  (m05_axi_awsize),
-        .s_axi_awburst (m05_axi_awburst),
-        .s_axi_awprot  (m05_axi_awprot),
-        .s_axi_awvalid (m05_axi_awvalid),
-        .s_axi_awready (m05_axi_awready),
-        .s_axi_wdata   (m05_axi_wdata),
-        .s_axi_wstrb   (m05_axi_wstrb),
-        .s_axi_wlast   (m05_axi_wlast),
-        .s_axi_wvalid  (m05_axi_wvalid),
-        .s_axi_wready  (m05_axi_wready),
-        .s_axi_bid     (m05_axi_bid),
-        .s_axi_bresp   (m05_axi_bresp),
-        .s_axi_bvalid  (m05_axi_bvalid),
-        .s_axi_bready  (m05_axi_bready),
-        .s_axi_arid    (m05_axi_arid),
-        .s_axi_araddr  (m05_axi_araddr),
-        .s_axi_arlen   (m05_axi_arlen),
-        .s_axi_arsize  (m05_axi_arsize),
-        .s_axi_arburst (m05_axi_arburst),
-        .s_axi_arprot  (m05_axi_arprot),
-        .s_axi_arvalid (m05_axi_arvalid),
-        .s_axi_arready (m05_axi_arready),
-        .s_axi_rid     (m05_axi_rid),
-        .s_axi_rdata   (m05_axi_rdata),
-        .s_axi_rresp   (m05_axi_rresp),
-        .s_axi_rlast   (m05_axi_rlast),
-        .s_axi_rvalid  (m05_axi_rvalid),
-        .s_axi_rready  (m05_axi_rready),
-        .wb_adr_o      (wbs5_adr),
-        .wb_dat_o      (wbs5_dat_o),
-        .wb_dat_i      (wbs5_dat_i),
-        .wb_we_o       (wbs5_we),
-        .wb_sel_o      (wbs5_sel),
-        .wb_stb_o      (wbs5_stb),
-        .wb_cyc_o      (wbs5_cyc),
-        .wb_ack_i      (wbs5_ack),
-        .wb_err_i      (1'b0)
-    );
-
-    // Bridge 6: VGA Dashboard
-    axi4_to_wb_bridge #(
-        .AXI_ADDR_WIDTH (32),
-        .AXI_DATA_WIDTH (64),
-        .AXI_ID_WIDTH   (8),
-        .WB_ADDR_WIDTH  (8),
-        .WB_DATA_WIDTH  (32)
-    ) u_bridge_s6 (
-        .clk           (clk),
-        .rst_n         (rst_n),
-        .s_axi_awid    (m06_axi_awid),
-        .s_axi_awaddr  (m06_axi_awaddr),
-        .s_axi_awlen   (m06_axi_awlen),
-        .s_axi_awsize  (m06_axi_awsize),
-        .s_axi_awburst (m06_axi_awburst),
-        .s_axi_awprot  (m06_axi_awprot),
-        .s_axi_awvalid (m06_axi_awvalid),
-        .s_axi_awready (m06_axi_awready),
-        .s_axi_wdata   (m06_axi_wdata),
-        .s_axi_wstrb   (m06_axi_wstrb),
-        .s_axi_wlast   (m06_axi_wlast),
-        .s_axi_wvalid  (m06_axi_wvalid),
-        .s_axi_wready  (m06_axi_wready),
-        .s_axi_bid     (m06_axi_bid),
-        .s_axi_bresp   (m06_axi_bresp),
-        .s_axi_bvalid  (m06_axi_bvalid),
-        .s_axi_bready  (m06_axi_bready),
-        .s_axi_arid    (m06_axi_arid),
-        .s_axi_araddr  (m06_axi_araddr),
-        .s_axi_arlen   (m06_axi_arlen),
-        .s_axi_arsize  (m06_axi_arsize),
-        .s_axi_arburst (m06_axi_arburst),
-        .s_axi_arprot  (m06_axi_arprot),
-        .s_axi_arvalid (m06_axi_arvalid),
-        .s_axi_arready (m06_axi_arready),
-        .s_axi_rid     (m06_axi_rid),
-        .s_axi_rdata   (m06_axi_rdata),
-        .s_axi_rresp   (m06_axi_rresp),
-        .s_axi_rlast   (m06_axi_rlast),
-        .s_axi_rvalid  (m06_axi_rvalid),
-        .s_axi_rready  (m06_axi_rready),
-        .wb_adr_o      (wbs6_adr),
-        .wb_dat_o      (wbs6_dat_o),
-        .wb_dat_i      (wbs6_dat_i),
-        .wb_we_o       (wbs6_we),
-        .wb_sel_o      (wbs6_sel),
-        .wb_stb_o      (wbs6_stb),
-        .wb_cyc_o      (wbs6_cyc),
-        .wb_ack_i      (wbs6_ack),
-        .wb_err_i      (1'b0)
-    );
-
-    // ========================================================================
-    // Slave 0: AXI-Lite UART IP Core (axi_uart_top) — Direct AXI connection
-    // ========================================================================
-    // Base Address: 0x0002_0000 | AXI-Lite 32-bit slave
-    // Register Map (addr[4:2] = index):
-    //   0x00 (index 0): RBR (RO/DLAB=0) / THR (WO/DLAB=0)
-    //   0x04 (index 1): IER — Interrupt Enable Register
-    //   0x08 (index 2): BAUD_DIV — Baud Rate Divisor (DLAB=1)
-    //   0x0C (index 3): LCR — Line Control Register
-    //   0x14 (index 5): LSR — Line Status Register (RO)
-    // Data width adaptation: 64-bit interconnect → 32-bit UART via uart_wdata_32/wstrb_4
-    // Read data replicated to both 32-bit halves of 64-bit bus.
-    axi_uart_top u_uart (
-        .fixed_clk_i    (clk),
-        .axi_aclk_i     (clk),
-        .axi_aresetn_i  (rst_n),
-
-        // Write Address Channel
-        .axi_awid_i     ({4'b0, m00_axi_awid}),   // 8→12-bit, zero-extend
-        .axi_awaddr_i   (m00_axi_awaddr[4:0]),     // 5-bit word-aligned offset
-        .axi_awvalid_i  (m00_axi_awvalid),
-        .axi_awready_o  (m00_axi_awready),
-
-        // Write Data Channel (64→32 bit steered by addr[2])
-        .axi_wdata_i    (uart_wdata_32),
-        .axi_wstrb_i    (uart_wstrb_4),
-        .axi_wvalid_i   (m00_axi_wvalid),
-        .axi_wready_o   (m00_axi_wready),
-
-        // Write Response Channel
-        .axi_bid_o      (m00_axi_bid[7:0]),        // 12→8-bit, take lower bits
-        .axi_bresp_o    (m00_axi_bresp),
-        .axi_bvalid_o   (m00_axi_bvalid),
-        .axi_bready_i   (m00_axi_bready),
-
-        // Read Address Channel
-        .axi_arid_i     ({4'b0, m00_axi_arid}),   // 8→12-bit, zero-extend
-        .axi_araddr_i   (m00_axi_araddr[4:0]),     // 5-bit offset
-        .axi_arvalid_i  (m00_axi_arvalid),
-        .axi_arready_o  (m00_axi_arready),
-
-        // Read Data Channel (32→64 bit: replicated in uart_rdata_32 assign above)
-        .axi_rid_o      (m00_axi_rid[7:0]),        // 12→8-bit, take lower bits
-        .axi_rdata_o    (uart_rdata_32),
-        .axi_rresp_o    (m00_axi_rresp),
-        .axi_rvalid_o   (m00_axi_rvalid),
-        .axi_rready_i   (m00_axi_rready),
-
-        // UART Serial Interface
-        .uart_rx_i      (uart_rx),
-        .uart_tx_o      (uart_tx),
-
-        // RX Interrupt
-        .read_interrupt_o (uart_irq)
-    );
-
-    // ========================================================================
-    // Slave 1: Timer Peripheral (Pre-built)
-    // ========================================================================
-    // Base Address: 0x0002_0100 | Offset Range: 0x00 - 0xFF
-    // Registers:
-    //   0x00 (TMR_CTR, RO): [31:0] timer_counter (free-running 32-bit tick counter)
-    // Used by firmware for event timestamps and system uptime measurement.
-    reg [31:0] timer_counter;
-    always @(posedge clk or negedge rst_n) begin
-        if (!rst_n)
-            timer_counter <= 32'd0;
-        else
-            timer_counter <= timer_counter + 32'd1;
-    end
-
-    // Timer stub: reads return counter value
-    assign wbs1_dat_i = timer_counter;
-    assign wbs1_ack   = wbs1_stb & wbs1_cyc;
-
-    // ========================================================================
-    // Slave 2: GPIO Peripheral (Pre-built)
-    // ========================================================================
-    // Base Address: 0x0002_0200 | Offset Range: 0x00 - 0xFF
-    // Registers:
-    //   0x00 (GPIO_STAT, RO):
-    //     Bit [0]: heartbeat_in live pin level
-    //     Bit [1]: reset_out_internal (current reset drive level)
-    //     Bits [31:2]: Reserved (0)
-    assign wbs2_dat_i = {30'd0, reset_out_internal, heartbeat_in};
-    assign wbs2_ack   = wbs2_stb & wbs2_cyc;
-
-    // ========================================================================
-    // Slave 3: Heartbeat Monitor (Custom IP #1)
-    // ========================================================================
-    // Base Address: 0x0002_0300 | Offset Range: 0x00 - 0xFF
-    // Registers:
-    //   0x00 (HB_CTRL, R/W):       [0] enable, [1] clear_flag (self-clearing)
-    //   0x04 (HB_THRESHOLD, R/W):  [31:0] max cycles before timeout
-    //   0x08 (HB_STATUS, RO):      [0] unresponsive (sticky), [1] heartbeat_in live
-    //   0x0C (HB_ELAPSED, RO):     [31:0] cycles since last heartbeat rising edge
-    heartbeat_monitor u_heartbeat (
-        .wb_clk_i     (clk),
-        .wb_rst_i     (rst),
-        .wb_adr_i     (wbs3_adr),
-        .wb_dat_i     (wbs3_dat_o),    // Interconnect dat_o → slave dat_i
-        .wb_dat_o     (wbs3_dat_i),    // Slave dat_o → interconnect dat_i
-        .wb_we_i      (wbs3_we),
-        .wb_sel_i     (wbs3_sel),
-        .wb_stb_i     (wbs3_stb),
-        .wb_cyc_i     (wbs3_cyc),
-        .wb_ack_o     (wbs3_ack),
-        .heartbeat_in (heartbeat_in),  // Direct wire from external pad
-        .hb_irq       (hb_irq)
+        .heartbeat_in  (heartbeat_in),
+        .hb_irq        (hb_irq)
     );
 
     // ========================================================================
@@ -1685,20 +1403,43 @@ module soc_top (
     //   0x00 (VGA_CTRL, R/W):   [0] enable (1=active, 0=off)
     //   0x04 (VGA_STATUS, RO):  [0] refresh_flag (cleared at start of frame)
     //   0x08-0x7C (VGA_BUFFER, WO): 30 words x 4 bytes = 120 ASCII chars (3 rows x 40 cols)
-    vga_controller u_vga (
-        .wb_clk_i     (clk),
-        .wb_rst_i     (rst),
-        .wb_adr_i     (wbs6_adr),
-        .wb_dat_i     (wbs6_dat_o),
-        .wb_dat_o     (wbs6_dat_i),
-        .wb_we_i      (wbs6_we),
-        .wb_sel_i     (wbs6_sel),
-        .wb_stb_i     (wbs6_stb),
-        .wb_cyc_i     (wbs6_cyc),
-        .wb_ack_o     (wbs6_ack),
-        .vga_hsync    (vga_hsync),
-        .vga_vsync    (vga_vsync),
-        .vga_rgb      (vga_rgb)
+    axi_vga_controller u_vga (
+        .clk           (clk),
+        .rst_n         (rst_n),
+        .s_axi_awid    (m06_axi_awid),
+        .s_axi_awaddr  (m06_axi_awaddr),
+        .s_axi_awlen   (m06_axi_awlen),
+        .s_axi_awsize  (m06_axi_awsize),
+        .s_axi_awburst (m06_axi_awburst),
+        .s_axi_awprot  (m06_axi_awprot),
+        .s_axi_awvalid (m06_axi_awvalid),
+        .s_axi_awready (m06_axi_awready),
+        .s_axi_wdata   (m06_axi_wdata),
+        .s_axi_wstrb   (m06_axi_wstrb),
+        .s_axi_wlast   (m06_axi_wlast),
+        .s_axi_wvalid  (m06_axi_wvalid),
+        .s_axi_wready  (m06_axi_wready),
+        .s_axi_bid     (m06_axi_bid),
+        .s_axi_bresp   (m06_axi_bresp),
+        .s_axi_bvalid  (m06_axi_bvalid),
+        .s_axi_bready  (m06_axi_bready),
+        .s_axi_arid    (m06_axi_arid),
+        .s_axi_araddr  (m06_axi_araddr),
+        .s_axi_arlen   (m06_axi_arlen),
+        .s_axi_arsize  (m06_axi_arsize),
+        .s_axi_arburst (m06_axi_arburst),
+        .s_axi_arprot  (m06_axi_arprot),
+        .s_axi_arvalid (m06_axi_arvalid),
+        .s_axi_arready (m06_axi_arready),
+        .s_axi_rid     (m06_axi_rid),
+        .s_axi_rdata   (m06_axi_rdata),
+        .s_axi_rresp   (m06_axi_rresp),
+        .s_axi_rlast   (m06_axi_rlast),
+        .s_axi_rvalid  (m06_axi_rvalid),
+        .s_axi_rready  (m06_axi_rready),
+        .vga_hsync     (vga_hsync),
+        .vga_vsync     (vga_vsync),
+        .vga_rgb       (vga_rgb)
     );
 
     // ========================================================================

@@ -22,16 +22,14 @@
 
 module recovery_policy (
     // ---- Wishbone Slave Interface ----
-    input  wire        wb_clk_i,
-    input  wire        wb_rst_i,
-    input  wire [7:0]  wb_adr_i,
-    input  wire [31:0] wb_dat_i,
-    output reg  [31:0] wb_dat_o,
-    input  wire        wb_we_i,
-    input  wire [3:0]  wb_sel_i,
-    input  wire        wb_stb_i,
-    input  wire        wb_cyc_i,
-    output reg         wb_ack_o
+    input  wire        clk,
+    input  wire        rst_n,
+    input  wire        reg_en,
+    input  wire        reg_we,
+    input  wire [7:0]  reg_addr,
+    input  wire [31:0] reg_wdata,
+    output reg  [31:0] reg_rdata,
+    output reg         reg_ack
 );
 
     // ========================================================================
@@ -75,18 +73,18 @@ module recovery_policy (
     // ========================================================================
     // Wishbone Bus Interface — Single-Cycle Acknowledge
     // ========================================================================
-    always @(posedge wb_clk_i) begin
-        if (wb_rst_i)
-            wb_ack_o <= 1'b0;
+    always @(posedge clk) begin
+        if (!rst_n)
+            reg_ack <= 1'b0;
         else
-            wb_ack_o <= wb_stb_i & wb_cyc_i & ~wb_ack_o;
+            reg_ack <= reg_en & ~reg_ack;
     end
 
     // ========================================================================
     // Register Writes
     // ========================================================================
-    always @(posedge wb_clk_i) begin
-        if (wb_rst_i) begin
+    always @(posedge clk) begin
+        if (!rst_n) begin
             record_event_req     <= 1'b0;
             clear_lockout_req    <= 1'b0;
             policy_window_reg    <= 32'd0;
@@ -98,23 +96,23 @@ module recovery_policy (
             record_event_req  <= 1'b0;
             clear_lockout_req <= 1'b0;
 
-            if (wb_stb_i && wb_cyc_i && wb_we_i && !wb_ack_o) begin
-                case (wb_adr_i)
+            if (reg_en && reg_we && !reg_ack) begin
+                case (reg_addr)
                     ADDR_POL_CTRL: begin
-                        record_event_req  <= wb_dat_i[0];
-                        clear_lockout_req <= wb_dat_i[1];
+                        record_event_req  <= reg_wdata[0];
+                        clear_lockout_req <= reg_wdata[1];
                     end
                     ADDR_POL_WINDOW: begin
-                        policy_window_reg <= wb_dat_i;
+                        policy_window_reg <= reg_wdata;
                     end
                     ADDR_POL_THRESHOLD: begin
-                        policy_threshold_reg <= wb_dat_i[7:0];
+                        policy_threshold_reg <= reg_wdata[7:0];
                     end
                     ADDR_POL_EVENT_TS: begin
-                        staged_timestamp <= wb_dat_i;
+                        staged_timestamp <= reg_wdata;
                     end
                     ADDR_LOG_READ_IDX: begin
-                        log_read_idx <= wb_dat_i[3:0];
+                        log_read_idx <= reg_wdata[3:0];
                     end
                     // POL_STATUS, LOG_READ_DATA, LOG_COUNT are read-only
                     default: ;
@@ -127,17 +125,17 @@ module recovery_policy (
     // Register Reads
     // ========================================================================
     always @(*) begin
-        wb_dat_o = 32'd0;
-        case (wb_adr_i)
-            ADDR_POL_CTRL:      wb_dat_o = 32'd0;  // Write-only
-            ADDR_POL_WINDOW:    wb_dat_o = policy_window_reg;
-            ADDR_POL_THRESHOLD: wb_dat_o = {24'd0, policy_threshold_reg};
-            ADDR_POL_STATUS:    wb_dat_o = {16'd0, window_recovery_count, 7'd0, lockout_flag};
-            ADDR_POL_EVENT_TS:  wb_dat_o = 32'd0;  // Write-only
-            ADDR_LOG_READ_IDX:  wb_dat_o = {28'd0, log_read_idx};
-            ADDR_LOG_READ_DATA: wb_dat_o = log_buffer[log_read_idx];
-            ADDR_LOG_COUNT:     wb_dat_o = log_count;
-            default:            wb_dat_o = 32'd0;
+        reg_rdata = 32'd0;
+        case (reg_addr)
+            ADDR_POL_CTRL:      reg_rdata = 32'd0;  // Write-only
+            ADDR_POL_WINDOW:    reg_rdata = policy_window_reg;
+            ADDR_POL_THRESHOLD: reg_rdata = {24'd0, policy_threshold_reg};
+            ADDR_POL_STATUS:    reg_rdata = {16'd0, window_recovery_count, 7'd0, lockout_flag};
+            ADDR_POL_EVENT_TS:  reg_rdata = 32'd0;  // Write-only
+            ADDR_LOG_READ_IDX:  reg_rdata = {28'd0, log_read_idx};
+            ADDR_LOG_READ_DATA: reg_rdata = log_buffer[log_read_idx];
+            ADDR_LOG_COUNT:     reg_rdata = log_count;
+            default:            reg_rdata = 32'd0;
         endcase
     end
 
@@ -152,8 +150,8 @@ module recovery_policy (
     //   5. Check threshold → set lockout if exceeded
 
     integer i;
-    always @(posedge wb_clk_i) begin
-        if (wb_rst_i) begin
+    always @(posedge clk) begin
+        if (!rst_n) begin
             log_wr_ptr             <= 4'd0;
             log_count              <= 32'd0;
             window_recovery_count  <= 8'd0;

@@ -218,14 +218,14 @@ module tb_soc_top;
     wire        wb_rst = ~rst_n;
 
     // Wishbone slave interfaces
-    wire [7:0]  wbs0_adr, wbs1_adr, wbs2_adr, wbs3_adr, wbs4_adr, wbs5_adr, wbs6_adr;
-    wire [31:0] wbs0_dat_o, wbs1_dat_o, wbs2_dat_o, wbs3_dat_o, wbs4_dat_o, wbs5_dat_o, wbs6_dat_o;
-    wire [31:0] wbs0_dat_i, wbs1_dat_i, wbs2_dat_i, wbs3_dat_i, wbs4_dat_i, wbs5_dat_i, wbs6_dat_i;
-    wire        wbs0_we, wbs1_we, wbs2_we, wbs3_we, wbs4_we, wbs5_we, wbs6_we;
-    wire        wbs0_stb, wbs1_stb, wbs2_stb, wbs3_stb, wbs4_stb, wbs5_stb, wbs6_stb;
-    wire        wbs0_cyc, wbs1_cyc, wbs2_cyc, wbs3_cyc, wbs4_cyc, wbs5_cyc, wbs6_cyc;
-    wire        wbs0_ack, wbs1_ack, wbs2_ack, wbs3_ack, wbs4_ack, wbs5_ack, wbs6_ack;
-    wire [3:0]  wbs0_sel, wbs1_sel, wbs2_sel, wbs3_sel, wbs4_sel, wbs5_sel, wbs6_sel;
+    wire [7:0]  wbs0_adr, wbs1_adr, wbs2_adr, wbs6_adr;
+    wire [31:0] wbs0_dat_o, wbs1_dat_o, wbs2_dat_o, wbs6_dat_o;
+    wire [31:0] wbs0_dat_i, wbs1_dat_i, wbs2_dat_i, wbs6_dat_i;
+    wire        wbs0_we, wbs1_we, wbs2_we, wbs6_we;
+    wire        wbs0_stb, wbs1_stb, wbs2_stb, wbs6_stb;
+    wire        wbs0_cyc, wbs1_cyc, wbs2_cyc, wbs6_cyc;
+    wire        wbs0_ack, wbs1_ack, wbs2_ack, wbs6_ack;
+    wire [3:0]  wbs0_sel, wbs1_sel, wbs2_sel, wbs6_sel;
 
     wire        hb_irq;
     wire        reset_out_w;
@@ -955,8 +955,8 @@ module tb_soc_top;
         $dumpfile("tb_soc_top.vcd");
         $dumpvars(0, tb_soc_top);
         if ($test$plusargs("fsdb")) begin
-            $fsdbDumpfile("tb_soc_top.fsdb");
-            $fsdbDumpvars(0, tb_soc_top);
+            $dumpfile("tb_soc_top.vcd");
+            $dumpvars(0, tb_soc_top);
         end
 
         // Initialize all AXI signals

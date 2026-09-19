@@ -29,18 +29,39 @@ module tb_heartbeat_monitor;
     // ========================================================================
     reg         clk;
     reg         rst;
-    reg  [7:0]  wb_adr;
-    reg  [31:0] wb_dat_wr;
-    wire [31:0] wb_dat_rd;
-    reg         wb_we;
-    reg  [3:0]  wb_sel;
-    reg         wb_stb;
-    reg         wb_cyc;
-    wire        wb_ack;
+    reg  [7:0]  axi_awaddr;
+    reg         axi_awvalid;
+    wire        axi_awready;
+    reg  [63:0] axi_wdata;
+    reg  [3:0]  axi_wstrb;
+    reg         axi_wvalid;
+    wire        axi_wready;
+    wire [1:0]  axi_bresp;
+    wire        axi_bvalid;
+    reg         axi_bready;
+    reg  [7:0]  axi_araddr;
+    reg         axi_arvalid;
+    wire        axi_arready;
+    wire [63:0] axi_rdata;
+    wire [1:0]  axi_rresp;
+    wire        axi_rvalid;
+    reg         axi_rready;
+
+    // Concurrent handshake clear logic
+    always @(posedge clk) begin
+        if (rst) begin
+            axi_awvalid <= 1'b0;
+            axi_wvalid  <= 1'b0;
+            axi_arvalid <= 1'b0;
+        end else begin
+            if (axi_awvalid && axi_awready) axi_awvalid <= 1'b0;
+            if (axi_wvalid && axi_wready)   axi_wvalid <= 1'b0;
+            if (axi_arvalid && axi_arready) axi_arvalid <= 1'b0;
+        end
+    end
 
     reg         heartbeat_in;
     wire        hb_irq;
-
     // Test tracking
     integer test_num;
     integer pass_count;
@@ -50,17 +71,28 @@ module tb_heartbeat_monitor;
     // ========================================================================
     // DUT Instantiation
     // ========================================================================
-    heartbeat_monitor dut (
-        .wb_clk_i    (clk),
-        .wb_rst_i    (rst),
-        .wb_adr_i    (wb_adr),
-        .wb_dat_i    (wb_dat_wr),
-        .wb_dat_o    (wb_dat_rd),
-        .wb_we_i     (wb_we),
-        .wb_sel_i    (wb_sel),
-        .wb_stb_i    (wb_stb),
-        .wb_cyc_i    (wb_cyc),
-        .wb_ack_o    (wb_ack),
+    axi_heartbeat_monitor dut (
+        .clk         (clk),
+        .rst_n       (~rst),
+        .s_axi_awaddr (axi_awaddr),
+        .s_axi_awprot (3'b0),
+        .s_axi_awvalid(axi_awvalid),
+        .s_axi_awready(axi_awready),
+        .s_axi_wdata  (axi_wdata),
+        .s_axi_wstrb  (axi_wstrb),
+        .s_axi_wvalid (axi_wvalid),
+        .s_axi_wready (axi_wready),
+        .s_axi_bresp  (axi_bresp),
+        .s_axi_bvalid (axi_bvalid),
+        .s_axi_bready (axi_bready),
+        .s_axi_araddr (axi_araddr),
+        .s_axi_arprot (3'b0),
+        .s_axi_arvalid(axi_arvalid),
+        .s_axi_arready(axi_arready),
+        .s_axi_rdata  (axi_rdata),
+        .s_axi_rresp  (axi_rresp),
+        .s_axi_rvalid (axi_rvalid),
+        .s_axi_rready (axi_rready),
         .heartbeat_in(heartbeat_in),
         .hb_irq      (hb_irq)
     );
@@ -72,40 +104,55 @@ module tb_heartbeat_monitor;
     always #(CLK_PERIOD/2) clk = ~clk;
 
     // ========================================================================
-    // Wishbone Bus Tasks
+    // AXI-Lite Bus Tasks
     // ========================================================================
-    task wb_write(input [7:0] addr, input [31:0] data);
+    task axi_write(input [7:0] addr, input [31:0] data);
         begin
+            $display("axi_write: start addr=%h data=%h", addr, data);
             @(posedge clk);
-            wb_adr    <= addr;
-            wb_dat_wr <= data;
-            wb_we     <= 1'b1;
-            wb_sel    <= 4'hF;
-            wb_stb    <= 1'b1;
-            wb_cyc    <= 1'b1;
+            axi_awaddr  <= addr;
+            axi_awvalid <= 1'b1;
+            axi_wdata   <= data;
+            axi_wstrb   <= 4'hF;
+            axi_wvalid  <= 1'b1;
+            axi_bready  <= 1'b1;
+            
+            while (axi_awvalid || axi_wvalid) begin
+                @(posedge clk);
+                $display("axi_write: wait valid aw=%b w=%b awready=%b wready=%b", axi_awvalid, axi_wvalid, axi_awready, axi_wready);
+            end
+            
+            while (!axi_bvalid) begin
+                @(posedge clk);
+                $display("axi_write: wait bvalid=%b bready=%b", axi_bvalid, axi_bready);
+            end
+            axi_bready <= 1'b0;
             @(posedge clk);
-            while (!wb_ack) @(posedge clk);
-            wb_stb <= 1'b0;
-            wb_cyc <= 1'b0;
-            wb_we  <= 1'b0;
-            @(posedge clk);
+            $display("axi_write: done");
         end
     endtask
 
-    task wb_read(input [7:0] addr, output [31:0] data);
+    task axi_read(input [7:0] addr, output [31:0] data);
         begin
+            $display("axi_read: start addr=%h", addr);
             @(posedge clk);
-            wb_adr <= addr;
-            wb_we  <= 1'b0;
-            wb_sel <= 4'hF;
-            wb_stb <= 1'b1;
-            wb_cyc <= 1'b1;
+            axi_araddr  <= addr;
+            axi_arvalid <= 1'b1;
+            axi_rready  <= 1'b1;
+            
+            while (axi_arvalid) begin
+                @(posedge clk);
+                $display("axi_read: wait valid ar=%b arready=%b", axi_arvalid, axi_arready);
+            end
+            
+            while (!axi_rvalid) begin
+                @(posedge clk);
+                $display("axi_read: wait rvalid=%b rready=%b", axi_rvalid, axi_rready);
+            end
+            data = axi_rdata;
+            axi_rready <= 1'b0;
             @(posedge clk);
-            while (!wb_ack) @(posedge clk);
-            data = wb_dat_rd;
-            wb_stb <= 1'b0;
-            wb_cyc <= 1'b0;
-            @(posedge clk);
+            $display("axi_read: done data=%h", data);
         end
     endtask
 
@@ -124,10 +171,12 @@ module tb_heartbeat_monitor;
     // Generate a heartbeat pulse (single cycle high)
     task send_heartbeat;
         begin
+            $display("send_heartbeat: start");
             @(posedge clk);
             heartbeat_in <= 1'b1;
             @(posedge clk);
             heartbeat_in <= 1'b0;
+            $display("send_heartbeat: done");
         end
     endtask
 
@@ -139,15 +188,18 @@ module tb_heartbeat_monitor;
         $dumpvars(0, tb_heartbeat_monitor);
 
         // Initialize
-        rst          = 1;
-        wb_adr       = 0;
-        wb_dat_wr    = 0;
-        wb_we        = 0;
-        wb_sel       = 0;
-        wb_stb       = 0;
-        wb_cyc       = 0;
+        rst         = 1;
+        axi_awaddr  = 0;
+        axi_awvalid = 0;
+        axi_wdata   = 0;
+        axi_wstrb   = 0;
+        axi_wvalid  = 0;
+        axi_bready  = 0;
+        axi_araddr  = 0;
+        axi_arvalid = 0;
+        axi_rready  = 0;
         heartbeat_in = 0;
-        test_num     = 0;
+        test_num    = 0;
         pass_count   = 0;
         fail_count   = 0;
 
@@ -163,10 +215,10 @@ module tb_heartbeat_monitor;
         $display("\n=== TEST %0d: Happy Path ===", test_num);
 
         // Set threshold to 50 cycles
-        wb_write(ADDR_HB_THRESHOLD, 32'd50);
+        axi_write(ADDR_HB_THRESHOLD, 32'd50);
 
         // Enable monitoring
-        wb_write(ADDR_HB_CTRL, 32'h0001);
+        axi_write(ADDR_HB_CTRL, 32'h0001);
 
         // Send first heartbeat to transition from IDLE → COUNTING
         send_heartbeat;
@@ -176,13 +228,14 @@ module tb_heartbeat_monitor;
             repeat (20) @(posedge clk);
             send_heartbeat;
         end
+        $display("Finished repeat loop");
 
         // Check: unresponsive flag should NOT be set
-        wb_read(ADDR_HB_STATUS, read_data);
+        axi_read(ADDR_HB_STATUS, read_data);
         check(32'd0, read_data[0], "Unresponsive flag should be 0");
 
         // Disable
-        wb_write(ADDR_HB_CTRL, 32'h0000);
+        axi_write(ADDR_HB_CTRL, 32'h0000);
         repeat (5) @(posedge clk);
 
         // ==================================================================
@@ -192,10 +245,10 @@ module tb_heartbeat_monitor;
         $display("\n=== TEST %0d: Timeout Detection ===", test_num);
 
         // Set threshold to 30 cycles
-        wb_write(ADDR_HB_THRESHOLD, 32'd30);
+        axi_write(ADDR_HB_THRESHOLD, 32'd30);
 
         // Enable monitoring
-        wb_write(ADDR_HB_CTRL, 32'h0001);
+        axi_write(ADDR_HB_CTRL, 32'h0001);
 
         // Send first heartbeat
         send_heartbeat;
@@ -204,14 +257,14 @@ module tb_heartbeat_monitor;
         repeat (50) @(posedge clk);
 
         // Check: unresponsive flag should be set
-        wb_read(ADDR_HB_STATUS, read_data);
+        axi_read(ADDR_HB_STATUS, read_data);
         check(32'd1, read_data[0], "Unresponsive flag should be 1");
 
         // Check: IRQ output should be high
         check(1'b1, hb_irq, "hb_irq should be asserted");
 
         // Disable
-        wb_write(ADDR_HB_CTRL, 32'h0000);
+        axi_write(ADDR_HB_CTRL, 32'h0000);
         repeat (5) @(posedge clk);
 
         // ==================================================================
@@ -221,15 +274,15 @@ module tb_heartbeat_monitor;
         $display("\n=== TEST %0d: Flag Latching ===", test_num);
 
         // Set threshold to 20 cycles
-        wb_write(ADDR_HB_THRESHOLD, 32'd20);
-        wb_write(ADDR_HB_CTRL, 32'h0001);
+        axi_write(ADDR_HB_THRESHOLD, 32'd20);
+        axi_write(ADDR_HB_CTRL, 32'h0001);
 
         // Send first heartbeat, then let it timeout
         send_heartbeat;
         repeat (30) @(posedge clk);
 
         // Verify flag is set
-        wb_read(ADDR_HB_STATUS, read_data);
+        axi_read(ADDR_HB_STATUS, read_data);
         check(32'd1, read_data[0], "Flag set after timeout");
 
         // Resume heartbeats — flag should STAY set (latched)
@@ -238,18 +291,18 @@ module tb_heartbeat_monitor;
         send_heartbeat;
         repeat (5) @(posedge clk);
 
-        wb_read(ADDR_HB_STATUS, read_data);
+        axi_read(ADDR_HB_STATUS, read_data);
         check(32'd1, read_data[0], "Flag stays latched after heartbeat resumes");
 
         // Now clear the flag via HB_CTRL.clear_flag
-        wb_write(ADDR_HB_CTRL, 32'h0003);  // enable + clear_flag
+        axi_write(ADDR_HB_CTRL, 32'h0003);  // enable + clear_flag
         repeat (3) @(posedge clk);
 
-        wb_read(ADDR_HB_STATUS, read_data);
+        axi_read(ADDR_HB_STATUS, read_data);
         check(32'd0, read_data[0], "Flag cleared after firmware clear");
 
         // Disable
-        wb_write(ADDR_HB_CTRL, 32'h0000);
+        axi_write(ADDR_HB_CTRL, 32'h0000);
         repeat (5) @(posedge clk);
 
         // ==================================================================
@@ -258,8 +311,8 @@ module tb_heartbeat_monitor;
         test_num = 4;
         $display("\n=== TEST %0d: Counter Accuracy ===", test_num);
 
-        wb_write(ADDR_HB_THRESHOLD, 32'd1000);  // High threshold
-        wb_write(ADDR_HB_CTRL, 32'h0001);
+        axi_write(ADDR_HB_THRESHOLD, 32'd1000);  // High threshold
+        axi_write(ADDR_HB_CTRL, 32'h0001);
 
         // Send first heartbeat to start counting
         send_heartbeat;
@@ -269,7 +322,7 @@ module tb_heartbeat_monitor;
 
         // Read elapsed — should be approximately 25
         // (exact value depends on cycle alignment of the read itself)
-        wb_read(ADDR_HB_ELAPSED, read_data);
+        axi_read(ADDR_HB_ELAPSED, read_data);
         $display("  [INFO] HB_ELAPSED after ~25 cycles: %0d", read_data);
         if (read_data >= 32'd22 && read_data <= 32'd30) begin
             $display("  [PASS] HB_ELAPSED in expected range [22..30]");
@@ -280,7 +333,7 @@ module tb_heartbeat_monitor;
         end
 
         // Disable
-        wb_write(ADDR_HB_CTRL, 32'h0000);
+        axi_write(ADDR_HB_CTRL, 32'h0000);
         repeat (5) @(posedge clk);
 
         // ==================================================================
@@ -290,21 +343,21 @@ module tb_heartbeat_monitor;
         $display("\n=== TEST %0d: Disable/Re-enable ===", test_num);
 
         // Start monitoring
-        wb_write(ADDR_HB_THRESHOLD, 32'd20);
-        wb_write(ADDR_HB_CTRL, 32'h0001);
+        axi_write(ADDR_HB_THRESHOLD, 32'd20);
+        axi_write(ADDR_HB_CTRL, 32'h0001);
         send_heartbeat;
         repeat (10) @(posedge clk);
 
         // Disable mid-count
-        wb_write(ADDR_HB_CTRL, 32'h0000);
+        axi_write(ADDR_HB_CTRL, 32'h0000);
         repeat (5) @(posedge clk);
 
         // Counter should be reset
-        wb_read(ADDR_HB_ELAPSED, read_data);
+        axi_read(ADDR_HB_ELAPSED, read_data);
         check(32'd0, read_data, "Counter resets on disable");
 
         // Flag should be cleared
-        wb_read(ADDR_HB_STATUS, read_data);
+        axi_read(ADDR_HB_STATUS, read_data);
         check(32'd0, read_data[0], "Flag cleared on disable");
 
         // ==================================================================
