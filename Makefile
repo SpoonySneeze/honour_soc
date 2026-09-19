@@ -6,7 +6,7 @@
 # custom IPs and the external AXI ROM.
 #
 # Available commands:
-#   make sim_xsim TEST=firmware  - Cross-compiles C/ASM firmware and simulates in Vivado XSIM
+#   make xsim TEST=firmware  - Cross-compiles C/ASM firmware and simulates in Vivado XSIM
 #   make clean                   - Cleans up logs, firmware build files, and simulator data
 # ============================================================================
 
@@ -55,8 +55,8 @@ program.dump: program.elf
 # ----------------------------------------------------------------------------
 # 3. Simulation Targets (Vivado XSIM Native on Windows/WSL)
 # ----------------------------------------------------------------------------
-.PHONY: sim_xsim
-sim_xsim: build_firmware
+.PHONY: xsim
+xsim: build_firmware
 	@echo "================================================================"
 	@echo " [SIMULATION] Launching Vivado XSIM for Full SoC..."
 	@echo "================================================================"
@@ -86,8 +86,8 @@ INC_DIRS = +incdir+$(RV_ROOT)/design/include \
            +incdir+$(RV_ROOT)/snapshots/default \
            +incdir+rtl/ips/axi-lite_uart-ipcore-develop/src/include
 
-.PHONY: sim_vcs
-sim_vcs: build_firmware
+.PHONY: vcs
+vcs: build_firmware
 	@echo "================================================================"
 	@echo " [SIMULATION] Compiling with Synopsys VCS..."
 	@echo "================================================================"
