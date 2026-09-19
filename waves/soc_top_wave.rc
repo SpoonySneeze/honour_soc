@@ -1,0 +1,112 @@
+Magic 271485
+Revision Verdi_U-2023.03-SP1
+
+; ============================================================
+; Full SoC Top-Level Testbench – Verdi Wave RC
+; Location: waves/soc_top_wave.rc
+;
+; Signals grouped by function:
+;   1.  Clock & Reset
+;   2.  VeeR CPU / Host AXI Master Interface
+;   3.  SoC External Control & Status Signals
+;   4.  Heartbeat Monitor Subsystem
+;   5.  Reset Sequencer Subsystem
+;   6.  Recovery Policy Engine Subsystem
+;   7.  UART & VGA Display Outputs
+; ============================================================
+
+viewPort 0 0 1600 900 250 100
+
+signalSpacing 5
+
+zoom 0.000000 10000000.000000
+cursor 0.000000
+marker 0.000000
+
+top 0
+markerPos 0
+
+COMPLEX_EVENT_BEGIN
+COMPLEX_EVENT_END
+
+curSTATUS ByChange
+
+; ============================================================
+; Group 1: Clock & Reset
+; ============================================================
+addGroup "Clock & Reset"
+addSignal -h 15 /tb_soc_top/clk
+addSignal -h 15 -holdScope rst_n
+
+; ============================================================
+; Group 2: VeeR CPU / Host AXI Master Interface
+; ============================================================
+addGroup "Host AXI Master Interface"
+addSignal -h 15 /tb_soc_top/axi_awvalid
+addSignal -h 15 -holdScope axi_awready
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_awaddr[31:0]
+addSignal -h 15 /tb_soc_top/axi_wvalid
+addSignal -h 15 -holdScope axi_wready
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_wdata[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_wstrb[3:0]
+addSignal -h 15 /tb_soc_top/axi_bvalid
+addSignal -h 15 -holdScope axi_bready
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_bresp[1:0]
+addSignal -h 15 /tb_soc_top/axi_arvalid
+addSignal -h 15 -holdScope axi_arready
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_araddr[31:0]
+addSignal -h 15 /tb_soc_top/axi_rvalid
+addSignal -h 15 -holdScope axi_rready
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_rdata[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_rresp[1:0]
+
+; ============================================================
+; Group 3: SoC External Control & Status Signals
+; ============================================================
+addGroup "SoC External Signals"
+addSignal -h 15 /tb_soc_top/heartbeat_in
+addSignal -h 15 -holdScope system_reset_out
+addSignal -h 15 -holdScope interrupt_req
+
+; ============================================================
+; Group 4: Heartbeat Monitor Subsystem
+; ============================================================
+addGroup "Heartbeat Monitor"
+addSignal -h 15 /tb_soc_top/u_soc/u_heartbeat_monitor/heartbeat_in
+addSignal -h 15 -holdScope online_status
+addSignal -h 15 -holdScope timeout_detected
+addSignal -h 15 -UNSIGNED -HEX -holdScope counter[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope threshold[31:0]
+
+; ============================================================
+; Group 5: Reset Sequencer Subsystem
+; ============================================================
+addGroup "Reset Sequencer"
+addSignal -h 15 /tb_soc_top/u_soc/u_reset_sequencer/trigger
+addSignal -h 15 -holdScope rst_seq_active
+addSignal -h 15 -holdScope rst_seq_done
+addSignal -h 15 -holdScope reset_out
+addSignal -h 15 -UNSIGNED -HEX -holdScope hold_counter[31:0]
+
+; ============================================================
+; Group 6: Recovery Policy Engine Subsystem
+; ============================================================
+addGroup "Recovery Policy Engine"
+addSignal -h 15 /tb_soc_top/u_soc/u_recovery_policy/timeout_event
+addSignal -h 15 -holdScope trigger_reset
+addSignal -h 15 -holdScope lockout_active
+addSignal -h 15 -holdScope alert_irq
+addSignal -h 15 -UNSIGNED -HEX -holdScope event_count[3:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope max_threshold[3:0]
+
+; ============================================================
+; Group 7: UART & VGA Display Outputs
+; ============================================================
+addGroup "UART & VGA Outputs"
+addSignal -h 15 /tb_soc_top/uart_tx
+addSignal -h 15 -holdScope uart_rx
+addSignal -h 15 -holdScope vga_hsync
+addSignal -h 15 -holdScope vga_vsync
+addSignal -h 15 -UNSIGNED -HEX /tb_soc_top/vga_red[3:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope vga_green[3:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope vga_blue[3:0]

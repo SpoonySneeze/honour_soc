@@ -954,6 +954,10 @@ module tb_soc_top;
     initial begin
         $dumpfile("tb_soc_top.vcd");
         $dumpvars(0, tb_soc_top);
+        if ($test$plusargs("fsdb")) begin
+            $fsdbDumpfile("tb_soc_top.fsdb");
+            $fsdbDumpvars(0, tb_soc_top);
+        end
 
         // Initialize all AXI signals
         rst_n        = 0;

@@ -1,0 +1,163 @@
+Magic 271485
+Revision Verdi_U-2023.03-SP1
+
+; ============================================================
+; AXI-Lite UART IP Core Testbench – Verdi Wave RC
+; Location: waves/uart_wave.rc
+;
+; Signals grouped by function:
+;   1.  Clock & Reset
+;   2.  AXI Write Address Channel (AW)
+;   3.  AXI Write Data Channel (W)
+;   4.  AXI Write Response Channel (B)
+;   5.  AXI Read Address Channel (AR)
+;   6.  AXI Read Data Channel (R)
+;   7.  UART FSM & Clock Domain Sync
+;   8.  UART Control & Status Registers (LCR, LSR, BAUD, IER)
+;   9.  UART Serial Interface (TX / RX / IRQ)
+;  10.  TX Path & FIFO
+;  11.  RX Path & FIFO
+;  12.  UART Transmitter Core
+;  13.  UART Receiver Core
+; ============================================================
+
+viewPort 0 0 1600 900 240 100
+
+signalSpacing 5
+
+zoom 0.000000 72000000.000000
+cursor 0.000000
+marker 0.000000
+
+top 0
+markerPos 0
+
+COMPLEX_EVENT_BEGIN
+COMPLEX_EVENT_END
+
+curSTATUS ByChange
+
+; ============================================================
+; Group 1: Clock & Reset
+; ============================================================
+addGroup "Clock & Reset"
+addSignal -h 15 /tb_axi_uart/fixed_clk
+addSignal -h 15 -holdScope axi_clk
+addSignal -h 15 -holdScope aresetn
+
+; ============================================================
+; Group 2: AXI Write Address Channel (AW)
+; ============================================================
+addGroup "AXI Write Address (AW)"
+addSignal -h 15 /tb_axi_uart/m_awvalid
+addSignal -h 15 -holdScope m_awready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m_awaddr[4:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope m_awid[11:0]
+
+; ============================================================
+; Group 3: AXI Write Data Channel (W)
+; ============================================================
+addGroup "AXI Write Data (W)"
+addSignal -h 15 /tb_axi_uart/m_wvalid
+addSignal -h 15 -holdScope m_wready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m_wdata[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope m_wstrb[3:0]
+
+; ============================================================
+; Group 4: AXI Write Response Channel (B)
+; ============================================================
+addGroup "AXI Write Response (B)"
+addSignal -h 15 /tb_axi_uart/m_bvalid
+addSignal -h 15 -holdScope m_bready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m_bresp[1:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope m_bid[11:0]
+
+; ============================================================
+; Group 5: AXI Read Address Channel (AR)
+; ============================================================
+addGroup "AXI Read Address (AR)"
+addSignal -h 15 /tb_axi_uart/m_arvalid
+addSignal -h 15 -holdScope m_arready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m_araddr[4:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope m_arid[11:0]
+
+; ============================================================
+; Group 6: AXI Read Data Channel (R)
+; ============================================================
+addGroup "AXI Read Data (R)"
+addSignal -h 15 /tb_axi_uart/m_rvalid
+addSignal -h 15 -holdScope m_rready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m_rdata[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope m_rresp[1:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope m_rid[11:0]
+
+; ============================================================
+; Group 7: UART FSM & Clock Domain Sync
+; ============================================================
+addGroup "UART FSM & Clock Domain Sync"
+addSignal -h 15 -UNSIGNED -HEX /tb_axi_uart/dut/write_state[3:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope read_state[3:0]
+addSignal -h 15 -holdScope axi_sync_wren
+addSignal -h 15 -holdScope axi_sync_rden
+
+; ============================================================
+; Group 8: UART Control & Status Registers
+; ============================================================
+addGroup "UART Control & Status Registers"
+addSignal -h 15 -UNSIGNED -HEX /tb_axi_uart/dut/uart_config_reg_int[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope uart_lsr_reg_int[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope uart_baudrate_div_int[15:0]
+addSignal -h 15 -holdScope uart_irq_en_int
+addSignal -h 15 -holdScope uart_dlab_int
+addSignal -h 15 -holdScope uart_parity_en_int
+addSignal -h 15 -holdScope uart_stop_bits_sel_int
+
+; ============================================================
+; Group 9: UART Serial Interface
+; ============================================================
+addGroup "UART Serial Interface"
+addSignal -h 15 /tb_axi_uart/uart_tx
+addSignal -h 15 -holdScope uart_rx
+addSignal -h 15 -holdScope read_interrupt
+
+; ============================================================
+; Group 10: TX Path & FIFO
+; ============================================================
+addGroup "TX Path & FIFO"
+addSignal -h 15 /tb_axi_uart/dut/tx_fifo_push_int
+addSignal -h 15 -UNSIGNED -HEX -holdScope tx_fifo_data_in_int[7:0]
+addSignal -h 15 -holdScope pull_controller_tx_fifo
+addSignal -h 15 -UNSIGNED -HEX -holdScope data_tx_fifo_controller[7:0]
+addSignal -h 15 -holdScope tx_fifo_full_int
+addSignal -h 15 -holdScope available_write_space_int
+addSignal -h 15 -UNSIGNED -HEX -holdScope tx_fifo_space_int[3:0]
+
+; ============================================================
+; Group 11: RX Path & FIFO
+; ============================================================
+addGroup "RX Path & FIFO"
+addSignal -h 15 /tb_axi_uart/dut/push_controller_rx_fifo
+addSignal -h 15 -UNSIGNED -HEX -holdScope data_rx_controller_fifo[7:0]
+addSignal -h 15 -holdScope rx_fifo_pull_int
+addSignal -h 15 -UNSIGNED -HEX -holdScope rx_fifo_data_out_int[7:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope rx_fifo_space_int[3:0]
+
+; ============================================================
+; Group 12: UART Transmitter Core
+; ============================================================
+addGroup "UART Transmitter Core"
+addSignal -h 15 -UNSIGNED -HEX /tb_axi_uart/dut/uart_controller_inst/uart_transmitter_inst/state[4:0]
+addSignal -h 15 -holdScope tx_send_i
+addSignal -h 15 -UNSIGNED -HEX -holdScope tx_data_i[7:0]
+addSignal -h 15 -holdScope tx_ready_o
+addSignal -h 15 -holdScope busy_o
+addSignal -h 15 -holdScope tx_o
+
+; ============================================================
+; Group 13: UART Receiver Core
+; ============================================================
+addGroup "UART Receiver Core"
+addSignal -h 15 -UNSIGNED -HEX /tb_axi_uart/dut/uart_controller_inst/uart_receiver_inst/state[5:0]
+addSignal -h 15 -holdScope rx_i
+addSignal -h 15 -UNSIGNED -HEX -holdScope rx_data_o[7:0]
+addSignal -h 15 -holdScope rx_valid_o

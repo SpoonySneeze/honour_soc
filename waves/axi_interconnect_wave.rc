@@ -1,0 +1,232 @@
+Magic 271485
+Revision Verdi_U-2023.03-SP1
+
+; ============================================================
+; AXI4 Interconnect 2x7 Testbench – Verdi Wave RC
+; Location: waves/axi_interconnect_wave.rc
+;
+; Signals grouped by function:
+;   1.  Clock & Reset
+;   2.  Master 0 - LSU (S00 AXI 64-bit)
+;   3.  Master 1 - SB (S01 AXI 64-bit)
+;   4.  Slave 0 - UART (M00 AXI 32-bit @ 0x0002_0000)
+;   5.  Slave 1 - Timer (M01 AXI 32-bit @ 0x0002_0100)
+;   6.  Slave 2 - GPIO (M02 AXI 32-bit @ 0x0002_0200)
+;   7.  Slave 3 - Heartbeat Monitor (M03 AXI 32-bit @ 0x0002_0300)
+;   8.  Slave 4 - Reset Sequencer (M04 AXI 32-bit @ 0x0002_0400)
+;   9.  Slave 5 - Recovery Policy (M05 AXI 32-bit @ 0x0002_0500)
+;  10.  Slave 6 - VGA Controller (M06 AXI 32-bit @ 0x0002_0600)
+; ============================================================
+
+viewPort 0 0 1600 900 250 100
+
+signalSpacing 5
+
+zoom 0.000000 2400000.000000
+cursor 0.000000
+marker 0.000000
+
+top 0
+markerPos 0
+
+COMPLEX_EVENT_BEGIN
+COMPLEX_EVENT_END
+
+curSTATUS ByChange
+
+; ============================================================
+; Group 1: Clock & Reset
+; ============================================================
+addGroup "Clock & Reset"
+addSignal -h 15 /tb_axi_interconnect/clk
+addSignal -h 15 -holdScope rst_n
+addSignal -h 15 -holdScope wb_rst
+
+; ============================================================
+; Group 2: Master 0 - LSU (S00)
+; ============================================================
+addGroup "Master 0 - LSU (S00 64-bit)"
+addSignal -h 15 /tb_axi_interconnect/s00_axi_awvalid
+addSignal -h 15 -holdScope s00_axi_awready
+addSignal -h 15 -UNSIGNED -HEX -holdScope s00_axi_awaddr[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope s00_axi_awid[7:0]
+addSignal -h 15 /tb_axi_interconnect/s00_axi_wvalid
+addSignal -h 15 -holdScope s00_axi_wready
+addSignal -h 15 -UNSIGNED -HEX -holdScope s00_axi_wdata[63:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope s00_axi_wstrb[7:0]
+addSignal -h 15 -holdScope s00_axi_wlast
+addSignal -h 15 /tb_axi_interconnect/s00_axi_bvalid
+addSignal -h 15 -holdScope s00_axi_bready
+addSignal -h 15 -UNSIGNED -HEX -holdScope s00_axi_bresp[1:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope s00_axi_bid[7:0]
+addSignal -h 15 /tb_axi_interconnect/s00_axi_arvalid
+addSignal -h 15 -holdScope s00_axi_arready
+addSignal -h 15 -UNSIGNED -HEX -holdScope s00_axi_araddr[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope s00_axi_arid[7:0]
+addSignal -h 15 /tb_axi_interconnect/s00_axi_rvalid
+addSignal -h 15 -holdScope s00_axi_rready
+addSignal -h 15 -UNSIGNED -HEX -holdScope s00_axi_rdata[63:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope s00_axi_rresp[1:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope s00_axi_rid[7:0]
+addSignal -h 15 -holdScope s00_axi_rlast
+
+; ============================================================
+; Group 3: Master 1 - SB (S01)
+; ============================================================
+addGroup "Master 1 - SB (S01 64-bit)"
+addSignal -h 15 /tb_axi_interconnect/s01_axi_awvalid
+addSignal -h 15 -holdScope s01_axi_awready
+addSignal -h 15 -UNSIGNED -HEX -holdScope s01_axi_awaddr[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope s01_axi_awid[7:0]
+addSignal -h 15 /tb_axi_interconnect/s01_axi_wvalid
+addSignal -h 15 -holdScope s01_axi_wready
+addSignal -h 15 -UNSIGNED -HEX -holdScope s01_axi_wdata[63:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope s01_axi_wstrb[7:0]
+addSignal -h 15 -holdScope s01_axi_wlast
+addSignal -h 15 /tb_axi_interconnect/s01_axi_bvalid
+addSignal -h 15 -holdScope s01_axi_bready
+addSignal -h 15 -UNSIGNED -HEX -holdScope s01_axi_bresp[1:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope s01_axi_bid[7:0]
+addSignal -h 15 /tb_axi_interconnect/s01_axi_arvalid
+addSignal -h 15 -holdScope s01_axi_arready
+addSignal -h 15 -UNSIGNED -HEX -holdScope s01_axi_araddr[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope s01_axi_arid[7:0]
+addSignal -h 15 /tb_axi_interconnect/s01_axi_rvalid
+addSignal -h 15 -holdScope s01_axi_rready
+addSignal -h 15 -UNSIGNED -HEX -holdScope s01_axi_rdata[63:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope s01_axi_rresp[1:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope s01_axi_rid[7:0]
+addSignal -h 15 -holdScope s01_axi_rlast
+
+; ============================================================
+; Group 4: Slave 0 - UART (M00)
+; ============================================================
+addGroup "Slave 0 - UART (M00)"
+addSignal -h 15 /tb_axi_interconnect/m00_axi_awvalid
+addSignal -h 15 -holdScope m00_axi_awready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m00_axi_awaddr[31:0]
+addSignal -h 15 /tb_axi_interconnect/m00_axi_wvalid
+addSignal -h 15 -holdScope m00_axi_wready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m00_axi_wdata[31:0]
+addSignal -h 15 /tb_axi_interconnect/m00_axi_bvalid
+addSignal -h 15 -holdScope m00_axi_bready
+addSignal -h 15 /tb_axi_interconnect/m00_axi_arvalid
+addSignal -h 15 -holdScope m00_axi_arready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m00_axi_araddr[31:0]
+addSignal -h 15 /tb_axi_interconnect/m00_axi_rvalid
+addSignal -h 15 -holdScope m00_axi_rready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m00_axi_rdata[31:0]
+
+; ============================================================
+; Group 5: Slave 1 - Timer (M01)
+; ============================================================
+addGroup "Slave 1 - Timer (M01)"
+addSignal -h 15 /tb_axi_interconnect/m01_axi_awvalid
+addSignal -h 15 -holdScope m01_axi_awready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m01_axi_awaddr[31:0]
+addSignal -h 15 /tb_axi_interconnect/m01_axi_wvalid
+addSignal -h 15 -holdScope m01_axi_wready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m01_axi_wdata[31:0]
+addSignal -h 15 /tb_axi_interconnect/m01_axi_bvalid
+addSignal -h 15 -holdScope m01_axi_bready
+addSignal -h 15 /tb_axi_interconnect/m01_axi_arvalid
+addSignal -h 15 -holdScope m01_axi_arready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m01_axi_araddr[31:0]
+addSignal -h 15 /tb_axi_interconnect/m01_axi_rvalid
+addSignal -h 15 -holdScope m01_axi_rready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m01_axi_rdata[31:0]
+
+; ============================================================
+; Group 6: Slave 2 - GPIO (M02)
+; ============================================================
+addGroup "Slave 2 - GPIO (M02)"
+addSignal -h 15 /tb_axi_interconnect/m02_axi_awvalid
+addSignal -h 15 -holdScope m02_axi_awready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m02_axi_awaddr[31:0]
+addSignal -h 15 /tb_axi_interconnect/m02_axi_wvalid
+addSignal -h 15 -holdScope m02_axi_wready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m02_axi_wdata[31:0]
+addSignal -h 15 /tb_axi_interconnect/m02_axi_bvalid
+addSignal -h 15 -holdScope m02_axi_bready
+addSignal -h 15 /tb_axi_interconnect/m02_axi_arvalid
+addSignal -h 15 -holdScope m02_axi_arready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m02_axi_araddr[31:0]
+addSignal -h 15 /tb_axi_interconnect/m02_axi_rvalid
+addSignal -h 15 -holdScope m02_axi_rready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m02_axi_rdata[31:0]
+
+; ============================================================
+; Group 7: Slave 3 - Heartbeat Monitor (M03)
+; ============================================================
+addGroup "Slave 3 - Heartbeat Monitor (M03)"
+addSignal -h 15 /tb_axi_interconnect/m03_axi_awvalid
+addSignal -h 15 -holdScope m03_axi_awready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m03_axi_awaddr[31:0]
+addSignal -h 15 /tb_axi_interconnect/m03_axi_wvalid
+addSignal -h 15 -holdScope m03_axi_wready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m03_axi_wdata[31:0]
+addSignal -h 15 /tb_axi_interconnect/m03_axi_bvalid
+addSignal -h 15 -holdScope m03_axi_bready
+addSignal -h 15 /tb_axi_interconnect/m03_axi_arvalid
+addSignal -h 15 -holdScope m03_axi_arready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m03_axi_araddr[31:0]
+addSignal -h 15 /tb_axi_interconnect/m03_axi_rvalid
+addSignal -h 15 -holdScope m03_axi_rready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m03_axi_rdata[31:0]
+
+; ============================================================
+; Group 8: Slave 4 - Reset Sequencer (M04)
+; ============================================================
+addGroup "Slave 4 - Reset Sequencer (M04)"
+addSignal -h 15 /tb_axi_interconnect/m04_axi_awvalid
+addSignal -h 15 -holdScope m04_axi_awready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m04_axi_awaddr[31:0]
+addSignal -h 15 /tb_axi_interconnect/m04_axi_wvalid
+addSignal -h 15 -holdScope m04_axi_wready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m04_axi_wdata[31:0]
+addSignal -h 15 /tb_axi_interconnect/m04_axi_bvalid
+addSignal -h 15 -holdScope m04_axi_bready
+addSignal -h 15 /tb_axi_interconnect/m04_axi_arvalid
+addSignal -h 15 -holdScope m04_axi_arready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m04_axi_araddr[31:0]
+addSignal -h 15 /tb_axi_interconnect/m04_axi_rvalid
+addSignal -h 15 -holdScope m04_axi_rready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m04_axi_rdata[31:0]
+
+; ============================================================
+; Group 9: Slave 5 - Recovery Policy (M05)
+; ============================================================
+addGroup "Slave 5 - Recovery Policy (M05)"
+addSignal -h 15 /tb_axi_interconnect/m05_axi_awvalid
+addSignal -h 15 -holdScope m05_axi_awready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m05_axi_awaddr[31:0]
+addSignal -h 15 /tb_axi_interconnect/m05_axi_wvalid
+addSignal -h 15 -holdScope m05_axi_wready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m05_axi_wdata[31:0]
+addSignal -h 15 /tb_axi_interconnect/m05_axi_bvalid
+addSignal -h 15 -holdScope m05_axi_bready
+addSignal -h 15 /tb_axi_interconnect/m05_axi_arvalid
+addSignal -h 15 -holdScope m05_axi_arready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m05_axi_araddr[31:0]
+addSignal -h 15 /tb_axi_interconnect/m05_axi_rvalid
+addSignal -h 15 -holdScope m05_axi_rready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m05_axi_rdata[31:0]
+
+; ============================================================
+; Group 10: Slave 6 - VGA Controller (M06)
+; ============================================================
+addGroup "Slave 6 - VGA Controller (M06)"
+addSignal -h 15 /tb_axi_interconnect/m06_axi_awvalid
+addSignal -h 15 -holdScope m06_axi_awready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m06_axi_awaddr[31:0]
+addSignal -h 15 /tb_axi_interconnect/m06_axi_wvalid
+addSignal -h 15 -holdScope m06_axi_wready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m06_axi_wdata[31:0]
+addSignal -h 15 /tb_axi_interconnect/m06_axi_bvalid
+addSignal -h 15 -holdScope m06_axi_bready
+addSignal -h 15 /tb_axi_interconnect/m06_axi_arvalid
+addSignal -h 15 -holdScope m06_axi_arready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m06_axi_araddr[31:0]
+addSignal -h 15 /tb_axi_interconnect/m06_axi_rvalid
+addSignal -h 15 -holdScope m06_axi_rready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m06_axi_rdata[31:0]

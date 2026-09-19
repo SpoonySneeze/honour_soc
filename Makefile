@@ -59,11 +59,16 @@ OUT_POL = $(BUILD_DIR)/simv_pol
 OUT_TOP = $(BUILD_DIR)/simv_top
 
 # Waveform outputs
-VCD_AXI = tb_axi_interconnect.vcd
-VCD_SOC = tb_soc_top.vcd
-VCD_HBM = tb_heartbeat_monitor.vcd
-VCD_RST = tb_reset_sequencer.vcd
-VCD_POL = tb_recovery_policy.vcd
+VCD_AXI  = tb_axi_interconnect.vcd
+VCD_SOC  = tb_soc_top.vcd
+VCD_HBM  = tb_heartbeat_monitor.vcd
+VCD_RST  = tb_reset_sequencer.vcd
+VCD_POL  = tb_recovery_policy.vcd
+
+FSDB_AXI = tb_axi_interconnect.fsdb
+FSDB_SOC = tb_soc_top.fsdb
+RC_AXI   = waves/axi_interconnect_wave.rc
+RC_SOC   = waves/soc_top_wave.rc
 
 # ============================================================================
 # Default target
@@ -113,7 +118,7 @@ sim_axi: $(OUT_AXI)
 	@echo "================================================================"
 	@echo " Running AXI4 Interconnect Simulation (VCS)"
 	@echo "================================================================"
-	./$(OUT_AXI)
+	./$(OUT_AXI) +fsdb
 
 # ============================================================================
 # Target: SoC System Integration Test
@@ -127,7 +132,7 @@ sim_soc: $(OUT_SOC)
 	@echo "================================================================"
 	@echo " Running SoC System Integration Simulation (VCS)"
 	@echo "================================================================"
-	./$(OUT_SOC)
+	./$(OUT_SOC) +fsdb
 
 # ============================================================================
 # Unit Test: Heartbeat Monitor
@@ -197,10 +202,10 @@ sim_all: sim_hbm sim_rst sim_pol sim_axi sim_soc
 # Waveform Viewing (Verdi)
 # ============================================================================
 waves_axi: sim_axi
-	$(VERDI) -ssf $(VCD_AXI) &
+	$(VERDI) -ssf $(FSDB_AXI) -sswr $(RC_AXI) &
 
 waves_soc: sim_soc
-	$(VERDI) -ssf $(VCD_SOC) &
+	$(VERDI) -ssf $(FSDB_SOC) -sswr $(RC_SOC) &
 
 # ============================================================================
 # Clean

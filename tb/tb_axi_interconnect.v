@@ -1084,6 +1084,10 @@ module tb_axi_interconnect;
         // Waveform dump
         $dumpfile("tb_axi_interconnect.vcd");
         $dumpvars(0, tb_axi_interconnect);
+        if ($test$plusargs("fsdb")) begin
+            $fsdbDumpfile("tb_axi_interconnect.fsdb");
+            $fsdbDumpvars(0, tb_axi_interconnect);
+        end
 
         // Signal initialization
         rst_n           = 1'b0;
