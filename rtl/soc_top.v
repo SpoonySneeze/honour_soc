@@ -610,11 +610,7 @@ module soc_top (
     wire        m06_axi_rready;
 
     // ---- Wishbone slave interfaces (interconnect → peripherals) ----
-    // Slave 0: UART
-    wire [7:0]  wbs0_adr;
-    wire [31:0] wbs0_dat_o, wbs0_dat_i;
-    wire        wbs0_we, wbs0_stb, wbs0_cyc, wbs0_ack;
-    wire [3:0]  wbs0_sel;
+    // NOTE: Slave 0 (UART) now connects directly over AXI — no wbs0 needed.
     // Slave 1: Timer
     wire [7:0]  wbs1_adr;
     wire [31:0] wbs1_dat_o, wbs1_dat_i;
@@ -649,6 +645,24 @@ module soc_top (
     // ---- Point-to-point inter-IP signals ----
     wire        hb_irq;            // Heartbeat Monitor → PIC
     wire        reset_out_internal; // Reset Sequencer → GPIO output
+    wire        uart_irq;          // UART RX interrupt
+
+    // ---- UART direct-AXI data-width steering (64-bit bus → 32-bit UART) ----
+    // The AXI interconnect operates at 64-bit; axi_uart_top is 32-bit AXI-Lite.
+    // addr[2]=0 → lower 32 bits, addr[2]=1 → upper 32 bits (same as bridge).
+    reg         uart_awaddr2_r;   // latch awaddr[2] when AW handshake fires
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)
+            uart_awaddr2_r <= 1'b0;
+        else if (m00_axi_awvalid & m00_axi_awready)
+            uart_awaddr2_r <= m00_axi_awaddr[2];
+    end
+
+    wire [31:0] uart_wdata_32  = uart_awaddr2_r ? m00_axi_wdata[63:32] : m00_axi_wdata[31:0];
+    wire [3:0]  uart_wstrb_4   = uart_awaddr2_r ? m00_axi_wstrb[7:4]   : m00_axi_wstrb[3:0];
+    wire [31:0] uart_rdata_32;   // driven by axi_uart_top
+    assign      m00_axi_rdata  = {uart_rdata_32, uart_rdata_32}; // replicated to both halves
+    assign      m00_axi_rlast  = m00_axi_rvalid; // AXI-Lite: always single beat
 
     // ========================================================================
     // VeeR EL2 Core Instance (Placeholder / Interface Hook)
@@ -1185,60 +1199,9 @@ module soc_top (
     );
 
     // ========================================================================
-    // Dedicated 64-to-32 bit AXI-to-Wishbone Bridges (One per Peripheral)
+    // Dedicated 64-to-32 bit AXI-to-Wishbone Bridges (Slaves 1–6)
+    // NOTE: Slave 0 (UART) connects directly over AXI-Lite — no bridge needed.
     // ========================================================================
-
-    // Bridge 0: UART
-    axi4_to_wb_bridge #(
-        .AXI_ADDR_WIDTH (32),
-        .AXI_DATA_WIDTH (64),
-        .AXI_ID_WIDTH   (8),
-        .WB_ADDR_WIDTH  (8),
-        .WB_DATA_WIDTH  (32)
-    ) u_bridge_s0 (
-        .clk           (clk),
-        .rst_n         (rst_n),
-        .s_axi_awid    (m00_axi_awid),
-        .s_axi_awaddr  (m00_axi_awaddr),
-        .s_axi_awlen   (m00_axi_awlen),
-        .s_axi_awsize  (m00_axi_awsize),
-        .s_axi_awburst (m00_axi_awburst),
-        .s_axi_awprot  (m00_axi_awprot),
-        .s_axi_awvalid (m00_axi_awvalid),
-        .s_axi_awready (m00_axi_awready),
-        .s_axi_wdata   (m00_axi_wdata),
-        .s_axi_wstrb   (m00_axi_wstrb),
-        .s_axi_wlast   (m00_axi_wlast),
-        .s_axi_wvalid  (m00_axi_wvalid),
-        .s_axi_wready  (m00_axi_wready),
-        .s_axi_bid     (m00_axi_bid),
-        .s_axi_bresp   (m00_axi_bresp),
-        .s_axi_bvalid  (m00_axi_bvalid),
-        .s_axi_bready  (m00_axi_bready),
-        .s_axi_arid    (m00_axi_arid),
-        .s_axi_araddr  (m00_axi_araddr),
-        .s_axi_arlen   (m00_axi_arlen),
-        .s_axi_arsize  (m00_axi_arsize),
-        .s_axi_arburst (m00_axi_arburst),
-        .s_axi_arprot  (m00_axi_arprot),
-        .s_axi_arvalid (m00_axi_arvalid),
-        .s_axi_arready (m00_axi_arready),
-        .s_axi_rid     (m00_axi_rid),
-        .s_axi_rdata   (m00_axi_rdata),
-        .s_axi_rresp   (m00_axi_rresp),
-        .s_axi_rlast   (m00_axi_rlast),
-        .s_axi_rvalid  (m00_axi_rvalid),
-        .s_axi_rready  (m00_axi_rready),
-        .wb_adr_o      (wbs0_adr),
-        .wb_dat_o      (wbs0_dat_o),
-        .wb_dat_i      (wbs0_dat_i),
-        .wb_we_o       (wbs0_we),
-        .wb_sel_o      (wbs0_sel),
-        .wb_stb_o      (wbs0_stb),
-        .wb_cyc_o      (wbs0_cyc),
-        .wb_ack_i      (wbs0_ack),
-        .wb_err_i      (1'b0)
-    );
 
     // Bridge 1: Timer
     axi4_to_wb_bridge #(
@@ -1553,19 +1516,60 @@ module soc_top (
     );
 
     // ========================================================================
-    // Slave 0: UART Peripheral (Pre-built)
+    // Slave 0: AXI-Lite UART IP Core (axi_uart_top) — Direct AXI connection
     // ========================================================================
-    // Base Address: 0x0002_0000 | Offset Range: 0x00 - 0xFF
-    // Standard 16550 registers (when full IP is attached):
-    //   0x00: RBR (RO) / THR (WO), 0x04: IER (RW), 0x08: IIR (RO) / FCR (WO),
-    //   0x0C: LCR (RW), 0x10: MCR (RW), 0x14: LSR (RO), 0x18: MSR (RO), 0x1C: SCR (RW)
-    // Currently stubbed with default read response (0x0) and 1-cycle ACK.
-    assign wbs0_dat_i = 32'd0;
-    assign wbs0_ack   = wbs0_stb & wbs0_cyc;
+    // Base Address: 0x0002_0000 | AXI-Lite 32-bit slave
+    // Register Map (addr[4:2] = index):
+    //   0x00 (index 0): RBR (RO/DLAB=0) / THR (WO/DLAB=0)
+    //   0x04 (index 1): IER — Interrupt Enable Register
+    //   0x08 (index 2): BAUD_DIV — Baud Rate Divisor (DLAB=1)
+    //   0x0C (index 3): LCR — Line Control Register
+    //   0x14 (index 5): LSR — Line Status Register (RO)
+    // Data width adaptation: 64-bit interconnect → 32-bit UART via uart_wdata_32/wstrb_4
+    // Read data replicated to both 32-bit halves of 64-bit bus.
+    axi_uart_top u_uart (
+        .fixed_clk_i    (clk),
+        .axi_aclk_i     (clk),
+        .axi_aresetn_i  (rst_n),
 
-    // UART TX/RX external connections
-    // assign uart_tx = uart_core_tx;
-    assign uart_tx = 1'b1;  // Idle high (stub)
+        // Write Address Channel
+        .axi_awid_i     ({4'b0, m00_axi_awid}),   // 8→12-bit, zero-extend
+        .axi_awaddr_i   (m00_axi_awaddr[4:0]),     // 5-bit word-aligned offset
+        .axi_awvalid_i  (m00_axi_awvalid),
+        .axi_awready_o  (m00_axi_awready),
+
+        // Write Data Channel (64→32 bit steered by addr[2])
+        .axi_wdata_i    (uart_wdata_32),
+        .axi_wstrb_i    (uart_wstrb_4),
+        .axi_wvalid_i   (m00_axi_wvalid),
+        .axi_wready_o   (m00_axi_wready),
+
+        // Write Response Channel
+        .axi_bid_o      (m00_axi_bid[7:0]),        // 12→8-bit, take lower bits
+        .axi_bresp_o    (m00_axi_bresp),
+        .axi_bvalid_o   (m00_axi_bvalid),
+        .axi_bready_i   (m00_axi_bready),
+
+        // Read Address Channel
+        .axi_arid_i     ({4'b0, m00_axi_arid}),   // 8→12-bit, zero-extend
+        .axi_araddr_i   (m00_axi_araddr[4:0]),     // 5-bit offset
+        .axi_arvalid_i  (m00_axi_arvalid),
+        .axi_arready_o  (m00_axi_arready),
+
+        // Read Data Channel (32→64 bit: replicated in uart_rdata_32 assign above)
+        .axi_rid_o      (m00_axi_rid[7:0]),        // 12→8-bit, take lower bits
+        .axi_rdata_o    (uart_rdata_32),
+        .axi_rresp_o    (m00_axi_rresp),
+        .axi_rvalid_o   (m00_axi_rvalid),
+        .axi_rready_i   (m00_axi_rready),
+
+        // UART Serial Interface
+        .uart_rx_i      (uart_rx),
+        .uart_tx_o      (uart_tx),
+
+        // RX Interrupt
+        .read_interrupt_o (uart_irq)
+    );
 
     // ========================================================================
     // Slave 1: Timer Peripheral (Pre-built)

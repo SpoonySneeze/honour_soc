@@ -37,8 +37,23 @@ SRC_VGA = $(CUSTOM_DIR)/vga_controller.v
 SRC_BRG = $(CUSTOM_DIR)/axi4_to_wb_bridge.v
 SRC_WBI = $(CUSTOM_DIR)/wb_interconnect.v
 
-# All custom RTL
-SRC_ALL_CUSTOM = $(SRC_HBM) $(SRC_RST) $(SRC_POL) $(SRC_VGA) $(SRC_BRG) $(SRC_WBI)
+UART_IP_DIR  = $(RTL_DIR)/ips/axi-lite_uart-ipcore-develop
+UART_RTL_DIR = $(UART_IP_DIR)/src/rtl
+UART_INC_DIR = $(UART_IP_DIR)/src/include
+
+# Source files — UART IP Core (direct AXI integration)
+SRC_UART = $(UART_RTL_DIR)/uart_parity_bit_compute.v \
+           $(UART_RTL_DIR)/uart_transmitter.v \
+           $(UART_RTL_DIR)/uart_receiver.v \
+           $(UART_RTL_DIR)/uart_controller.v \
+           $(UART_RTL_DIR)/axi_internal_fifo.v \
+           $(UART_RTL_DIR)/axi_uart_top.v
+
+# All custom RTL (now includes UART IP)
+SRC_ALL_CUSTOM = $(SRC_HBM) $(SRC_RST) $(SRC_POL) $(SRC_VGA) $(SRC_BRG) $(SRC_WBI) $(SRC_UART)
+
+# VCS include flags for UART IP
+VCS_UART_INC = +incdir+$(UART_INC_DIR)
 
 # Top-level SoC RTL
 SRC_SOC_TOP = $(RTL_DIR)/soc_top.v
@@ -111,7 +126,7 @@ $(BUILD_DIR):
 # ============================================================================
 $(OUT_AXI): $(SRC_ALL_INTERCON) $(SRC_ALL_CUSTOM) $(TB_AXI) | $(BUILD_DIR)
 	@echo ">>> Compiling AXI4 Interconnect Testbench..."
-	$(VCS) $(VCS_FLAGS) -o $@ $(SRC_ALL_INTERCON) $(SRC_ALL_CUSTOM) $(TB_AXI)
+	$(VCS) $(VCS_FLAGS) $(VCS_UART_INC) -o $@ $(SRC_ALL_INTERCON) $(SRC_ALL_CUSTOM) $(TB_AXI)
 
 sim_axi: $(OUT_AXI)
 	@echo ""
@@ -125,7 +140,7 @@ sim_axi: $(OUT_AXI)
 # ============================================================================
 $(OUT_SOC): $(SRC_ALL_INTERCON) $(SRC_ALL_CUSTOM) $(TB_SOC) | $(BUILD_DIR)
 	@echo ">>> Compiling SoC System Integration Testbench..."
-	$(VCS) $(VCS_FLAGS) -o $@ $(SRC_ALL_INTERCON) $(SRC_ALL_CUSTOM) $(TB_SOC)
+	$(VCS) $(VCS_FLAGS) $(VCS_UART_INC) -o $@ $(SRC_ALL_INTERCON) $(SRC_ALL_CUSTOM) $(TB_SOC)
 
 sim_soc: $(OUT_SOC)
 	@echo ""
@@ -181,7 +196,7 @@ sim_pol: $(OUT_POL)
 # ============================================================================
 $(OUT_TOP): $(SRC_ALL_INTERCON) $(SRC_ALL_CUSTOM) $(SRC_SOC_TOP) | $(BUILD_DIR)
 	@echo ">>> Compiling full soc_top.v with AXI interconnect and custom IPs..."
-	$(VCS) $(VCS_FLAGS) -o $@ $(SRC_ALL_INTERCON) $(SRC_ALL_CUSTOM) $(SRC_SOC_TOP)
+	$(VCS) $(VCS_FLAGS) $(VCS_UART_INC) -o $@ $(SRC_ALL_INTERCON) $(SRC_ALL_CUSTOM) $(SRC_SOC_TOP)
 
 compile_top: $(OUT_TOP)
 	@echo ""
