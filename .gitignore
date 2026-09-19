@@ -23,6 +23,7 @@
 *.vcd
 *.vpd
 **/DVEfiles/
+verdi_config_file
 
 # Verilator
 **/obj_dir/
