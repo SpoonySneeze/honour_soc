@@ -1,24 +1,38 @@
+// ============================================================================
+// BMC SoC — Native Pure AXI4 GPIO Status Peripheral
+// ============================================================================
+// Direct status of external input/output pins.
+// Base Address: 0x0002_0200 (Offset 0x00: GPIO_STAT, RO)
+//   [0]: heartbeat_in live pin
+//   [1]: reset_out pin level (active-low deasserted = 1)
+//   [31:2]: Reserved (0)
+// ============================================================================
+
 `timescale 1ns / 1ps
 
-module axi_rom #(
+module axi_gpio #(
     parameter DATA_WIDTH = 64,
     parameter ADDR_WIDTH = 32,
-    parameter ID_WIDTH   = 8,
-    parameter MEM_SIZE   = 8192 // 8KB
+    parameter ID_WIDTH   = 8
 )(
     input  wire                   clk,
     input  wire                   rst_n,
 
-    // AR Channel
+    // Functional pin monitoring
+    input  wire                   heartbeat_in,
+    input  wire                   reset_out,
+
+    // AXI4 Read Address Channel
     input  wire [ID_WIDTH-1:0]    s_axi_arid,
     input  wire [ADDR_WIDTH-1:0]  s_axi_araddr,
     input  wire [7:0]             s_axi_arlen,
     input  wire [2:0]             s_axi_arsize,
     input  wire [1:0]             s_axi_arburst,
+    input  wire [2:0]             s_axi_arprot,
     input  wire                   s_axi_arvalid,
     output wire                   s_axi_arready,
 
-    // R Channel
+    // AXI4 Read Data Channel
     output wire [ID_WIDTH-1:0]    s_axi_rid,
     output wire [DATA_WIDTH-1:0]  s_axi_rdata,
     output wire [1:0]             s_axi_rresp,
@@ -26,12 +40,13 @@ module axi_rom #(
     output wire                   s_axi_rvalid,
     input  wire                   s_axi_rready,
 
-    // AW, W, B channels
+    // AXI4 Write Channels (read-only peripheral with clean write acknowledgement)
     input  wire [ID_WIDTH-1:0]    s_axi_awid,
     input  wire [ADDR_WIDTH-1:0]  s_axi_awaddr,
     input  wire [7:0]             s_axi_awlen,
     input  wire [2:0]             s_axi_awsize,
     input  wire [1:0]             s_axi_awburst,
+    input  wire [2:0]             s_axi_awprot,
     input  wire                   s_axi_awvalid,
     output wire                   s_axi_awready,
     input  wire [DATA_WIDTH-1:0]  s_axi_wdata,
@@ -45,15 +60,9 @@ module axi_rom #(
     input  wire                   s_axi_bready
 );
 
-    // Memory array
-    reg [7:0] mem [0:MEM_SIZE-1];
+    wire [31:0] gpio_status_word = {30'd0, reset_out, heartbeat_in};
 
-    // Initialization
-    initial begin
-        $readmemh("firmware.hex", mem);
-    end
-
-    // AR FSM
+    // AXI4 Read FSM
     reg [ID_WIDTH-1:0]   arid_q;
     reg [ADDR_WIDTH-1:0] araddr_q;
     reg [7:0]            arlen_q;
@@ -63,6 +72,9 @@ module axi_rom #(
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
+            arid_q    <= {ID_WIDTH{1'b0}};
+            araddr_q  <= {ADDR_WIDTH{1'b0}};
+            arlen_q   <= 8'd0;
             ar_active <= 1'b0;
         end else begin
             if (s_axi_arvalid && s_axi_arready) begin
@@ -76,7 +88,6 @@ module axi_rom #(
         end
     end
 
-    // R FSM
     reg [7:0] r_count;
     wire      r_done = (r_count == arlen_q);
 
@@ -89,7 +100,7 @@ module axi_rom #(
                     if (s_axi_rlast)
                         r_count <= 8'd0;
                     else
-                        r_count <= r_count + 1;
+                        r_count <= r_count + 8'd1;
                 end
             end
         end
@@ -98,30 +109,41 @@ module axi_rom #(
     assign s_axi_rvalid = ar_active;
     assign s_axi_rlast  = r_done;
     assign s_axi_rid    = arid_q;
-    assign s_axi_rresp  = 2'b00;
+    assign s_axi_rresp  = 2'b00; // OKAY
+    assign s_axi_rdata  = {gpio_status_word, gpio_status_word}; // Replicated across 64-bit bus
 
-    wire [ADDR_WIDTH-1:0] current_addr = araddr_q + (r_count * (DATA_WIDTH/8));
-    wire [ADDR_WIDTH-1:0] base_idx = (current_addr & (MEM_SIZE - 1)) & ~(DATA_WIDTH/8 - 1); // 8-byte aligned within ROM
+    // AXI4 Write Channels
+    reg aw_seen;
+    reg w_seen;
+    reg [ID_WIDTH-1:0] awid_q;
 
-    assign s_axi_rdata = {
-        mem[base_idx+7], mem[base_idx+6], mem[base_idx+5], mem[base_idx+4],
-        mem[base_idx+3], mem[base_idx+2], mem[base_idx+1], mem[base_idx+0]
-    };
+    assign s_axi_awready = !s_axi_bvalid && !aw_seen;
+    assign s_axi_wready  = !s_axi_bvalid && !w_seen;
 
-    // Ignore Writes but respond to them properly
-    assign s_axi_awready = 1'b1;
-    assign s_axi_wready  = 1'b1;
-    
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
+            aw_seen      <= 1'b0;
+            w_seen       <= 1'b0;
+            awid_q       <= {ID_WIDTH{1'b0}};
             s_axi_bvalid <= 1'b0;
             s_axi_bresp  <= 2'b00;
-            s_axi_bid    <= 0;
+            s_axi_bid    <= {ID_WIDTH{1'b0}};
         end else begin
+            if (s_axi_awvalid && s_axi_awready) begin
+                aw_seen <= 1'b1;
+                awid_q  <= s_axi_awid;
+            end
             if (s_axi_wvalid && s_axi_wready && s_axi_wlast) begin
+                w_seen  <= 1'b1;
+            end
+
+            if ((aw_seen || (s_axi_awvalid && s_axi_awready)) &&
+                (w_seen  || (s_axi_wvalid && s_axi_wready && s_axi_wlast))) begin
+                aw_seen      <= 1'b0;
+                w_seen       <= 1'b0;
                 s_axi_bvalid <= 1'b1;
-                s_axi_bresp  <= 2'b00; // OKAY
-                s_axi_bid    <= s_axi_awid;
+                s_axi_bresp  <= 2'b00;
+                s_axi_bid    <= (s_axi_awvalid && s_axi_awready) ? s_axi_awid : awid_q;
             end else if (s_axi_bvalid && s_axi_bready) begin
                 s_axi_bvalid <= 1'b0;
             end

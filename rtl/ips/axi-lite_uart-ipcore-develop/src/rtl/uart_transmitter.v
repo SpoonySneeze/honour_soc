@@ -113,7 +113,7 @@ module uart_transmitter
         end
       end
       DataState: begin
-        if(counter_int >= baud_div_i) begin
+        if(counter_int >= (baud_div_i - 1)) begin
           if(bitcount_int == DATA_UART-1) begin
             case(parity_bit_i)
               0:  state_d = StopState;
@@ -132,7 +132,7 @@ module uart_transmitter
          end
       end
       ParityState: begin
-        if(counter_int >= baud_div_i) begin
+        if(counter_int >= (baud_div_i - 1)) begin
           tx_d          = parity_bit_int;
           counter_int_d = {DIV_SIZE{1'b0}};
           state_d       = StopState;
@@ -142,7 +142,7 @@ module uart_transmitter
         tx_sample_valid_int_d = 1'b0;
       end
       StopState: begin
-        if(counter_int >= baud_div_i) begin
+        if(counter_int >= (baud_div_i - 1)) begin
           case(stop_bits_i)
             0: begin
               if(tx_stop_bits_int == 1) begin

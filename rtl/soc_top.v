@@ -671,33 +671,7 @@ module soc_top (
     wire        ifu_axi_rvalid;
     wire        ifu_axi_rready;
 
-    // ---- Wishbone slave interfaces (interconnect → peripherals) ----
-    // NOTE: Slave 0 (UART) now connects directly over AXI — no wbs0 needed.
-    // Slave 1: Timer
-    wire [7:0]  wbs1_adr;
-    wire [31:0] wbs1_dat_o, wbs1_dat_i;
-    wire        wbs1_we, wbs1_stb, wbs1_cyc, wbs1_ack;
-    wire [3:0]  wbs1_sel;
-    // Slave 2: GPIO
-    wire [7:0]  wbs2_adr;
-    wire [31:0] wbs2_dat_o, wbs2_dat_i;
-    wire        wbs2_we, wbs2_stb, wbs2_cyc, wbs2_ack;
-    wire [3:0]  wbs2_sel;
-    // Slave 3: Heartbeat Monitor
-    wire [7:0]  wbs3_adr;
-    wire [31:0] wbs3_dat_o, wbs3_dat_i;
-    wire        wbs3_we, wbs3_stb, wbs3_cyc, wbs3_ack;
-    wire [3:0]  wbs3_sel;
-    // Slave 4: Reset Sequencer
-    wire [7:0]  wbs4_adr;
-    wire [31:0] wbs4_dat_o, wbs4_dat_i;
-    wire        wbs4_we, wbs4_stb, wbs4_cyc, wbs4_ack;
-    wire [3:0]  wbs4_sel;
-    // Slave 5: Recovery Policy
-    wire [7:0]  wbs5_adr;
-    wire [31:0] wbs5_dat_o, wbs5_dat_i;
-    wire        wbs5_we, wbs5_stb, wbs5_cyc, wbs5_ack;
-    wire [3:0]  wbs5_sel;
+    // ---- Pure AXI4 SoC Architecture — No Wishbone interfaces ----
     
 
     // ---- Point-to-point inter-IP signals ----
@@ -1324,18 +1298,13 @@ module soc_top (
         .m07_axi_rready (m07_axi_rready));
 
     // ========================================================================
-    // Dedicated 64-to-32 bit AXI-to-Wishbone Bridges (Slaves 1–6)
-    // NOTE: Slave 0 (UART) connects directly over AXI-Lite — no bridge needed.
+    // Slave 1: 32-bit Free-Running System Timer (Pure AXI4)
     // ========================================================================
-
-    // Bridge 1: Timer
-    axi4_to_wb_bridge #(
-        .AXI_ADDR_WIDTH (32),
-        .AXI_DATA_WIDTH (64),
-        .AXI_ID_WIDTH   (8),
-        .WB_ADDR_WIDTH  (8),
-        .WB_DATA_WIDTH  (32)
-    ) u_bridge_s1 (
+    axi_timer #(
+        .DATA_WIDTH (64),
+        .ADDR_WIDTH (32),
+        .ID_WIDTH   (8)
+    ) u_timer (
         .clk           (clk),
         .rst_n         (rst_n),
         .s_axi_awid    (m01_axi_awid),
@@ -1368,28 +1337,21 @@ module soc_top (
         .s_axi_rresp   (m01_axi_rresp),
         .s_axi_rlast   (m01_axi_rlast),
         .s_axi_rvalid  (m01_axi_rvalid),
-        .s_axi_rready  (m01_axi_rready),
-        .wb_adr_o      (wbs1_adr),
-        .wb_dat_o      (wbs1_dat_o),
-        .wb_dat_i      (wbs1_dat_i),
-        .wb_we_o       (wbs1_we),
-        .wb_sel_o      (wbs1_sel),
-        .wb_stb_o      (wbs1_stb),
-        .wb_cyc_o      (wbs1_cyc),
-        .wb_ack_i      (wbs1_ack),
-        .wb_err_i      (1'b0)
+        .s_axi_rready  (m01_axi_rready)
     );
 
-    // Bridge 2: GPIO
-    axi4_to_wb_bridge #(
-        .AXI_ADDR_WIDTH (32),
-        .AXI_DATA_WIDTH (64),
-        .AXI_ID_WIDTH   (8),
-        .WB_ADDR_WIDTH  (8),
-        .WB_DATA_WIDTH  (32)
-    ) u_bridge_s2 (
+    // ========================================================================
+    // Slave 2: GPIO Pin Status Register (Pure AXI4)
+    // ========================================================================
+    axi_gpio #(
+        .DATA_WIDTH (64),
+        .ADDR_WIDTH (32),
+        .ID_WIDTH   (8)
+    ) u_gpio (
         .clk           (clk),
         .rst_n         (rst_n),
+        .heartbeat_in  (heartbeat_in),
+        .reset_out     (reset_out_internal),
         .s_axi_awid    (m02_axi_awid),
         .s_axi_awaddr  (m02_axi_awaddr),
         .s_axi_awlen   (m02_axi_awlen),
@@ -1420,16 +1382,7 @@ module soc_top (
         .s_axi_rresp   (m02_axi_rresp),
         .s_axi_rlast   (m02_axi_rlast),
         .s_axi_rvalid  (m02_axi_rvalid),
-        .s_axi_rready  (m02_axi_rready),
-        .wb_adr_o      (wbs2_adr),
-        .wb_dat_o      (wbs2_dat_o),
-        .wb_dat_i      (wbs2_dat_i),
-        .wb_we_o       (wbs2_we),
-        .wb_sel_o      (wbs2_sel),
-        .wb_stb_o      (wbs2_stb),
-        .wb_cyc_o      (wbs2_cyc),
-        .wb_ack_i      (wbs2_ack),
-        .wb_err_i      (1'b0)
+        .s_axi_rready  (m02_axi_rready)
     );
 
     // ========================================================================
@@ -1625,14 +1578,23 @@ module soc_top (
     // ========================================================================
     // VeeR EL2 Core
     // ========================================================================
+    el2_mem_if el2_mem_export ();
+    el2_mem_if el2_icache_export ();
+
+    wire [31:0] boot_vector = 32'h8000_0000;
+
     el2_veer_wrapper u_veer (
         .clk               (clk),
-        .rst_l             (reset_out_internal), // Core warm reset
+        .rst_l             (rst_n),              // Core warm reset
         .dbg_rst_l         (rst_n),              // Debug cold reset
-        .rst_vec           (31'h4000_0000),      // Boot from 0x8000_0000
+        .rst_vec           (boot_vector[31:1]),  // Boot from 0x8000_0000
         .nmi_int           (1'b0),
         .nmi_vec           (31'h0),
         .jtag_id           (31'h0),
+        
+        // Memory export interfaces
+        .el2_mem_export    (el2_mem_export),
+        .el2_icache_export (el2_icache_export),
         
         // Interrupts
         .extintsrc_req     ({27'd0, lockout_irq, vblank_irq, hb_irq, uart_irq}),
@@ -1795,21 +1757,6 @@ module soc_top (
         .dma_axi_rresp     (),
         .dma_axi_rlast     (),
         
-        // AHB DMA (Tie off)
-        .dma_hsel          (1'b0),
-        .dma_haddr         (32'd0),
-        .dma_hburst        (3'd0),
-        .dma_hmastlock     (1'b0),
-        .dma_hprot         (4'd0),
-        .dma_hsize         (3'd0),
-        .dma_htrans        (2'd0),
-        .dma_hwrite        (1'b0),
-        .dma_hwdata        (64'd0),
-        .dma_hreadyin      (1'b1),
-        .dma_hrdata        (),
-        .dma_hreadyout     (),
-        .dma_hresp         (),
-        
         // JTAG
         .jtag_tck          (jtag_tck),
         .jtag_tms          (jtag_tms),
@@ -1829,24 +1776,79 @@ module soc_top (
         .dec_tlu_perfcnt0        (),
         .dec_tlu_perfcnt1        (),
         .dec_tlu_perfcnt2        (),
-        .dec_tlu_perfcnt3        (),
-        .dccm_clk_override       (1'b0),
-        .icm_clk_override        (1'b0),
-        .dec_tlu_core_ecc_err    (),
+        .lsu_bus_clk_en          (1'b1),
+        .ifu_bus_clk_en          (1'b1),
+        .dbg_bus_clk_en          (1'b1),
+        .dma_bus_clk_en          (1'b1),
+        .core_id                 (28'd0),
         .mpc_debug_halt_req      (1'b0),
         .mpc_debug_halt_ack      (),
         .mpc_debug_run_req       (1'b0),
         .mpc_debug_run_ack       (),
+        .mpc_reset_run_req       (1'b1),
         .debug_brkpt_status      (),
-        .dec_tlu_ireg_we0        (),
-        .dec_tlu_ireg_wdata0     (),
-        .dec_tlu_mhartstart      (),
-        
-        // PMU
-        .pmu_core_en             (1'b1)
+        .i_cpu_halt_req          (1'b0),
+        .o_cpu_halt_ack          (),
+        .o_cpu_halt_status       (),
+        .o_debug_mode_status     (),
+        .i_cpu_run_req           (1'b0),
+        .o_cpu_run_ack           (),
+        .scan_mode               (1'b0),
+        .mbist_mode              (1'b0),
+        .dmi_core_enable         (1'b1),
+        .dmi_uncore_enable       (1'b0),
+        .dmi_uncore_en           (),
+        .dmi_uncore_wr_en        (),
+        .dmi_uncore_addr         (),
+        .dmi_uncore_wdata        (),
+        .dmi_uncore_rdata        (32'd0),
+        .dmi_active              (),
+        .iccm_ecc_single_error   (),
+        .iccm_ecc_double_error   (),
+        .dccm_ecc_single_error   (),
+        .dccm_ecc_double_error   (),
+        .dccm_write_readback_error()
     );
 
+    // ========================================================================
+    // VeeR EL2 DCCM SRAM (4 Banks x 4096 x 39 bits = 64 KB with ECC)
+    // ========================================================================
+    wire [3:0][38:0] dccm_bank_fdout;
+    for (genvar b = 0; b < 4; b = b + 1) begin : gen_dccm_banks
+        assign el2_mem_export.dccm_bank_dout[b] = dccm_bank_fdout[b][31:0];
+        assign el2_mem_export.dccm_bank_ecc[b]  = dccm_bank_fdout[b][38:32];
 
+        ram_4096x39 u_dccm_bank (
+            .CLK      (clk),
+            .ME       (el2_mem_export.dccm_clken[b]),
+            .WE       (el2_mem_export.dccm_wren_bank[b]),
+            .ADR      (el2_mem_export.dccm_addr_bank[b]),
+            .D        ({el2_mem_export.dccm_wr_ecc_bank[b], el2_mem_export.dccm_wr_data_bank[b]}),
+            .Q        (dccm_bank_fdout[b]),
+            .ROP      (),
+            .TEST1    (1'b0),
+            .RME      (1'b0),
+            .RM       (4'b0000),
+            .LS       (1'b0),
+            .DS       (1'b0),
+            .SD       (1'b0),
+            .TEST_RNM (1'b0),
+            .BC1      (1'b0),
+            .BC2      (1'b0)
+        );
+    end
+
+    // Tie off unused ICCM export interface
+    for (genvar b = 0; b < 4; b = b + 1) begin : gen_iccm_tieoff
+        assign el2_mem_export.iccm_bank_dout[b] = 32'd0;
+        assign el2_mem_export.iccm_bank_ecc[b]  = 7'd0;
+    end
+
+    // Tie off unused ICACHE export interface
+    assign el2_icache_export.ic_tag_data_raw_packed_pre = '0;
+    assign el2_icache_export.wb_packeddout_pre = '0;
+    assign el2_icache_export.ic_tag_data_raw_pre = '0;
+    assign el2_icache_export.wb_dout_pre_up = '0;
 
     // ========================================================================
     // Slave 7: External AXI ROM

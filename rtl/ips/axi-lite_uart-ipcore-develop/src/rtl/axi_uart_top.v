@@ -294,7 +294,7 @@ module axi_uart_top (/*AUTOARG*/
                 read_state_d        = AckReadState;
               end
             end
-            UART_LSR: begin
+            UART_LSR, 3'd4: begin
               axi_arready_d   = 1'b1;
               axi_rdata_d     = uart_lsr_reg_int;
               axi_rresp_d     = 2'b0;
@@ -302,9 +302,10 @@ module axi_uart_top (/*AUTOARG*/
               read_state_d    = AckReadState;
             end
             default: begin
-              axi_arready_d   = 1'b0;
+              axi_arready_d   = 1'b1;
+              axi_rdata_d     = {AXI_DATA_WIDTH{1'b0}};
               axi_rresp_d     = 2'b0;
-              axi_rvalid_d    = 1'b0;
+              axi_rvalid_d    = 1'b1;
               read_state_d    = AckReadState;
             end
           endcase
@@ -626,8 +627,8 @@ module axi_uart_top (/*AUTOARG*/
   generate
     for(I = 0; I < AXI_DATA_WIDTH; I = I + 1) begin: uart_lsr_assignment_gen
       case(I)
-        UART_LSR_THRE:        assign uart_lsr_reg_int[I] = available_write_space_int;
-        UART_LSR_TEMT:        assign uart_lsr_reg_int[I] = available_write_space_int;
+        UART_LSR_THRE:        assign uart_lsr_reg_int[I] = ~tx_fifo_full_int;
+        UART_LSR_TEMT:        assign uart_lsr_reg_int[I] = ~tx_fifo_full_int;
         UART_LSR_DATA_READY:  assign uart_lsr_reg_int[I] = ~rx_fifo_space_int[AXI_FIFO_ADDR] & uart_irq_en_int ;
         default:              assign uart_lsr_reg_int[I] = 1'b0;
       endcase

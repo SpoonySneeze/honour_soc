@@ -25,8 +25,11 @@ SECTIONS
 
   .bss : {
     . = ALIGN(4);
+    _sbss = .;
     *(.bss*)
     *(.sbss*)
     *(COMMON)
+    . = ALIGN(4);
+    _ebss = .;
   } > ram
 }

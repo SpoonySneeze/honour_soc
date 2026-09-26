@@ -64,6 +64,10 @@
   `else
     `define _UART_MAIN_CLOCK_FREQ_ 50000000
   `endif
-  `define _UART_BAUDRATE_DIV_INIT_ (`_UART_MAIN_CLOCK_FREQ_/`_UART_BAUDRATE_INIT_)
+  `ifdef SIMULATION
+    `define _UART_BAUDRATE_DIV_INIT_ 16
+  `else
+    `define _UART_BAUDRATE_DIV_INIT_ (`_UART_MAIN_CLOCK_FREQ_/`_UART_BAUDRATE_INIT_)
+  `endif
 
   `endif
