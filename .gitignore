@@ -33,3 +33,10 @@ verdi_config_file
 *.jou
 *.pb
 *.wdb
+
+*.elf
+*.hex
+*.dump
+*.py
+snapshots/
+a.out
