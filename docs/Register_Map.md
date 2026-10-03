@@ -6,41 +6,37 @@ This specification document serves as the complete, authoritative register refer
 
 ## 1. System Memory Architecture & Bus Interconnect
 
-The BMC SoC utilizes a 32-bit memory-mapped address space. The **VeeR EL2** processor accesses peripherals through its 32-bit AXI4-Lite System Bus (SB) master port, which connects to the **AXI4-Lite to Wishbone B4 Bridge** (`u_axi2wb`). The bridge routes single-cycle transactions into a 1-to-7 **Wishbone B4 Interconnect** (`u_wb_intercon`).
+The BMC SoC utilizes a 32-bit memory-mapped address space. The **VeeR EL2** processor accesses peripherals and external memory through its native 64-bit AXI4 bus master ports (IFU, LSU, and System Bus), which connect directly to a high-speed 64-bit **AXI4 Crossbar Interconnect** (`u_axi_intercon`).
 
 ```
 +---------------------------------------------------------------------------------+
 |                                 VeeR EL2 Core                                   |
 |   ICCM: 0x0000_0000 - 0x0000_FFFF        DCCM: 0x0001_0000 - 0x0001_FFFF        |
 +---------------------------------------------------------------------------------+
-                                      | AXI4-Lite (System Bus)
+                                      | Native AXI4 (64-bit Data/32-bit Addr)
                                       v
 +---------------------------------------------------------------------------------+
-|                       AXI4-Lite to Wishbone B4 Bridge                           |
+|                 AXI4 Crossbar Interconnect (u_axi_intercon)                     |
 +---------------------------------------------------------------------------------+
-                                      | Wishbone B4 Master (wbm_*)
-                                      v
-+---------------------------------------------------------------------------------+
-|                     Wishbone Interconnect (1-to-7 Decoder)                      |
-+---------------------------------------------------------------------------------+
-     |          |          |          |          |          |          |
-  Slave 0    Slave 1    Slave 2    Slave 3    Slave 4    Slave 5    Slave 6
-   UART       Timer      GPIO     Heartbeat    Reset     Recovery     VGA
-  0x00020000 0x00020100 0x00020200 0x00020300 0x00020400 0x00020500 0x00020600
+     |          |          |          |          |          |          |          |
+  Slave 0    Slave 1    Slave 2    Slave 3    Slave 4    Slave 5    Slave 6    Slave 7
+   UART       Timer      GPIO     Heartbeat    Reset     Recovery     VGA     AXI ROM
+  0x00020000 0x00020100 0x00020200 0x00020300 0x00020400 0x00020500 0x00020600 0x80000000
 ```
 
 ### 1.1 Address Decoding Logic
-- **Peripheral Base Address**: `0x0002_0000`
-- **Slave Page Selection**: Decoded from address bits `wbm_adr_i[15:8]`:
-  - `8'h00` → Slave 0: UART
-  - `8'h01` → Slave 1: Timer
-  - `8'h02` → Slave 2: GPIO
+- **Peripheral Subsystem Base**: `0x0002_0000`
+- **Slave Page Selection**: Decoded from address bits `axi_araddr[15:8]` / `axi_awaddr[15:8]`:
+  - `8'h00` → Slave 0: UART 16550 Serial Controller
+  - `8'h01` → Slave 1: System Timer
+  - `8'h02` → Slave 2: GPIO Status
   - `8'h03` → Slave 3: Heartbeat Monitor
   - `8'h04` → Slave 4: Power/Reset Sequencer
   - `8'h05` → Slave 5: Recovery Policy & Event Log
-  - `8'h06` → Slave 6: VGA Controller
-- **Local Register Offset**: Lower 8 bits `wbm_adr_i[7:0]` are passed directly to the selected slave.
-- **Access Granularity**: All custom IPs accept 32-bit word accesses. Byte select (`wb_sel_i[3:0]`) is supported across the interconnect.
+  - `8'h06` → Slave 6: VGA Status Dashboard
+- **Boot ROM Selection**: Base address `0x8000_0000` (8 KB size, address bits `[12:0]`).
+- **Local Register Offset**: Lower 8 bits `addr[7:0]` are routed directly to the selected peripheral.
+- **Access Granularity**: Supported across 32-bit words with 8-bit byte strobes (`wstrb[7:0]`).
 
 ---
 
@@ -50,13 +46,14 @@ The BMC SoC utilizes a 32-bit memory-mapped address space. The **VeeR EL2** proc
 |---|---|---|---|---|---|
 | — | **ICCM** (Instruction Memory) | `0x0000_0000` | `0x0000_0000` – `0x0000_FFFF` | 64 KB | Core TCM |
 | — | **DCCM** (Data Memory) | `0x0001_0000` | `0x0001_0000` – `0x0001_FFFF` | 64 KB | Core TCM |
-| **Slave 0** | **UART Controller** | `0x0002_0000` | `0x0002_0000` – `0x0002_00FF` | 256 B | Wishbone B4 |
-| **Slave 1** | **Timer** | `0x0002_0100` | `0x0002_0100` – `0x0002_01FF` | 256 B | Wishbone B4 |
-| **Slave 2** | **GPIO** | `0x0002_0200` | `0x0002_0200` – `0x0002_02FF` | 256 B | Wishbone B4 |
-| **Slave 3** | **Heartbeat Monitor** | `0x0002_0300` | `0x0002_0300` – `0x0002_03FF` | 256 B | Wishbone B4 |
-| **Slave 4** | **Power/Reset Sequencer** | `0x0002_0400` | `0x0002_0400` – `0x0002_04FF` | 256 B | Wishbone B4 |
-| **Slave 5** | **Recovery Policy & Log** | `0x0002_0500` | `0x0002_0500` – `0x0002_05FF` | 256 B | Wishbone B4 |
-| **Slave 6** | **VGA Controller** | `0x0002_0600` | `0x0002_0600` – `0x0002_06FF` | 256 B | Wishbone B4 |
+| **Slave 0** | **UART Controller** | `0x0002_0000` | `0x0002_0000` – `0x0002_00FF` | 256 B | Native AXI4 |
+| **Slave 1** | **Timer** | `0x0002_0100` | `0x0002_0100` – `0x0002_01FF` | 256 B | Native AXI4 |
+| **Slave 2** | **GPIO** | `0x0002_0200` | `0x0002_0200` – `0x0002_02FF` | 256 B | Native AXI4 |
+| **Slave 3** | **Heartbeat Monitor** | `0x0002_0300` | `0x0002_0300` – `0x0002_03FF` | 256 B | Native AXI4 |
+| **Slave 4** | **Power/Reset Sequencer** | `0x0002_0400` | `0x0002_0400` – `0x0002_04FF` | 256 B | Native AXI4 |
+| **Slave 5** | **Recovery Policy & Log** | `0x0002_0500` | `0x0002_0500` – `0x0002_05FF` | 256 B | Native AXI4 |
+| **Slave 6** | **VGA Controller** | `0x0002_0600` | `0x0002_0600` – `0x0002_06FF` | 256 B | Native AXI4 |
+| **Slave 7** | **AXI Boot ROM (Reset)** | `0x8000_0000` | `0x8000_0000` – `0x8000_1FFF` | 8 KB | Native AXI4 |
 
 ---
 
