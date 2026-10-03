@@ -110,9 +110,11 @@ make waves_core
 | :--- | :--- |
 | `make build_firmware` | Compiles `firmware/` C/assembly code into `program.hex` / `firmware.hex` |
 | `make sim_core` | **Full SoC Simulation**: Boots VeeR EL2, runs bare-metal IP test suite, streams UART output |
+| `make test_uart [FSDB=1]` | Runs bare-metal IP unit tests on VeeR core (pass `FSDB=1` to dump waveforms) |
 | `make sim_soc` | Peripheral subsystem integration testbench |
 | `make sim_axi` | Standalone 3x8 AXI Interconnect crossbar verification |
 | `make sim_all` | Runs complete regression test suite across all units and subsystems |
+| `make open_fsdb [FSDB=<file>]` | Opens FSDB waveform in Synopsys Verdi (default: `soc_core.fsdb`, alias: `make waves`) |
 | `make waves_core` | Opens Synopsys Verdi with preloaded SoC signal layouts (`waves/soc_top_wave.rc`) |
 | `make clean` | Removes compiled binaries, simulation executables, and waveform databases |
 

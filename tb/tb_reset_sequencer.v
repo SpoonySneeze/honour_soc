@@ -163,8 +163,13 @@ module tb_reset_sequencer;
     // Test Stimulus
     // ========================================================================
     initial begin
-        $dumpfile("tb_reset_sequencer.vcd");
-        $dumpvars(0, tb_reset_sequencer);
+        if ($test$plusargs("fsdb")) begin
+            $fsdbDumpfile("tb_reset_sequencer.fsdb");
+            $fsdbDumpvars(0, tb_reset_sequencer);
+        end else begin
+            $dumpfile("tb_reset_sequencer.vcd");
+            $dumpvars(0, tb_reset_sequencer);
+        end
 
         // Initialize
         rst            = 1;

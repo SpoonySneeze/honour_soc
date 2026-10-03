@@ -184,8 +184,13 @@ module tb_heartbeat_monitor;
     // Test Stimulus
     // ========================================================================
     initial begin
-        $dumpfile("tb_heartbeat_monitor.vcd");
-        $dumpvars(0, tb_heartbeat_monitor);
+        if ($test$plusargs("fsdb")) begin
+            $fsdbDumpfile("tb_heartbeat_monitor.fsdb");
+            $fsdbDumpvars(0, tb_heartbeat_monitor);
+        end else begin
+            $dumpfile("tb_heartbeat_monitor.vcd");
+            $dumpvars(0, tb_heartbeat_monitor);
+        end
 
         // Initialize
         rst         = 1;

@@ -176,8 +176,13 @@ module tb_recovery_policy;
     // ========================================================================
     integer i;
     initial begin
-        $dumpfile("tb_recovery_policy.vcd");
-        $dumpvars(0, tb_recovery_policy);
+        if ($test$plusargs("fsdb")) begin
+            $fsdbDumpfile("tb_recovery_policy.fsdb");
+            $fsdbDumpvars(0, tb_recovery_policy);
+        end else begin
+            $dumpfile("tb_recovery_policy.vcd");
+            $dumpvars(0, tb_recovery_policy);
+        end
 
         // Initialize
         rst        = 1;
