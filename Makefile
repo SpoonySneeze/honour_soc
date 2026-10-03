@@ -48,7 +48,8 @@ INC_DIRS = +incdir+$(RV_ROOT)/design/lib \
 # Core package and define headers required prior to module compilation
 VEER_DEFINES = $(RV_ROOT)/snapshots/default/common_defines.vh \
                $(RV_ROOT)/design/include/el2_def.sv \
-               $(RV_ROOT)/snapshots/default/el2_pdef.vh
+               $(RV_ROOT)/snapshots/default/el2_pdef.vh \
+               $(RV_ROOT)/design/el2_lockstep_pkg.sv
 
 # Full synthesizable RTL files
 SOC_RTL = $(wildcard rtl/interconnect/*.v) \
