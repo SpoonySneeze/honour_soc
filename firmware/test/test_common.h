@@ -71,12 +71,12 @@ static uint32_t g_fail_count = 0;
 // ============================================================================
 // UART Driver Functions
 // ============================================================================
-static inline void uart_putc(char c) {
+static __attribute__((noinline)) void uart_putc(char c) {
     while ((UART_LSR & UART_LSR_THRE) == 0);
     UART_THR = (uint32_t)c;
 }
 
-static inline void uart_print(const char* str) {
+static __attribute__((noinline)) void uart_print(const char* str) {
     while (*str) {
         if (*str == '\n') {
             uart_putc('\r');
@@ -85,7 +85,7 @@ static inline void uart_print(const char* str) {
     }
 }
 
-static inline void uart_print_hex(uint32_t val) {
+static __attribute__((noinline)) void uart_print_hex(uint32_t val) {
     const char hex_chars[] = "0123456789ABCDEF";
     uart_print("0x");
     for (int i = 7; i >= 0; i--) {
@@ -94,7 +94,7 @@ static inline void uart_print_hex(uint32_t val) {
     }
 }
 
-static inline void uart_print_dec(uint32_t val) {
+static __attribute__((noinline)) void uart_print_dec(uint32_t val) {
     if (val == 0) {
         uart_putc('0');
         return;
@@ -110,7 +110,7 @@ static inline void uart_print_dec(uint32_t val) {
     }
 }
 
-static inline void delay(uint32_t count) {
+static __attribute__((noinline)) void delay(uint32_t count) {
     for (volatile uint32_t i = 0; i < count; i++) {
         __asm__ volatile("nop");
     }
@@ -119,7 +119,7 @@ static inline void delay(uint32_t count) {
 // ============================================================================
 // Assertion & Reporting
 // ============================================================================
-static inline void report_test(const char* test_name, int pass) {
+static __attribute__((noinline)) void report_test(const char* test_name, int pass) {
     if (pass) {
         uart_print("  [PASS] ");
         uart_print(test_name);
@@ -133,7 +133,7 @@ static inline void report_test(const char* test_name, int pass) {
     }
 }
 
-static inline void test_header(const char* title) {
+static __attribute__((noinline)) void test_header(const char* title) {
     uart_print("\n");
     uart_print("====================================================\n");
     uart_print("  ");
@@ -144,7 +144,7 @@ static inline void test_header(const char* title) {
     uart_print("====================================================\n\n");
 }
 
-static inline void test_summary(void) {
+static __attribute__((noinline)) void test_summary(void) {
     uart_print("\n====================================================\n");
     uart_print("  TEST SUMMARY REPORT\n");
     uart_print("====================================================\n");

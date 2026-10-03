@@ -229,9 +229,60 @@ This ensured that all peripheral sub-word register offsets (`0x04`, `0x08`, `0x0
 
 ---
 
+### Error 6: 8 KB Boot ROM Linker Overflow in Unified Suite (`make test_all_ips`)
+
+#### Error Symptoms
+When executing `make test_all_ips`:
+```text
+riscv64-unknown-elf-ld: region 'rom' overflowed by 2870 bytes
+collect2: error: ld returned 1 exit status
+make[2]: *** [Makefile:215: program.elf] Error 1
+```
+
+#### Source & Root Cause
+1. **Physical ROM Allocation:** The boot ROM (`axi_rom.v`) and GNU ld linker script (`firmware/link.ld`) strictly bound ROM capacity to 8 KB (`8192` bytes):
+   ```ld
+   MEMORY {
+       rom (rx) : ORIGIN = 0x80000000, LENGTH = 8K
+   }
+   ```
+2. **Aggressive Inlining Bloat:** In `firmware/test/test_common.h`, utility functions (`uart_print`, `uart_putc`, `uart_print_hex`, `uart_print_dec`, `report_test`) were defined with `static inline`. In `test_all.c`, which verifies all 7 peripherals with dozens of assertions, GCC (`-O2`) duplicated the code of every helper at every assertion call site. This bloated `.text` to **11,062 bytes**, exceeding the 8 KB budget by 2,870 bytes.
+
+#### Resolution
+In `firmware/test/test_common.h`, replaced `static inline` with `static __attribute__((noinline))` on helper routines. The binary size plummeted from 11,062 bytes to **3,733 bytes** (< 4 KB), leaving > 50% headroom inside the 8 KB ROM.
+
+---
+
+### Error 7: UART IP Register Map Specification Mismatch
+
+#### Error Symptoms
+Running `make test_uart` or `make test_all_ips` failed assertions on registers like `UART_IER`, `UART_LCR`, `UART_MCR`, and `UART_SCR`:
+```text
+  [FAIL] IER register write/readback (0x07)
+  [FAIL] LCR configuration 8N1 (0x03) verified
+  [FAIL] MCR register write/readback (0x0B)
+  [FAIL] SCR scratchpad pattern 0xA5 write/readback
+```
+
+#### Source & Root Cause
+The ingested UART IP core (`rtl/ips/axi-lite_uart-ipcore-develop/src/rtl/axi_uart_top.v`) is a lightweight streaming core:
+- The read FSM only maps `UART_RBR` (offset `0x00`) and `UART_LSR` (offset `0x14`).
+- Any read transaction targeting other offsets hits `default:` and returns `32'h0000_0000`.
+- The initial tests erroneously assumed a fully readback-capable 16550 UART with readable scratchpad and modem control registers.
+
+#### Resolution
+Updated `firmware/test/test_uart.c` and `firmware/test/test_all.c` to test actual hardware functionality:
+1. `UART_LSR` status flags (`THRE = 1`, `TEMT = 1`)
+2. Serial byte streaming
+3. String burst transmission
+4. Hexadecimal formatting streaming
+5. Decimal formatting streaming
+
+---
+
 ## 4. Current Regression Verification Status
 
-All regression suites and individual IP testbenches currently pass with the following results:
+All regression suites and individual IP testbenches pass with 100% success:
 
 ```
 ================================================================================
@@ -247,10 +298,12 @@ All regression suites and individual IP testbenches currently pass with the foll
  [PASS] test_timer:            4 passed,  0 failed
  [PASS] test_gpio:             4 passed,  0 failed
  [PASS] test_heartbeat:        6 passed,  0 failed
+ [PASS] test_uart:             6 passed,  0 failed
  [PASS] test_reset_sequencer:  6 passed,  0 failed
  [PASS] test_recovery_policy:  9 passed,  0 failed
  [PASS] test_vga:              5 passed,  0 failed
+ [PASS] test_all_ips:         19 passed,  0 failed
 ================================================================================
- ALL CORE HARDWARE AND SUBSYSTEM SIMULATIONS: 100% PASSING
+ ALL HARDWARE AND FIRMWARE SUITES: 100% PASSING (129/129 CHECKS)
 ================================================================================
 ```

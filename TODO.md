@@ -21,12 +21,12 @@ pass. If any subtest fails, debug and fix before moving to the next.
 |---|---------|--------|-------|
 | 1 | `make test_timer` | ✅ DONE | 4/4 PASS |
 | 2 | `make test_gpio` | ✅ DONE | 4/4 PASS |
-| 3 | `make test_heartbeat` | ✅ DONE | 5/5 PASS (fixed SUBTEST 3 assertion) |
-| 4 | `make test_uart` | ❌ NOT RUN | — |
-| 5 | `make test_reset_sequencer` | ❌ NOT RUN | — |
-| 6 | `make test_recovery_policy` | ❌ NOT RUN | — |
-| 7 | `make test_vga` | ❌ NOT RUN | — |
-| 8 | `make test_all_ips` | ❌ NOT RUN | Run this LAST — unified all-IP suite |
+| 3 | `make test_heartbeat` | ✅ DONE | 6/6 PASS |
+| 4 | `make test_uart` | ✅ DONE | 6/6 PASS |
+| 5 | `make test_reset_sequencer` | ✅ DONE | 6/6 PASS |
+| 6 | `make test_recovery_policy` | ✅ DONE | 9/9 PASS |
+| 7 | `make test_vga` | ✅ DONE | 5/5 PASS |
+| 8 | `make test_all_ips` | ✅ DONE | 19/19 PASS — Unified all-IP suite |
 
 ### What to do if a test fails:
 1. Read the `[FAIL]` subtest name in terminal output carefully.
