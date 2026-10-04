@@ -88,35 +88,57 @@ The SoC implements a unified memory map spanning processor TCM, memory-mapped pe
 
 ### Prerequisites
 - **Toolchain**: `riscv64-unknown-elf-gcc` (or `riscv32-unknown-elf-gcc`) with RV32IMC support.
-- **Simulator**: Synopsys VCS (`vcs`, `simv`) and Verdi (`verdi`) for waveform analysis.
+- **Simulators Supported**:
+  - **Synopsys VCS & Verdi** (Linux Workstations / Lab environment)
+  - **AMD Xilinx Vivado XSIM** (Windows Native & WSL environments)
+  - **GTKWave / Surfer** (for VCD waveform visualization)
 - *Detailed environment setup instructions are available in [`docs/clean_machine_setup_guide.md`](docs/clean_machine_setup_guide.md).*
 
-### Build & Run in 3 Steps
+### Build & Run Workflow
 
+#### Option A: Synopsys VCS (Linux)
 ```bash
-# 1. Cross-compile bare-metal C firmware into bootable ROM hex
-make build_firmware
+# 1. Run full end-to-end SoC boot simulation with FSDB waveform dumping
+make sim_core FSDB=1
 
-# 2. Run full end-to-end SoC simulation (VeeR EL2 core + AXI bus + peripheral IPs)
-make sim_core
+# 2. Run individual bare-metal IP test suites
+make test_uart FSDB=1
+make test_timer FSDB=1
 
-# 3. (Optional) Inspect full-system execution waveforms in Synopsys Verdi
+# 3. Inspect waveforms in Synopsys Verdi
 make waves_core
+```
+
+#### Option B: AMD Xilinx Vivado XSIM (Windows / WSL)
+```bash
+# In WSL: Cross-compile firmware and simulate in Vivado XSIM
+make xsim TEST=test/test_timer VCD=1
+
+# View VCD waveform in GTKWave
+make waves_vcd
+```
+
+```powershell
+# In Windows Native (PowerShell / Command Prompt):
+.\run_test.bat test_timer        # Run simulation with console UART output
+.\run_test.bat test_timer 1      # Run simulation with VCD waveform dumping
+.\clean.bat                      # Clean build & simulation artifacts
 ```
 
 ### Common Make Targets
 
-| Command | Purpose |
-| :--- | :--- |
-| `make build_firmware` | Compiles `firmware/` C/assembly code into `program.hex` / `firmware.hex` |
-| `make sim_core` | **Full SoC Simulation**: Boots VeeR EL2, runs bare-metal IP test suite, streams UART output |
-| `make test_uart [FSDB=1]` | Runs bare-metal IP unit tests on VeeR core (pass `FSDB=1` to dump waveforms) |
-| `make sim_soc` | Peripheral subsystem integration testbench |
-| `make sim_axi` | Standalone 3x8 AXI Interconnect crossbar verification |
-| `make sim_all` | Runs complete regression test suite across all units and subsystems |
-| `make open_fsdb [FSDB=<file>]` | Opens FSDB waveform in Synopsys Verdi (default: `soc_core.fsdb`, alias: `make waves`) |
-| `make waves_core` | Opens Synopsys Verdi with preloaded SoC signal layouts (`waves/soc_top_wave.rc`) |
-| `make clean` | Removes compiled binaries, simulation executables, and waveform databases |
+| Command | Environment | Purpose |
+| :--- | :---: | :--- |
+| `make sim_core [FSDB=1]` | Linux (VCS) | **Full SoC Boot**: Executes VeeR EL2 core boot, runs IP validation suite, streams UART |
+| `make test_<ip> [FSDB=1]` | Linux (VCS) | Runs bare-metal IP test (`test_uart`, `test_timer`, `test_gpio`, `test_heartbeat`, `test_reset_sequencer`, `test_recovery_policy`, `test_vga`, `test_interconnect`, `test_all_ips`) |
+| `make sim_soc [FSDB=1]` | Linux (VCS) | Peripheral subsystem integration testbench |
+| `make sim_axi [FSDB=1]` | Linux (VCS) | Standalone 3x8 AXI Interconnect crossbar verification |
+| `make sim_all` | Linux (VCS) | Runs complete regression test suite across all units and subsystems |
+| `make xsim TEST=<f> [VCD=1]` | WSL / Win | Cross-compiles C test and executes simulation in **Vivado XSIM** (e.g. `TEST=test/test_timer`) |
+| `.\run_test.bat <test> [1]` | Windows | Native Windows one-command firmware build and Vivado XSIM execution |
+| `make waves_core` / `make waves` | Linux (Verdi) | Opens generated `soc_core.fsdb` in Synopsys Verdi with preloaded SoC signal layouts |
+| `make waves_vcd` | WSL / Win | Opens generated `waves.vcd` in GTKWave |
+| `make clean` / `.\clean.bat` | All | Purges all build binaries, snapshots, logs, and waveform databases |
 
 ---
 

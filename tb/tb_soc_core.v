@@ -105,8 +105,10 @@ module tb_soc_core;
     initial begin
         // Waveform dumping setup
         if ($test$plusargs("fsdb")) begin
+`ifdef VCS
             $fsdbDumpfile("soc_core.fsdb");
             $fsdbDumpvars(0, tb_soc_core);
+`endif
         end else if ($test$plusargs("vcd")) begin
             $dumpfile("soc_core.vcd");
             $dumpvars(0, tb_soc_core);

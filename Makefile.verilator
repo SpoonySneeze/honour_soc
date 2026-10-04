@@ -1,0 +1,48 @@
+# ============================================================================
+# Verilator Configuration for VeeR EL2 SoC
+# ============================================================================
+VERILATOR = verilator
+VERILATOR_FLAGS = -Wno-fatal --cc --exe --build --trace -j 0 --timing \
+                  +define+VERILATOR \
+                  +define+SIMULATION \
+                  -Wno-UNOPTFLAT -Wno-WIDTH -Wno-SYMRSVDWORD \
+                  -FI rtl/core/Cores-VeeR-EL2/snapshots/default/common_defines.vh \
+                  --top-module tb_soc_core
+
+# Extract directories from original VCS includes
+VERILATOR_INC = -Irtl/core/Cores-VeeR-EL2/design/include \
+                -Irtl/core/Cores-VeeR-EL2/snapshots/default \
+                -Irtl/ips/axi-lite_uart-ipcore-develop/src/include
+
+# Custom Flist to enforce package compilation order
+rtl/core/Cores-VeeR-EL2/design/flist.verilator: rtl/core/Cores-VeeR-EL2/design/flist
+	@echo ">>> Generating verilator flist (enforcing package order)..."
+	@echo "rtl/core/Cores-VeeR-EL2/design/include/el2_def.sv" > $@
+	@echo "rtl/core/Cores-VeeR-EL2/design/el2_lockstep_pkg.sv" >> $@
+	@sed -e 's|\$$RV_ROOT|rtl/core/Cores-VeeR-EL2|g' -e 's|-v ||g' $< >> $@
+
+# Override the sim_core recipe to compile with Verilator
+build/simv_soc_core: snapshot build_firmware tb/tb_soc_core.v $(SOC_RTL) rtl/core/Cores-VeeR-EL2/design/flist.verilator | $(BUILD_DIR)
+	@echo "================================================================"
+	@echo " [VERILATOR] Compiling Full SoC with VeeR EL2 Core..."
+	@echo "================================================================"
+	$(VERILATOR) $(VERILATOR_FLAGS) $(VERILATOR_INC) \
+		-f rtl/core/Cores-VeeR-EL2/design/flist.verilator \
+		$(SOC_RTL) \
+		tb/tb_soc_core.v \
+		--Mdir $(BUILD_DIR)/obj_dir_soc_core -o simv_soc_core
+	@cp $(BUILD_DIR)/obj_dir_soc_core/simv_soc_core $(BUILD_DIR)/simv_soc_core
+
+sim_core: build/simv_soc_core
+	@echo "================================================================"
+	@echo " [SIMULATION] Running Full SoC Core Simulation (Verilator)..."
+	@echo "================================================================"
+	./build/simv_soc_core +vcd
+
+run_fw_test:
+	@rm -f program.elf program.hex firmware.hex
+	$(MAKE) build_firmware TEST=$(TEST)
+	@echo "================================================================"
+	@echo " [SIMULATION] Running SoC Bare-Metal Test: $(TEST)"
+	@echo "================================================================"
+	./build/simv_soc_core +vcd

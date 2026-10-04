@@ -29,10 +29,14 @@ verdi_config_file
 # Verilator
 **/obj_dir/
 
-# Syntheis / Implementation
+# Synthesis / Implementation / XSIM
 *.jou
 *.pb
 *.wdb
+*.str
+dump.tcl
+xsim.dir/
+.Xil/
 
 *.elf
 *.hex

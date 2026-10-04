@@ -1133,8 +1133,10 @@ module tb_soc_top;
         $dumpfile("tb_soc_top.vcd");
         $dumpvars(0, tb_soc_top);
         if ($test$plusargs("fsdb")) begin
+`ifdef VCS
             $fsdbDumpfile("tb_soc_top.fsdb");
             $fsdbDumpvars(0, tb_soc_top);
+`endif
         end
 
         // Initialize all AXI signals

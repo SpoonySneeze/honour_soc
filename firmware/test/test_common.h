@@ -63,16 +63,23 @@
 #define VGA_TEXT_BUFFER ((volatile uint32_t*)(VGA_BASE + 0x08))
 
 // ============================================================================
-// Test Framework Accounting
+// Test Framework Accounting & Watchdog
 // ============================================================================
 static uint32_t g_pass_count = 0;
 static uint32_t g_fail_count = 0;
+
+// Software watchdog timeout value for polling loops to prevent CPU hangs.
+// Usage: uint32_t wd = WATCHDOG_TIMEOUT; while (cond && --wd); if(!wd) fail();
+#define WATCHDOG_TIMEOUT 1000000
 
 // ============================================================================
 // UART Driver Functions
 // ============================================================================
 static __attribute__((noinline)) void uart_putc(char c) {
-    while ((UART_LSR & UART_LSR_THRE) == 0);
+    uint32_t timeout = 100000;
+    while ((UART_LSR & UART_LSR_THRE) == 0) {
+        if (--timeout == 0) break;
+    }
     UART_THR = (uint32_t)c;
 }
 

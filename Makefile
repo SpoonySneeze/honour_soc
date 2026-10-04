@@ -23,7 +23,7 @@ CC             = $(CROSS_COMPILE)gcc
 OBJCOPY        = $(CROSS_COMPILE)objcopy
 OBJDUMP        = $(CROSS_COMPILE)objdump
 
-CFLAGS  = -march=rv32imc_zicsr -mabi=ilp32 -mcmodel=medany -Wall -O2 -ffreestanding -nostdlib -Ifirmware/test -Ifirmware
+CFLAGS  = -march=rv32imc_zicsr -mabi=ilp32 -mcmodel=medany -Wall -O2 -ffreestanding -nostdlib -Ifirmware/test -Ifirmware -DSIMULATION
 LDFLAGS = -T firmware/link.ld -nostartfiles -Wl,--no-relax
 TEST   ?= main
 
@@ -86,9 +86,9 @@ FSDB_TARGET = $(if $(FILE),$(FILE),$(if $(filter-out 0 1 true false yes no,$(FSD
 .PHONY: all default help build_firmware snapshot \
         sim_core vcs_core sim_soc sim_axi sim_hbm sim_rst sim_pol sim_all \
         compile_top waves_core waves_soc waves_axi waves_hbm waves_rst waves_pol \
-        open_fsdb view_fsdb waves clean xsim \
+        open_fsdb view_fsdb waves clean xsim waves_vcd \
         test_uart test_timer test_gpio test_heartbeat test_reset_sequencer \
-        test_recovery_policy test_vga test_all_ips run_fw_test
+        test_recovery_policy test_vga test_interconnect test_all_ips run_fw_test
 
 default: help
 
@@ -96,58 +96,46 @@ all: sim_all
 
 help:
 	@echo "=================================================================="
-	@echo " BMC System-on-Chip: Synopsys VCS & Verdi Verification System"
+	@echo " BMC System-on-Chip: Verification & Simulation Suite"
+	@echo " Supports: Synopsys VCS & Verdi (Linux) | Vivado XSIM (WSL/Win)"
 	@echo "=================================================================="
 	@echo ""
 	@echo " 1. Firmware Build Targets:"
-	@echo "   make build_firmware [TEST=main]       - Cross-compile C firmware to firmware.hex"
+	@echo "   make build_firmware [TEST=<f>]        - Cross-compile C firmware to firmware.hex"
+	@echo "                                           (default TEST=main, e.g. TEST=test/test_timer)"
 	@echo ""
-	@echo " 2. Full SoC Simulation (VeeR Core + AXI ROM + All IPs):"
-	@echo "   make sim_core                         - End-to-end SoC boot simulation with UART output"
-	@echo "                                           and default soc_core.fsdb waveform dump"
+	@echo " 2. Synopsys VCS Simulation (Linux / Golden Environment):"
+	@echo "   make sim_core             [FSDB=1]    - Full SoC boot simulation (VeeR EL2 + AXI ROM + IPs)"
+	@echo "   make test_uart            [FSDB=1]    - UART 16550 IP test suite (6 subtests)"
+	@echo "   make test_timer           [FSDB=1]    - System Timer IP test suite (4 subtests)"
+	@echo "   make test_gpio            [FSDB=1]    - GPIO Status IP test suite (3 subtests)"
+	@echo "   make test_heartbeat       [FSDB=1]    - Heartbeat Monitor IP test suite (5 subtests)"
+	@echo "   make test_reset_sequencer [FSDB=1]    - Reset Sequencer IP test suite (4 subtests)"
+	@echo "   make test_recovery_policy [FSDB=1]    - Recovery Policy IP test suite (5 subtests)"
+	@echo "   make test_vga             [FSDB=1]    - VGA Controller IP test suite (5 subtests)"
+	@echo "   make test_interconnect    [FSDB=1]    - AXI Interconnect crossbar test suite"
+	@echo "   make test_all_ips         [FSDB=1]    - Complete integrated bare-metal test suite"
+	@echo "   make run_fw_test TEST=<f> [FSDB=1]    - Run custom firmware test in VCS"
+	@echo "   make sim_soc              [FSDB=1]    - Peripheral subsystem integration testbench"
+	@echo "   make sim_axi              [FSDB=1]    - Standalone 3x8 AXI Interconnect crossbar testbench"
+	@echo "   make sim_all                          - Run all unit and subsystem test suites"
+	@echo "   make compile_top                      - Elaboration check of soc_top.v"
 	@echo ""
-	@echo " 3. Firmware Per-IP Tests (Executes bare-metal on VeeR core):"
-	@echo "   make test_uart           [FSDB=1]     - Test UART 16550 IP (6 subtests)"
-	@echo "   make test_timer          [FSDB=1]     - Test System Timer IP (4 subtests)"
-	@echo "   make test_gpio           [FSDB=1]     - Test GPIO Status IP (3 subtests)"
-	@echo "   make test_heartbeat      [FSDB=1]     - Test Heartbeat Monitor IP (5 subtests)"
-	@echo "   make test_reset_sequencer [FSDB=1]    - Test Power/Reset Sequencer IP (4 subtests)"
-	@echo "   make test_recovery_policy [FSDB=1]    - Test Recovery Policy IP (5 subtests)"
-	@echo "   make test_vga            [FSDB=1]     - Test VGA Status Dashboard IP (5 subtests)"
-	@echo "   make test_all_ips        [FSDB=1]     - Run all per-IP tests in one firmware binary"
-	@echo "   make run_fw_test TEST=<f> [FSDB=1]    - Run custom firmware test (e.g. TEST=test/test_timer)"
+	@echo " 3. Vivado XSIM Simulation (WSL & Windows):"
+	@echo "   make xsim [TEST=<f>] [VCD=1]          - Run test in XSIM (e.g. TEST=test/test_timer)"
+	@echo "                                           (Pass VCD=1 or DUMP=1 to dump waves.vcd)"
+	@echo "   # Windows Native (PowerShell / CMD):"
+	@echo "   .\\\run_test.bat <test_name> [1]       - Cross-compile firmware & simulate in XSIM"
 	@echo ""
-	@echo " 4. Hardware Unit & Subsystem Testbenches (VCS):"
-	@echo "   make sim_soc             [FSDB=1]     - Full peripheral subsystem testbench"
-	@echo "   make sim_axi             [FSDB=1]     - 3x8 AXI4 Interconnect crossbar testbench"
-	@echo "   make sim_hbm             [FSDB=1]     - Heartbeat Monitor unit testbench"
-	@echo "   make sim_rst             [FSDB=1]     - Power/Reset Sequencer unit testbench"
-	@echo "   make sim_pol             [FSDB=1]     - Recovery Policy unit testbench"
-	@echo "   make sim_all                          - Run all test suites sequentially"
-	@echo "   make compile_top                      - Syntax and elaboration check of soc_top.v"
+	@echo " 4. Waveform Inspection:"
+	@echo "   # Synopsys Verdi (FSDB):"
+	@echo "   make waves / make open_fsdb [FSDB=<f>]- Open FSDB in Verdi (default: soc_core.fsdb)"
+	@echo "   make waves_core                       - Open Verdi with full SoC + VeeR execution signals"
+	@echo "   # GTKWave / Surfer (VCD):"
+	@echo "   make waves_vcd                        - Open waves.vcd in GTKWave"
 	@echo ""
-	@echo " 5. Synopsys Verdi Waveform Viewing:"
-	@echo "   make open_fsdb [FSDB=<file>]          - Open FSDB waveform in Verdi (default: soc_core.fsdb)"
-	@echo "   make waves     [FSDB=<file>]          - Shortcut alias for open_fsdb"
-	@echo "   make waves_core                       - Open Verdi with full SoC + VeeR execution waves"
-	@echo "   make waves_soc                        - Open Verdi with peripheral subsystem waves"
-	@echo "   make waves_axi                        - Open Verdi with AXI interconnect waves"
-	@echo "   make waves_hbm                        - Open Verdi with Heartbeat Monitor waves"
-	@echo "   make waves_rst                        - Open Verdi with Reset Sequencer waves"
-	@echo "   make waves_pol                        - Open Verdi with Recovery Policy waves"
-	@echo ""
-	@echo " 6. Quick Workflow Examples:"
-	@echo "   # Step 1: Run firmware test with FSDB waveform dumping"
-	@echo "   make test_timer FSDB=1"
-	@echo ""
-	@echo "   # Step 2: Open generated waveform in Synopsys Verdi"
-	@echo "   make waves"
-	@echo ""
-	@echo "   # Step 3: Open specific unit test waveform"
-	@echo "   make sim_hbm FSDB=1 && make open_fsdb FSDB=tb_heartbeat_monitor.fsdb"
-	@echo ""
-	@echo " 7. Clean:"
-	@echo "   make clean                            - Clean binaries, simv, logs, and waveforms"
+	@echo " 5. Cleanup:"
+	@echo "   make clean                            - Remove binaries, simulation snapshots, logs & waveforms"
 	@echo "   make help                             - Display this reference menu"
 	@echo "=================================================================="
 
@@ -235,6 +223,9 @@ test_recovery_policy: $(BUILD_DIR)/simv_soc_core
 
 test_vga: $(BUILD_DIR)/simv_soc_core
 	$(MAKE) run_fw_test TEST=test/test_vga FSDB=$(FSDB)
+
+test_interconnect: $(BUILD_DIR)/simv_soc_core
+	$(MAKE) run_fw_test TEST=test/test_interconnect FSDB=$(FSDB)
 
 test_all_ips: $(BUILD_DIR)/simv_soc_core
 	$(MAKE) run_fw_test TEST=test/test_all FSDB=$(FSDB)
@@ -359,11 +350,30 @@ waves_pol:
 # 9. Vivado XSIM Target (WSL / Windows compatibility)
 # ----------------------------------------------------------------------------
 DEBUG ?= 0
-xsim: build_firmware
+VCD   ?= 0
+
+ifeq ($(filter 1 true yes,$(VCD))$(filter 1 true yes vcd,$(DUMP))$(filter 1 true yes,$(DEBUG)),)
+  XSIM_WAVE_FLAG = 0
+else
+  XSIM_WAVE_FLAG = 1
+endif
+
+xsim:
+	@rm -f program.elf program.hex firmware.hex
+	$(MAKE) build_firmware TEST=$(TEST)
 	@if [ -f "/proc/sys/fs/binfmt_misc/WSLInterop" ]; then \
-		cmd.exe /c run_xsim.bat $(DEBUG); \
+		cmd.exe /c run_xsim_fw.bat $(XSIM_WAVE_FLAG); \
 	else \
-		./run_xsim.bat $(DEBUG); \
+		./run_xsim_fw.bat $(XSIM_WAVE_FLAG); \
+	fi
+
+waves_vcd:
+	@if command -v gtkwave >/dev/null 2>&1; then \
+		gtkwave waves.vcd & \
+	elif [ -f "/mnt/g/gtkwave64/bin/gtkwave.exe" ]; then \
+		/mnt/g/gtkwave64/bin/gtkwave.exe waves.vcd & \
+	else \
+		cmd.exe /c start gtkwave waves.vcd 2>/dev/null || echo "Please open waves.vcd in GTKWave or Surfer."; \
 	fi
 
 # ----------------------------------------------------------------------------
@@ -371,8 +381,15 @@ xsim: build_firmware
 # ----------------------------------------------------------------------------
 clean:
 	@echo "Cleaning simulation artifacts, logs, and compiled binaries..."
-	rm -rf $(BUILD_DIR)
+	rm -rf $(BUILD_DIR) obj_dir .Xil xsim.dir
 	rm -f program.elf program.hex firmware.hex program.dump
-	rm -rf simv* csrc *.daidir ucli.key vc_hdrs.h *.vpd *.fsdb *.vcd
-	rm -rf novas.* verdiLog xsim.dir *.log *.pb *.jou *.wdb dump.tcl
+	rm -rf simv* csrc *.daidir ucli.key vc_hdrs.h *.vpd *.fsdb *.vcd waves.vcd
+	rm -rf novas.* verdiLog *.log *.pb *.jou *.wdb dump.tcl *.str flist*.tmp
 	@echo "Clean completed."
+
+# ----------------------------------------------------------------------------
+# Verilator Overrides
+# ----------------------------------------------------------------------------
+ifeq ($(SIM),verilator)
+include Makefile.verilator
+endif

@@ -1232,8 +1232,10 @@ module tb_axi_interconnect;
         $dumpfile("tb_axi_interconnect.vcd");
         $dumpvars(0, tb_axi_interconnect);
         if ($test$plusargs("fsdb")) begin
+`ifndef VERILATOR
             $fsdbDumpfile("tb_axi_interconnect.fsdb");
             $fsdbDumpvars(0, tb_axi_interconnect);
+`endif
         end
 
         // Signal initialization
