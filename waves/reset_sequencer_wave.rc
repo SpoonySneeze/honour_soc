@@ -1,0 +1,77 @@
+Magic 271485
+Revision Verdi_U-2023.03-SP1
+
+; ============================================================
+; Power/Reset Sequencer Standalone Testbench – Verdi Waveform RC
+; Target: tb/tb_reset_sequencer.v (FSDB: tb_reset_sequencer.fsdb)
+; ============================================================
+
+viewPort 0 0 1600 900 250 100
+signalSpacing 5
+
+zoom 0.000000 5000000.000000
+cursor 0.000000
+marker 0.000000
+
+top 0
+markerPos 0
+
+COMPLEX_EVENT_BEGIN
+COMPLEX_EVENT_END
+
+curSTATUS ByChange
+
+; ============================================================
+; Group 1: Clock & System Reset
+; ============================================================
+addGroup "1. Clock & Reset"
+addSignal -h 15 /tb_reset_sequencer/clk
+addSignal -h 15 -holdScope rst
+addSignal -h 15 /tb_reset_sequencer/dut/rst_n
+
+; ============================================================
+; Group 2: AXI4 Slave Bus Interface
+; ============================================================
+addGroup "2. AXI4 Slave Interface"
+addSignal -h 15 -UNSIGNED -HEX /tb_reset_sequencer/axi_awaddr[7:0]
+addSignal -h 15 -holdScope axi_awvalid
+addSignal -h 15 -holdScope axi_awready
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_wdata[63:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_wstrb[7:0]
+addSignal -h 15 -holdScope axi_wvalid
+addSignal -h 15 -holdScope axi_wready
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_bresp[1:0]
+addSignal -h 15 -holdScope axi_bvalid
+addSignal -h 15 -holdScope axi_bready
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_araddr[7:0]
+addSignal -h 15 -holdScope axi_arvalid
+addSignal -h 15 -holdScope axi_arready
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_rdata[63:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_rresp[1:0]
+addSignal -h 15 -holdScope axi_rvalid
+addSignal -h 15 -holdScope axi_rready
+
+; ============================================================
+; Group 3: Trigger & Configuration Controls
+; ============================================================
+addGroup "3. Sequencer Control & Config"
+addSignal -h 15 /tb_reset_sequencer/dut/u_core/trigger_req
+addSignal -h 15 -UNSIGNED -UDEC -holdScope rst_hold_cycles_reg[31:0]
+
+; ============================================================
+; Group 4: Sequencer State Machine & Counters
+; ============================================================
+addGroup "4. FSM State & Counters"
+addSignal -h 15 -UNSIGNED -HEX /tb_reset_sequencer/dut/u_core/rst_state[1:0]
+addSignal -h 15 -UNSIGNED -UDEC -holdScope rst_countdown[31:0]
+addSignal -h 15 -holdScope in_progress
+addSignal -h 15 -holdScope complete
+
+; ============================================================
+; Group 5: Output Reset Line & Status
+; ============================================================
+addGroup "5. Power & Reset Outputs"
+addSignal -h 15 /tb_reset_sequencer/reset_out
+addSignal -h 15 -UNSIGNED -UDEC /tb_reset_sequencer/test_num
+addSignal -h 15 -UNSIGNED -UDEC -holdScope pass_count
+addSignal -h 15 -UNSIGNED -UDEC -holdScope fail_count

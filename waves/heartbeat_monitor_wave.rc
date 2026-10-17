@@ -1,0 +1,80 @@
+Magic 271485
+Revision Verdi_U-2023.03-SP1
+
+; ============================================================
+; Heartbeat Monitor Standalone Testbench – Verdi Waveform RC
+; Target: tb/tb_heartbeat_monitor.v (FSDB: tb_heartbeat_monitor.fsdb)
+; ============================================================
+
+viewPort 0 0 1600 900 250 100
+signalSpacing 5
+
+zoom 0.000000 5000000.000000
+cursor 0.000000
+marker 0.000000
+
+top 0
+markerPos 0
+
+COMPLEX_EVENT_BEGIN
+COMPLEX_EVENT_END
+
+curSTATUS ByChange
+
+; ============================================================
+; Group 1: Clock & System Reset
+; ============================================================
+addGroup "1. Clock & Reset"
+addSignal -h 15 /tb_heartbeat_monitor/clk
+addSignal -h 15 -holdScope rst
+addSignal -h 15 /tb_heartbeat_monitor/dut/rst_n
+
+; ============================================================
+; Group 2: Heartbeat Input & Edge Detection
+; ============================================================
+addGroup "2. Heartbeat Input & Edge"
+addSignal -h 15 /tb_heartbeat_monitor/heartbeat_in
+addSignal -h 15 /tb_heartbeat_monitor/dut/u_core/hb_prev_sample
+addSignal -h 15 -holdScope hb_rising_edge
+
+; ============================================================
+; Group 3: AXI4 Slave Bus Interface
+; ============================================================
+addGroup "3. AXI4 Slave Interface"
+addSignal -h 15 -UNSIGNED -HEX /tb_heartbeat_monitor/axi_awaddr[7:0]
+addSignal -h 15 -holdScope axi_awvalid
+addSignal -h 15 -holdScope axi_awready
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_wdata[63:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_wstrb[7:0]
+addSignal -h 15 -holdScope axi_wvalid
+addSignal -h 15 -holdScope axi_wready
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_bresp[1:0]
+addSignal -h 15 -holdScope axi_bvalid
+addSignal -h 15 -holdScope axi_bready
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_araddr[7:0]
+addSignal -h 15 -holdScope axi_arvalid
+addSignal -h 15 -holdScope axi_arready
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_rdata[63:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_rresp[1:0]
+addSignal -h 15 -holdScope axi_rvalid
+addSignal -h 15 -holdScope axi_rready
+
+; ============================================================
+; Group 4: Watchdog Registers & Elapsed Counter
+; ============================================================
+addGroup "4. Watchdog Core Logic"
+addSignal -h 15 /tb_heartbeat_monitor/dut/u_core/hb_enable
+addSignal -h 15 -UNSIGNED -HEX -holdScope hb_state[1:0]
+addSignal -h 15 -UNSIGNED -UDEC -holdScope hb_threshold_reg[31:0]
+addSignal -h 15 -UNSIGNED -UDEC -holdScope hb_counter[31:0]
+addSignal -h 15 -holdScope clear_flag_req
+
+; ============================================================
+; Group 5: Timeout Alarm & Interrupt Outputs
+; ============================================================
+addGroup "5. Timeout & Alert Outputs"
+addSignal -h 15 /tb_heartbeat_monitor/dut/u_core/hb_unresponsive_flag
+addSignal -h 15 /tb_heartbeat_monitor/hb_irq
+addSignal -h 15 -UNSIGNED -UDEC /tb_heartbeat_monitor/test_num
+addSignal -h 15 -UNSIGNED -UDEC -holdScope pass_count
+addSignal -h 15 -UNSIGNED -UDEC -holdScope fail_count

@@ -74,8 +74,12 @@ FSDB_AXI    = tb_axi_interconnect.fsdb
 FSDB_HBM    = tb_heartbeat_monitor.fsdb
 FSDB_RST    = tb_reset_sequencer.fsdb
 FSDB_POL    = tb_recovery_policy.fsdb
+RC_CORE     = waves/soc_core_wave.rc
 RC_SOC      = waves/soc_top_wave.rc
 RC_AXI      = waves/axi_interconnect_wave.rc
+RC_HBM      = waves/heartbeat_monitor_wave.rc
+RC_RST      = waves/reset_sequencer_wave.rc
+RC_POL      = waves/recovery_policy_wave.rc
 
 # Target FSDB file resolution for open_fsdb (accepts FSDB=<file> or FILE=<file>, defaults to soc_core.fsdb)
 FSDB_TARGET = $(if $(FILE),$(FILE),$(if $(filter-out 0 1 true false yes no,$(FSDB)),$(FSDB),$(FSDB_CORE)))
@@ -329,22 +333,30 @@ view_fsdb: open_fsdb
 waves: open_fsdb
 
 waves_core:
-	$(VERDI) -ssf $(FSDB_CORE) -sswr $(RC_SOC) &
+	$(VERDI) -dbdir $(BUILD_DIR)/simv_soc_core.daidir -ssf $(FSDB_CORE) -sswr $(RC_CORE) &
 
 waves_soc:
-	$(VERDI) -ssf $(FSDB_SOC) -sswr $(RC_SOC) &
+	$(VERDI) -dbdir $(BUILD_DIR)/simv_soc.daidir -ssf $(FSDB_SOC) -sswr $(RC_SOC) &
 
 waves_axi:
-	$(VERDI) -ssf $(FSDB_AXI) -sswr $(RC_AXI) &
+	$(VERDI) -dbdir $(BUILD_DIR)/simv_axi.daidir -ssf $(FSDB_AXI) -sswr $(RC_AXI) &
 
 waves_hbm:
-	$(VERDI) -ssf $(FSDB_HBM) &
+	$(VERDI) -dbdir $(BUILD_DIR)/simv_hbm.daidir -ssf $(FSDB_HBM) -sswr $(RC_HBM) &
 
 waves_rst:
-	$(VERDI) -ssf $(FSDB_RST) &
+	$(VERDI) -dbdir $(BUILD_DIR)/simv_rst.daidir -ssf $(FSDB_RST) -sswr $(RC_RST) &
 
 waves_pol:
-	$(VERDI) -ssf $(FSDB_POL) &
+	$(VERDI) -dbdir $(BUILD_DIR)/simv_pol.daidir -ssf $(FSDB_POL) -sswr $(RC_POL) &
+
+# Convenient view aliases
+view_core: waves_core
+view_soc:  waves_soc
+view_axi:  waves_axi
+view_hbm:  waves_hbm
+view_rst:  waves_rst
+view_pol:  waves_pol
 
 # ----------------------------------------------------------------------------
 # 9. Vivado XSIM Target (WSL / Windows compatibility)

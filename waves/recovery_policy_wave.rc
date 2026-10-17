@@ -1,0 +1,82 @@
+Magic 271485
+Revision Verdi_U-2023.03-SP1
+
+; ============================================================
+; Recovery Policy & Event Log Standalone Testbench – Verdi Wave RC
+; Target: tb/tb_recovery_policy.v (FSDB: tb_recovery_policy.fsdb)
+; ============================================================
+
+viewPort 0 0 1600 900 250 100
+signalSpacing 5
+
+zoom 0.000000 5000000.000000
+cursor 0.000000
+marker 0.000000
+
+top 0
+markerPos 0
+
+COMPLEX_EVENT_BEGIN
+COMPLEX_EVENT_END
+
+curSTATUS ByChange
+
+; ============================================================
+; Group 1: Clock & System Reset
+; ============================================================
+addGroup "1. Clock & Reset"
+addSignal -h 15 /tb_recovery_policy/clk
+addSignal -h 15 -holdScope rst
+addSignal -h 15 /tb_recovery_policy/dut/rst_n
+
+; ============================================================
+; Group 2: AXI4 Slave Bus Interface
+; ============================================================
+addGroup "2. AXI4 Slave Interface"
+addSignal -h 15 -UNSIGNED -HEX /tb_recovery_policy/axi_awaddr[7:0]
+addSignal -h 15 -holdScope axi_awvalid
+addSignal -h 15 -holdScope axi_awready
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_wdata[63:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_wstrb[7:0]
+addSignal -h 15 -holdScope axi_wvalid
+addSignal -h 15 -holdScope axi_wready
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_bresp[1:0]
+addSignal -h 15 -holdScope axi_bvalid
+addSignal -h 15 -holdScope axi_bready
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_araddr[7:0]
+addSignal -h 15 -holdScope axi_arvalid
+addSignal -h 15 -holdScope axi_arready
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_rdata[63:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope axi_rresp[1:0]
+addSignal -h 15 -holdScope axi_rvalid
+addSignal -h 15 -holdScope axi_rready
+
+; ============================================================
+; Group 3: Policy Configuration & Fault Controls
+; ============================================================
+addGroup "3. Policy Controls & Config"
+addSignal -h 15 /tb_recovery_policy/dut/u_core/record_event_req
+addSignal -h 15 -holdScope clear_lockout_req
+addSignal -h 15 -UNSIGNED -UDEC -holdScope policy_window_reg[31:0]
+addSignal -h 15 -UNSIGNED -UDEC -holdScope policy_threshold_reg[7:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope staged_timestamp[31:0]
+
+; ============================================================
+; Group 4: Sliding Window & Escalation Status
+; ============================================================
+addGroup "4. Window Counter & Lockout"
+addSignal -h 15 -UNSIGNED -UDEC /tb_recovery_policy/dut/u_core/window_counter[31:0]
+addSignal -h 15 -UNSIGNED -UDEC -holdScope window_recovery_count[7:0]
+addSignal -h 15 -holdScope lockout_flag
+addSignal -h 15 /tb_recovery_policy/dut/lockout_irq
+
+; ============================================================
+; Group 5: 16-Entry Circular Event Log Buffer
+; ============================================================
+addGroup "5. Circular Event Log"
+addSignal -h 15 -UNSIGNED -UDEC /tb_recovery_policy/dut/u_core/log_wr_ptr[3:0]
+addSignal -h 15 -UNSIGNED -UDEC -holdScope log_count[31:0]
+addSignal -h 15 -UNSIGNED -UDEC -holdScope log_read_idx[3:0]
+addSignal -h 15 -UNSIGNED -UDEC /tb_recovery_policy/test_num
+addSignal -h 15 -UNSIGNED -UDEC -holdScope pass_count
+addSignal -h 15 -UNSIGNED -UDEC -holdScope fail_count

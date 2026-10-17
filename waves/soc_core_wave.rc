@@ -1,0 +1,160 @@
+Magic 271485
+Revision Verdi_U-2023.03-SP1
+
+; ============================================================
+; VeeR EL2 Core & Full SoC Integration – Verdi Waveform RC
+; Target: tb/tb_soc_core.v (FSDB: soc_core.fsdb)
+; Used for: make sim_core, make test_all_ips, make test_<ip>
+; ============================================================
+
+viewPort 0 0 1600 900 250 100
+signalSpacing 5
+
+zoom 0.000000 10000000.000000
+cursor 0.000000
+marker 0.000000
+
+top 0
+markerPos 0
+
+COMPLEX_EVENT_BEGIN
+COMPLEX_EVENT_END
+
+curSTATUS ByChange
+
+; ============================================================
+; Group 1: System Clocks & Master Reset
+; ============================================================
+addGroup "1. Clock & Reset"
+addSignal -h 15 /tb_soc_core/clk
+addSignal -h 15 -holdScope rst_n
+addSignal -h 15 -UNSIGNED -HEX /tb_soc_core/u_soc/boot_vector[31:0]
+
+; ============================================================
+; Group 2: Core Instruction Fetch Unit (IFU -> Boot ROM)
+; ============================================================
+addGroup "2. Core IFU (Instruction Fetch)"
+addSignal -h 15 /tb_soc_core/u_soc/ifu_axi_arvalid
+addSignal -h 15 -holdScope ifu_axi_arready
+addSignal -h 15 -UNSIGNED -HEX -holdScope ifu_axi_araddr[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope ifu_axi_arid[7:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope ifu_axi_arlen[7:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope ifu_axi_arsize[2:0]
+addSignal -h 15 /tb_soc_core/u_soc/ifu_axi_rvalid
+addSignal -h 15 -holdScope ifu_axi_rready
+addSignal -h 15 -UNSIGNED -HEX -holdScope ifu_axi_rdata[63:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope ifu_axi_rresp[1:0]
+addSignal -h 15 -holdScope ifu_axi_rlast
+
+; ============================================================
+; Group 3: Core Load-Store Unit (LSU AXI Master)
+; ============================================================
+addGroup "3. Core LSU (Data Memory Master)"
+addSignal -h 15 /tb_soc_core/u_soc/lsu_axi_awvalid
+addSignal -h 15 -holdScope lsu_axi_awready
+addSignal -h 15 -UNSIGNED -HEX -holdScope lsu_axi_awaddr[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope lsu_axi_awid[7:0]
+addSignal -h 15 /tb_soc_core/u_soc/lsu_axi_wvalid
+addSignal -h 15 -holdScope lsu_axi_wready
+addSignal -h 15 -UNSIGNED -HEX -holdScope lsu_axi_wdata[63:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope lsu_axi_wstrb[7:0]
+addSignal -h 15 -holdScope lsu_axi_wlast
+addSignal -h 15 /tb_soc_core/u_soc/lsu_axi_bvalid
+addSignal -h 15 -holdScope lsu_axi_bready
+addSignal -h 15 -UNSIGNED -HEX -holdScope lsu_axi_bresp[1:0]
+addSignal -h 15 /tb_soc_core/u_soc/lsu_axi_arvalid
+addSignal -h 15 -holdScope lsu_axi_arready
+addSignal -h 15 -UNSIGNED -HEX -holdScope lsu_axi_araddr[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope lsu_axi_arid[7:0]
+addSignal -h 15 /tb_soc_core/u_soc/lsu_axi_rvalid
+addSignal -h 15 -holdScope lsu_axi_rready
+addSignal -h 15 -UNSIGNED -HEX -holdScope lsu_axi_rdata[63:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope lsu_axi_rresp[1:0]
+
+; ============================================================
+; Group 4: Boot ROM Slave (0x8000_0000)
+; ============================================================
+addGroup "4. AXI Boot ROM (0x8000_0000)"
+addSignal -h 15 /tb_soc_core/u_soc/m07_axi_arvalid
+addSignal -h 15 -holdScope m07_axi_arready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m07_axi_araddr[31:0]
+addSignal -h 15 /tb_soc_core/u_soc/m07_axi_rvalid
+addSignal -h 15 -holdScope m07_axi_rready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m07_axi_rdata[63:0]
+
+; ============================================================
+; Group 5: UART 16550 Serial Console (0x0002_0000)
+; ============================================================
+addGroup "5. UART 16550 Serial (0x0002_0000)"
+addSignal -h 15 /tb_soc_core/uart_tx
+addSignal -h 15 -holdScope uart_rx
+addSignal -h 15 /tb_soc_core/u_soc/m00_axi_awvalid
+addSignal -h 15 -holdScope m00_axi_awready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m00_axi_wdata[63:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope m00_axi_awaddr[31:0]
+addSignal -h 15 /tb_soc_core/u_soc/m00_axi_arvalid
+addSignal -h 15 -holdScope m00_axi_arready
+addSignal -h 15 -UNSIGNED -HEX -holdScope m00_axi_rdata[63:0]
+addSignal -h 15 /tb_soc_core/u_soc/uart_irq
+
+; ============================================================
+; Group 6: System Timer & GPIO Status (0x0002_0100 / 0x0002_0200)
+; ============================================================
+addGroup "6. System Timer & GPIO"
+addSignal -h 15 -UNSIGNED -HEX /tb_soc_core/u_soc/u_timer/tick_counter[31:0]
+addSignal -h 15 /tb_soc_core/heartbeat_in
+addSignal -h 15 -holdScope reset_out
+addSignal -h 15 -UNSIGNED -HEX /tb_soc_core/u_soc/m02_axi_rdata[63:0]
+
+; ============================================================
+; Group 7: Heartbeat Monitor Watchdog (0x0002_0300)
+; ============================================================
+addGroup "7. Heartbeat Monitor (0x0002_0300)"
+addSignal -h 15 /tb_soc_core/heartbeat_in
+addSignal -h 15 /tb_soc_core/u_soc/u_heartbeat/u_core/hb_enable
+addSignal -h 15 -UNSIGNED -UDEC -holdScope hb_counter[31:0]
+addSignal -h 15 -UNSIGNED -UDEC -holdScope hb_threshold_reg[31:0]
+addSignal -h 15 -holdScope hb_unresponsive_flag
+addSignal -h 15 /tb_soc_core/u_soc/hb_irq
+
+; ============================================================
+; Group 8: Power/Reset Sequencer (0x0002_0400)
+; ============================================================
+addGroup "8. Reset Sequencer (0x0002_0400)"
+addSignal -h 15 /tb_soc_core/reset_out
+addSignal -h 15 -UNSIGNED -HEX /tb_soc_core/u_soc/u_reset_seq/u_core/rst_state[1:0]
+addSignal -h 15 -UNSIGNED -UDEC -holdScope rst_countdown[31:0]
+addSignal -h 15 -holdScope trigger_req
+addSignal -h 15 -holdScope in_progress
+addSignal -h 15 -holdScope complete
+
+; ============================================================
+; Group 9: Recovery Policy & Circular Log (0x0002_0500)
+; ============================================================
+addGroup "9. Recovery Policy (0x0002_0500)"
+addSignal -h 15 -UNSIGNED -UDEC /tb_soc_core/u_soc/u_rec_policy/u_core/window_counter[31:0]
+addSignal -h 15 -UNSIGNED -UDEC -holdScope window_recovery_count[7:0]
+addSignal -h 15 -UNSIGNED -UDEC -holdScope policy_threshold_reg[7:0]
+addSignal -h 15 -holdScope lockout_flag
+addSignal -h 15 /tb_soc_core/u_soc/lockout_irq
+addSignal -h 15 -UNSIGNED -UDEC /tb_soc_core/u_soc/u_rec_policy/u_core/log_wr_ptr[3:0]
+addSignal -h 15 -UNSIGNED -UDEC -holdScope log_count[31:0]
+
+; ============================================================
+; Group 10: VGA Status Dashboard (0x0002_0600)
+; ============================================================
+addGroup "10. VGA Video Subsystem (0x0002_0600)"
+addSignal -h 15 /tb_soc_core/vga_hsync
+addSignal -h 15 -holdScope vga_vsync
+addSignal -h 15 -UNSIGNED -HEX -holdScope vga_rgb[11:0]
+addSignal -h 15 /tb_soc_core/u_soc/vblank_irq
+
+; ============================================================
+; Group 11: Core Interrupt Vector (extintsrc_req)
+; ============================================================
+addGroup "11. Core Interrupts (extintsrc_req)"
+addSignal -h 15 -UNSIGNED -HEX /tb_soc_core/u_soc/u_veer/extintsrc_req[31:0]
+addSignal -h 15 /tb_soc_core/u_soc/uart_irq
+addSignal -h 15 -holdScope hb_irq
+addSignal -h 15 -holdScope vblank_irq
+addSignal -h 15 -holdScope lockout_irq
