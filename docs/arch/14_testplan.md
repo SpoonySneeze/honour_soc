@@ -144,19 +144,117 @@ uvm_root
         └── soc_ral_model          Register Abstraction Layer
 ```
 
-### 3.3 Agents — Summary
+### 3.3 Agent Configuration: Active vs. Passive Operating Modes
 
-| Agent | Role | Sequence Item Key Fields |
-|---|---|---|
-| `clk_rst_agent` | Active. Generates `clk` at 100 MHz, drives `rst_n`. | `rst_assert_cycles`, `rst_deassert_cycles` |
-| `heartbeat_agent` | Active. Drives `heartbeat_in` with programmable period and pulse width. | `period_cycles`, `pulse_width`, `num_pulses`, `inject_gap` (to create timeout) |
-| `uart_agent` | Active. Serial encode/decode at programmed baud rate. | `data_byte`, `baud_rate`, `data_bits`, `parity`, `stop_bits` |
-| `axi_master_agent` | Active (Bench B). Drives S01 port. | `addr`, `data[]`, `burst_type`, `len`, `size`, `strb`, `write` |
-| `reset_out_monitor` | Passive. Timestamps falling/rising edges of `reset_out`. | `event_time`, `polarity`, `duration_cycles` |
-| `vga_monitor` | Passive. Captures frame scan, reconstructs character array. | `frame_data[30][120]`, `hsync_period`, `vsync_period` |
-| `pic_irq_monitor` | Passive. Captures each bit of `extintsrc_req[3:0]` with timestamps. | `irq_line`, `assert_time`, `deassert_time` |
+The testbench dynamically configures agents as `UVM_ACTIVE` (instantiating driver, sequencer, and monitor) or `UVM_PASSIVE` (instantiating monitor only) depending on whether the test runs in **Bench A (Full SoC)** or **Bench B (Core-Stubbed Subsystem)**:
 
-### 3.4 Internal Signal Access Strategy
+| Agent Name | Boundary / Pin Interface | Bench A (Full SoC) Mode | Bench B (Core-Stubbed) Mode | Functional Role & Responsibilities |
+|---|---|---|---|---|
+| `clk_rst_agent` | `clk`, `rst_n` | **UVM_ACTIVE** | **UVM_ACTIVE** | Drives 100 MHz primary clock, manages synchronous assertion and deassertion of active-low system reset `rst_n`. |
+| `heartbeat_agent` | `heartbeat_in` | **UVM_ACTIVE** | **UVM_ACTIVE** | Drives external watchdog heartbeat pulse stream; injects programmable pulse widths, periods, jitter, and intentional dropouts (timeouts). |
+| `uart_agent` | `uart_rx`, `uart_tx` | **UVM_ACTIVE** | **UVM_ACTIVE** | Driver transmits characters/commands onto `uart_rx`; passive monitor samples `uart_tx`, verifies baud timing, frame parity, and decodes test output strings. |
+| `jtag_agent` | `jtag_tck`, `jtag_tms`, `jtag_tdi`, `jtag_tdo` | **UVM_ACTIVE** | **UVM_PASSIVE** (Tied off) | Drives IEEE 1149.1 JTAG TAP controller to execute debug register reads/writes and core debug halt/resume in Bench A. |
+| `axi_master_agent` (VIP) | `lsu_axi_*` (Master S01) | **UVM_PASSIVE** (Monitor only) | **UVM_ACTIVE** (Master VIP) | In **Bench B**, drives high-bandwidth directed and randomized AXI4 read/write transactions into S01. In **Bench A**, passively tracks CPU LSU bus accesses. |
+| `axi_s00_monitor` | `ifu_axi_*` (Master S00) | **UVM_PASSIVE** | **UVM_PASSIVE** | Passively monitors instruction fetch transactions from the VeeR IFU to Boot ROM (`0x8000_0000`) and DCCM (`0xF004_0000`). |
+| `axi_s02_monitor` | `sb_axi_*` (Master S02) | **UVM_PASSIVE** | **UVM_PASSIVE** | Passively observes System Bus accesses from VeeR debug unit; validates decode masking to M00–M06. |
+| `reset_out_monitor` | `reset_out` | **UVM_PASSIVE** | **UVM_PASSIVE** | Monitors host power reset output pin; measures pulse width duration, verifies active-low polarity, and timestamps edge events. |
+| `vga_monitor` | `vga_hsync`, `vga_vsync`, `vga_rgb[11:0]` | **UVM_PASSIVE** | **UVM_PASSIVE** | Samples digital RGB444 pixel bus during active display intervals, tracks sync periods, and reconstructs character frames for font comparison. |
+| `pic_irq_monitor` | `extintsrc_req[3:0]` | **UVM_PASSIVE** | **UVM_PASSIVE** | Monitors internal interrupt lines to the VeeR PIC (`uart_irq=bit 0`, `hb_irq=bit 1`, `vblank_irq=bit 2`, `lockout_irq=bit 3`); captures latency and pulse widths. |
+| `peripheral_monitors[0..7]` | `m00_axi_*` to `m07_axi_*` | **UVM_PASSIVE** | **UVM_PASSIVE** | Per-slave passive monitors recording individual transactions, wait-state stalls, and handshake timing for scoreboard checking. |
+
+---
+
+### 3.4 Required Bare-Metal C Test Suite (Firmware-in-the-Loop)
+
+For **Bench A (Full SoC)**, firmware executes bare-metal on the VeeR EL2 core (`RV32IMC`). The required C firmware test programs and their specific roles are:
+
+| Firmware Test Binary | Source Location | Associated UVM Test(s) | Key Firmware Operations & Interactions |
+|---|---|---|---|
+| `test_boot_sanity.elf` | `firmware/test/test_boot_sanity.c` | `TP-E2E-01`, `TP-RST-01` | • MRAC CSR (`0x7c0 = 0x2`) configuration<br>• Stack pointer init (`sp = 0xF005_0000`) in DCCM<br>• UART baud divisor configuration (DLL=1, DLM=0)<br>• Transmits boot banner `"HONOUR_SOC_READY\n"` via `uart_tx` |
+| `test_pic_interrupt.elf` | `firmware/test/test_pic_interrupt.c` | `TP-IRQ-01`, `TP-IRQ-02` | • Configures `mtvec` trap vector address<br>• **Configures PIC gateway `meigwctrl[3]` at `0xF00C_4030` to EDGE-TRIGGERED mode** (bit 0=1) so single-cycle `lockout_irq` pulse is latched<br>• Enables `mie.meie` and `mstatus.mie`<br>• Implements ISR to claim interrupt, log ID, and clear gateway |
+| `test_watchdog_remediation.elf` | `firmware/test/test_watchdog_remediation.c` | `TP-E2E-02`, `TP-CTRL-02` | • Programs `HB_THRESHOLD` and arms watchdog (`HB_CTRL.enable = 1`)<br>• Polls or receives `hb_irq` upon host timeout<br>• Reads `HB_STATUS`, stages event into `POL_EVENT_TS`, writes `POL_CTRL.record_event = 1`<br>• Programs `RST_HOLD_CYCLES = 100`, writes `RST_CTRL.trigger = 1`<br>• Polls `RST_STATUS.complete` |
+| `test_crashloop_lockout.elf` | `firmware/test/test_crashloop_lockout.c` | `TP-E2E-03`, `TP-ERR-05` | • Configures `POL_THRESHOLD = 3` and `POL_WINDOW`<br>• Enters remediation loop; checks `POL_STATUS.lockout_flag` before triggering reset<br>• **Enforces firmware lockout suppression**: halts `RST_CTRL` triggers once lockout asserts<br>• Waits for UART unlock character from testbench, clears lockout via `POL_CTRL.clear_lockout = 1`, and resumes |
+| `test_stress_concurrent.elf` | `firmware/test/test_stress_concurrent.c` | `TP-E2E-06` | • Tight supervisory loop: continuous UART telemetry, VGA dashboard buffer updates, system timer polling, and watchdog servicing under concurrent bus traffic |
+
+#### Firmware Build & Load Flow
+1. **Compilation**: `riscv64-unknown-elf-gcc -march=rv32imc_zicsr -mabi=ilp32 -mcmodel=medany -Wall -O2 -ffreestanding -nostdlib -T firmware/link.ld firmware/start.S firmware/test/<target>.c -o program.elf`
+2. **Hex Generation**: `riscv64-unknown-elf-objcopy --change-addresses -0x80000000 -O verilog program.elf firmware.hex`
+3. **Memory Preload**: Testbench preloads Boot ROM via SystemVerilog task `$readmemh("firmware.hex", soc_top.u_rom.rom_mem);` prior to reset release.
+
+---
+
+### 3.5 Complete SoC Hardware & Software Bringup Sequence
+
+The table and sequence below detail the cycle-accurate bringup flow of the Honour SoC from initial power-on to steady-state execution:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant TB as Testbench / clk_rst_agent
+    participant ROM as Boot ROM (u_rom)
+    participant Core as VeeR EL2 Core (u_veer)
+    participant DCCM as DCCM SRAM (u_dccm)
+    participant Peri as Custom IPs & UART
+    participant PIC as VeeR PIC (pic_ctrl)
+
+    Note over TB,Peri: Phase 1: Hardware Power-On & Reset
+    TB->>TB: Start 100 MHz clk & 25 MHz jtag_tck
+    TB->>TB: Drive rst_n = 0 (held for ≥ 20 cycles)
+    TB->>ROM: Preload firmware.hex via $readmemh
+    TB->>Peri: Synchronous reset asserts: registers attain reset values
+    TB->>TB: Synchronous reset release: rst_n = 1
+
+    Note over Core,ROM: Phase 2: Core Reset & Fetch
+    Core->>Core: rst_l & dbg_rst_l release synchronously
+    Core->>ROM: Master S00 issues AXI AR burst to 0x8000_0000
+    ROM-->>Core: Boot code instructions returned over R channel
+
+    Note over Core,DCCM: Phase 3: Assembly CRT0 Startup (start.S)
+    Core->>Core: csrw mstatus, zero & csrw mie, zero (disable interrupts)
+    Core->>Core: csrw 0x7c0, 0x2 (MRAC: mark 0x0002_xxxx as side-effect device space)
+    Core->>Core: li sp, 0xF005_0000 (stack pointer set to top of DCCM)
+    Core->>DCCM: Loop clears .bss section to 0x00000000
+    Core->>Core: call main (jump to C runtime)
+
+    Note over Core,PIC: Phase 4: Driver & Interrupt Setup
+    Core->>Peri: Program UART divisor (DLL=1, DLM=0) & line format
+    Core->>PIC: Write meigwctrl[3] = 0x1 (configure line 3 to EDGE-TRIGGERED)
+    Core->>Core: Write mtvec to ISR base; set mstatus.mie = 1
+    Core->>Peri: Write "HONOUR_SOC_READY" to UART_THR
+
+    Note over Core,TB: Phase 5: Testbench Ready Handshake
+    Peri-->>TB: uart_tx serializes banner string
+    TB->>TB: uart_agent confirms banner; launches test sequences
+```
+
+#### Step-by-Step Bringup Chronology:
+1. **Clock & Reset Initialization ($t = 0$ to $t = 200\,\text{ns}$)**:
+   - Primary `clk` (100 MHz, 10 ns period) and `jtag_tck` (25 MHz, 40 ns period) begin toggling.
+   - Active-low system reset `rst_n` is driven low (`0`) and held for at least 20 clock cycles.
+   - Preload `$readmemh("firmware.hex", soc_top.u_rom.rom_mem)` completes before reset release.
+2. **Synchronous Reset Deassertion ($t = 200\,\text{ns}$)**:
+   - `rst_n` transitions $0 \to 1$ synchronously with the rising edge of `clk`.
+   - All custom IP registers achieve legal reset defaults: `reset_out` pad drives `1` (inactive), `RST_HOLD_CYCLES = 100`, `POL_THRESHOLD = 3`, `GPIO_STAT = 0x0000_0002`, `UART_LSR = 0x60`, `VGA_BUFFER[*] = 0x2020_2020`.
+3. **Core Reset Vector Fetch**:
+   - VeeR EL2 core reset lines `rst_l` and `dbg_rst_l` deassert. Hardware initializes the Program Counter to `boot_vector = 0x8000_0000`.
+   - IFU (Master S00) issues its first AXI AR burst transaction targeting `0x8000_0000` to Boot ROM (M07).
+4. **Assembly CRT0 Initialization (`firmware/start.S`)**:
+   - `csrw mstatus, zero` and `csrw mie, zero`: Globally disables interrupts during initialization.
+   - `csrw 0x7c0, 0x2`: Configures VeeR Machine Region Access Control (MRAC) register to designate memory region `0x0002_xxxx` as side-effect device space (prevents speculative or out-of-order peripheral accesses).
+   - `li sp, 0xF005_0000`: Sets stack pointer to top of 64KB DCCM SRAM (`0xF004_0000`–`0xF004_FFFF`).
+   - Clears uninitialized data segment (`.bss`) in DCCM from `_sbss` to `_ebss`.
+   - Branches to `main()` in compiled C test firmware.
+5. **Driver Initialization & PIC Gateway Configuration**:
+   - Initializes UART 16550 IP: sets baud divisor in `UART_DLL`/`UART_DLM` and line format in `UART_LCR`.
+   - **Crucial PIC Gateway Step**: Firmware writes `0x0000_0001` to `meigwctrl[3]` at `0xF00C_4030` to configure PIC external interrupt line 3 as **edge-triggered**, ensuring the 1-cycle `lockout_irq` pulse is latched into `meip[3]`.
+   - Sets `mtvec` register to point to the external interrupt dispatch vector table; enables global interrupts via `mstatus.mie = 1`.
+6. **Testbench Synchronization (Ready Handshake)**:
+   - Firmware streams the ASCII synchronization string `"HONOUR_SOC_READY\n"` to `UART_THR`.
+   - The UVM `uart_agent` monitor receives and validates the banner, signalling to the virtual sequencer that the SoC DUT has completed bringup and is ready for stimulus injection.
+
+---
+
+### 3.6 Internal Signal Access Strategy
 
 Bind modules are used for all internal signals to avoid hierarchical reference proliferation.
 
