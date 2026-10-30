@@ -29,21 +29,70 @@ Designed for enterprise servers, cloud infrastructure, and hyperscale datacenter
 
 ## SoC Architecture
 
-```
-+----------------------------------------------------------------------------------------------------+
-|                                    BMC SYSTEM-ON-CHIP (SoC)                                        |
-|                                                                                                    |
-|  +--------------------+      +--------------------+      +--------------------+      +----------+  |
-|  |   VeeR EL2 Core    |      |  64-bit AXI4 3x8   |      | Custom BMC IPs     |      | External |  |
-|  |  (RV32IMC, 100MHz) | <--> | Interconnect Cross | <--> | - Heartbeat Mon    | <--> | Host CPU |  |
-|  |  - 64KB DCCM (ECC) |      | - LSU / IFU / SB   |      | - Reset Sequencer  |      | System   |  |
-|  +--------------------+      +--------------------+      | - Recovery Policy  |      +----------+  |
-|                                                          | - VGA Dashboard    |                    |
-|  +--------------------+      +--------------------+      | - 16550 AXI UART   |      +----------+  |
-|  | 8KB Boot AXI ROM   | <--> | Address Steering   |      | - Timer / GPIO     | <--> | Operator |  |
-|  | (firmware.hex)     |      | 64-bit to 32-bit   |      +--------------------+      | Terminal |  |
-|  +--------------------+      +--------------------+                                  +----------+  |
-+----------------------------------------------------------------------------------------------------+
+```mermaid
+flowchart TB
+    subgraph SOC["BMC System-on-Chip (SoC)"]
+        direction TB
+
+        subgraph CORE["VeeR EL2 RISC-V Core (RV32IMC @ 100 MHz)"]
+            direction TB
+            CPU["Dual-Issue Pipeline & Integrated PIC"]
+            DCCM["64 KB DCCM (ECC Protected)"]
+            IFU["IFU (64-bit AXI Master)"]
+            LSU["LSU (64-bit AXI Master)"]
+            SB["System Bus (64-bit AXI Master)"]
+            CPU --- DCCM
+            CPU --- IFU
+            CPU --- LSU
+            CPU --- SB
+        end
+
+        subgraph XBAR["AXI4 Interconnect (axi_interconnect_wrap_3x8)"]
+            BUS["64-bit 3-Master x 8-Slave Crossbar<br/>- Round-Robin Arbitration<br/>- Dynamic 64-bit to 32-bit Conversion<br/>- Address Steering Matrix"]
+        end
+
+        subgraph MEM["Boot Memory"]
+            ROM["8 KB Boot AXI ROM<br/>Base: 0x8000_0000<br/>(firmware.hex)"]
+        end
+
+        subgraph PERIPHS["Memory-Mapped BMC Peripherals"]
+            direction TB
+            UART["16550 AXI UART<br/>Base: 0x0002_0000"]
+            TMR["32-bit System Timer<br/>Base: 0x0002_0100"]
+            GPIO["GPIO Status Register<br/>Base: 0x0002_0200"]
+            HBM["Heartbeat Monitor IP<br/>Base: 0x0002_0300"]
+            RST["Reset Sequencer IP<br/>Base: 0x0002_0400"]
+            POL["Recovery Policy & Event Log<br/>Base: 0x0002_0500"]
+            VGA["VGA Status Dashboard IP<br/>Base: 0x0002_0600"]
+        end
+
+        IFU ==>|64-bit AXI| BUS
+        LSU ==>|64-bit AXI| BUS
+        SB ==>|64-bit AXI| BUS
+
+        BUS ==>|64-bit AXI| ROM
+        BUS ==>|32-bit AXI| UART
+        BUS ==>|32-bit AXI| TMR
+        BUS ==>|32-bit AXI| GPIO
+        BUS ==>|32-bit AXI| HBM
+        BUS ==>|32-bit AXI| RST
+        BUS ==>|32-bit AXI| POL
+        BUS ==>|32-bit AXI| VGA
+    end
+
+    subgraph EXT["External Systems & Interfaces"]
+        direction TB
+        HOST["Monitored Host CPU System"]
+        TERM["Management Console / Terminal"]
+        DISP["VGA Display Monitor (640x480 @ 60Hz)"]
+        JTAG["JTAG Hardware Debugger"]
+    end
+
+    HBM <-.->|"heartbeat_in"| HOST
+    RST -.->|"reset_out (active-low)"| HOST
+    UART <-.->|"uart_rx / uart_tx (115200 baud)"| TERM
+    VGA -.->|"vga_rgb, vga_hsync, vga_vsync"| DISP
+    CORE <-.->|"jtag_tck / tms / tdi / tdo"| JTAG
 ```
 
 ![Top-Level BMC SoC Architecture](docs/images/BMC_Architecture_Block_Diagrams-Top-Level%20SoC.drawio.png)
