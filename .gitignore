@@ -8,9 +8,9 @@
 # Simulation & Compilation (VCS)
 build/
 **/csrc/
-**/simv
-**/simv.daidir/
-**/simv.vdb/
+**/simv*
+**/simv*.daidir/
+**/simv*.vdb/
 **/ucli.key
 **/vc_hdrs.h
 *.log

@@ -418,7 +418,8 @@ UVM_INCDIRS = +incdir+clk_rst_uvm_tb \
 
 compile_uvm:
 	@echo "Compiling UVM top-level testbench with VCS..."
-	$(VCS) -full64 -sverilog -ntb_opts uvm $(UVM_INCDIRS) $(INC_DIRS) $(VEER_DEFINES) $(SOC_RTL) \
+	$(VCS) $(VCS_FLAGS) -ntb_opts uvm $(UVM_INCDIRS) $(INC_DIRS) $(VEER_DEFINES) \
+	       -f $(RV_ROOT)/design/flist $(SOC_RTL) \
 	       clk_rst_uvm_tb/clk_rst_if.sv uart_uvm_tb/uart_if.sv gpio_uvm_tb/gpio_if.sv \
 	       vga_uvm_tb/vga_if.sv heartbeat_uvm_tb/heartbeat_if.sv reset_seq_uvm_tb/reset_seq_if.sv \
 	       clk_rst_uvm_tb/clk_rst_pkg.sv uart_uvm_tb/uart_pkg.sv gpio_uvm_tb/gpio_pkg.sv \

@@ -20,7 +20,7 @@ class soc_test extends uvm_test;
     phase.raise_objection(this);
     `uvm_info("SOC_TOP_TEST", "SoC top-level verification environment successfully initialized", UVM_LOW)
     `uvm_info("SOC_TOP_TEST", "VeeR EL2 core executing bare-metal firmware...", UVM_LOW)
-    #500000; // Allow 50,000 clock cycles for firmware execution
+    #3000000; // Allow sufficient cycles for firmware execution and full UART print
     `uvm_info("SOC_TOP_TEST", "SoC top-level verification run phase completed", UVM_LOW)
     phase.drop_objection(this);
   endtask

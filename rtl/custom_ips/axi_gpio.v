@@ -78,6 +78,14 @@ module axi_gpio #(
 );
 
     // ========================================================================
+    // Internal Registers & AXI4 Read FSM Signals
+    // ========================================================================
+    reg [ID_WIDTH-1:0]   arid_q;
+    reg [ADDR_WIDTH-1:0] araddr_q;
+    reg [7:0]            arlen_q;
+    reg                  ar_active;
+
+    // ========================================================================
     // Register Read Decode
     // ========================================================================
     wire [7:0] gpio_in_effective = (gpio_in & ~gpio_oe) | (gpio_out & gpio_oe);
@@ -92,12 +100,6 @@ module axi_gpio #(
             default: read_word = 32'd0;
         endcase
     end
-
-    // AXI4 Read FSM
-    reg [ID_WIDTH-1:0]   arid_q;
-    reg [ADDR_WIDTH-1:0] araddr_q;
-    reg [7:0]            arlen_q;
-    reg                  ar_active;
 
     assign s_axi_arready = !ar_active;
 
