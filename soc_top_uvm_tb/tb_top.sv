@@ -67,6 +67,39 @@ module tb_top;
   assign rst_seq_vif.clk   = clk;
   assign rst_seq_vif.rst_n = rst_n;
 
+  // Initial passive bus drive
+  initial begin
+    uart_vif.uart_rx    = 1'b1;  // UART idle high
+    hb_vif.heartbeat_in = 1'b0;  // Heartbeat idle low
+    gpio_vif.gpio_in    = 8'hA5; // Default GPIO input pattern
+  end
+
+  // --------------------------------------------------------------------------
+  // Live UART Console Streamer (Simulation Fast Baud: 16 cycles/bit)
+  // --------------------------------------------------------------------------
+  localparam BAUD_CYCLES = 16;
+  localparam BIT_PERIOD  = 10 * BAUD_CYCLES; // 10ns clock * 16 = 160ns
+
+  reg [7:0] rx_byte;
+  integer   bit_idx;
+
+  initial begin
+    @(posedge rst_n);
+    forever begin
+      @(negedge uart_vif.uart_tx);
+      #(BIT_PERIOD / 2);
+      if (uart_vif.uart_tx == 1'b0) begin
+        for (bit_idx = 0; bit_idx < 8; bit_idx = bit_idx + 1) begin
+          #BIT_PERIOD;
+          rx_byte[bit_idx] = uart_vif.uart_tx;
+        end
+        #BIT_PERIOD;
+        $write("%c", rx_byte);
+        $fflush();
+      end
+    end
+  end
+
   // --------------------------------------------------------------------------
   // SoC Top DUT Instantiation & Boundary Pin Connections
   // --------------------------------------------------------------------------
