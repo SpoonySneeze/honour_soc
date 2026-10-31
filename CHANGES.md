@@ -5,6 +5,42 @@ problem found, and how it was fixed.
 
 ---
 
+## 00. Modular Individual UVM VIP Generation & Top-Level Wrapper Testbench (October 31, 2026)
+
+### Objective
+1. Transition from a single monolithic interface VIP to modular, individual VIP interfaces for each physical external boundary interface.
+2. Generate independent UVM packages for each interface using `scripts/uvm_full_tb_generator.py`.
+3. Wrap all individual VIPs into an integrated SoC top-level testbench (`soc_top_uvm_tb/tb_top.sv`).
+
+### Changes Executed
+- **Individual Interface CSVs (`docs/interfaces/` & `docs/`)**:
+  - `uart_interface.csv`: `clk`, `rst_n`, `uart_rx` (input), `uart_tx` (output).
+  - `gpio_interface.csv`: `clk`, `rst_n`, `gpio_in` (input, 8-bit), `gpio_out` (output, 8-bit), `gpio_oe` (output, 8-bit).
+  - `vga_interface.csv`: `clk`, `rst_n`, `vga_hsync` (output), `vga_vsync` (output), `vga_rgb` (output, 12-bit).
+  - `heartbeat_interface.csv`: `clk`, `rst_n`, `heartbeat_in` (input).
+  - `reset_seq_interface.csv`: `clk`, `rst_n`, `reset_out` (output).
+  - `clk_rst_interface.csv`: `clk`, `rst_n`.
+- **Generator Script Update (`scripts/uvm_full_tb_generator.py`)**:
+  - Added robust header detection (`if not row[2].strip().isdigit(): continue`) so CSVs with column headers parse cleanly without `ValueError`.
+- **Individual UVM VIP Packages Generated**:
+  - `uart_uvm_tb/`: Complete UVM package (`uart_pkg`, `uart_if`, `uart_item`, `uart_driver`, `uart_monitor`, `uart_agent`, `uart_scoreboard`, `uart_env`, `uart_test`).
+  - `gpio_uvm_tb/`: Complete 8-bit GPIO UVM package with split `gpio_in`, `gpio_out`, `gpio_oe`.
+  - `vga_uvm_tb/`: Complete VGA timing and 12-bit RGB pixel monitor UVM package.
+  - `heartbeat_uvm_tb/`: Complete watchdog pulse generator UVM package.
+  - `reset_seq_uvm_tb/`: Complete host reset pulse monitor UVM package.
+  - `clk_rst_uvm_tb/`: Primary clock and reset generator UVM package.
+- **Top-Level Wrapper Testbench (`soc_top_uvm_tb/`)**:
+  - `soc_env.sv`: Top-level environment instantiating and configuring all 6 subsystem agents.
+  - `soc_test.sv`: Top-level UVM test controlling test phases and execution.
+  - `soc_pkg.sv`: Top-level package importing all individual VIP packages.
+  - `tb_top.sv`: Top wrapper module generating master clock/reset, instantiating all VIP interfaces, connecting them to `soc_top` DUT boundary pins, registering `vif` handles in `uvm_config_db`, and invoking `run_test()`.
+- **Automation & Build Integration**:
+  - Created `scripts/generate_all_vips.sh` for one-command regeneration of all VIP packages.
+  - Added `make gen_vips` and `make compile_uvm` targets to `Makefile`.
+  - Removed deprecated monolithic `soc_vip_uvm_tb/`.
+
+---
+
 ## 0. Standard 8-bit Bidirectional GPIO Implementation & Verification Plan Realignment (October 31, 2026)
 
 ### Objective

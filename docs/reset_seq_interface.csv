@@ -1,0 +1,4 @@
+signal_name,direction,width
+clk,input,1
+rst_n,input,1
+reset_out,output,1

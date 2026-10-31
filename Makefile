@@ -400,6 +400,32 @@ clean:
 	@echo "Clean completed."
 
 # ----------------------------------------------------------------------------
+# 11. UVM VIP Generation & Testbench
+# ----------------------------------------------------------------------------
+.PHONY: gen_vips compile_uvm
+
+gen_vips:
+	@echo "Generating all individual UVM VIPs..."
+	./scripts/generate_all_vips.sh
+
+UVM_INCDIRS = +incdir+clk_rst_uvm_tb \
+              +incdir+uart_uvm_tb \
+              +incdir+gpio_uvm_tb \
+              +incdir+vga_uvm_tb \
+              +incdir+heartbeat_uvm_tb \
+              +incdir+reset_seq_uvm_tb \
+              +incdir+soc_top_uvm_tb
+
+compile_uvm:
+	@echo "Compiling UVM top-level testbench with VCS..."
+	$(VCS) -full64 -sverilog -ntb_opts uvm $(UVM_INCDIRS) $(INC_DIRS) $(VEER_DEFINES) $(SOC_RTL) \
+	       clk_rst_uvm_tb/clk_rst_if.sv uart_uvm_tb/uart_if.sv gpio_uvm_tb/gpio_if.sv \
+	       vga_uvm_tb/vga_if.sv heartbeat_uvm_tb/heartbeat_if.sv reset_seq_uvm_tb/reset_seq_if.sv \
+	       clk_rst_uvm_tb/clk_rst_pkg.sv uart_uvm_tb/uart_pkg.sv gpio_uvm_tb/gpio_pkg.sv \
+	       vga_uvm_tb/vga_pkg.sv heartbeat_uvm_tb/heartbeat_pkg.sv reset_seq_uvm_tb/reset_seq_pkg.sv \
+	       soc_top_uvm_tb/soc_pkg.sv soc_top_uvm_tb/tb_top.sv -o simv_uvm
+
+# ----------------------------------------------------------------------------
 # Verilator Overrides
 # ----------------------------------------------------------------------------
 ifeq ($(SIM),verilator)
