@@ -805,6 +805,8 @@ module tb_soc_top;
     );
 
     // Slave 2: GPIO Controller (Native Pure AXI4)
+    wire [7:0] gpio_out_w;
+    wire [7:0] gpio_oe_w;
     axi_gpio #(
         .DATA_WIDTH (64),
         .ADDR_WIDTH (32),
@@ -812,6 +814,9 @@ module tb_soc_top;
     ) u_gpio (
         .clk           (clk),
         .rst_n         (rst_n),
+        .gpio_in       (8'hA5),
+        .gpio_out      (gpio_out_w),
+        .gpio_oe       (gpio_oe_w),
         .reset_out     (reset_out_w),
         .heartbeat_in  (heartbeat_in),
         .s_axi_arid    (m02_axi_arid),

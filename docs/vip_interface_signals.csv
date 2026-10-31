@@ -1,0 +1,13 @@
+signal_name,i/o,bit_width,vip_agent,dut_i/o,description
+clk,Output,1,clk_rst_agent,Input,Primary 100 MHz system clock driven by VIP into SoC
+rst_n,Output,1,clk_rst_agent,Input,Active-low synchronous reset driven by VIP into SoC
+heartbeat_in,Output,1,heartbeat_agent,Input,Host watchdog heartbeat pulse stream driven by VIP into SoC
+reset_out,Input,1,reset_out_monitor,Output,Host power-reset pulse monitored by VIP from SoC Reset Sequencer
+uart_rx,Output,1,uart_agent,Input,16550 serial byte stream driven by VIP into SoC UART
+uart_tx,Input,1,uart_agent,Output,16550 serial telemetry stream monitored by VIP from SoC UART
+vga_hsync,Input,1,vga_monitor,Output,VGA horizontal raster sync timing monitored by VIP from SoC VGA IP
+vga_vsync,Input,1,vga_monitor,Output,VGA vertical frame raster sync timing monitored by VIP from SoC VGA IP
+vga_rgb,Input,12,vga_monitor,Output,VGA 12-bit RGB444 color pixel bus [11:0] monitored by VIP from SoC VGA IP
+gpio_in,Output,8,gpio_agent,Input,Standard 8-bit GPIO input bus driven by VIP into SoC pads
+gpio_out,Input,8,gpio_monitor,Output,Standard 8-bit GPIO output bus driven by SoC and monitored by VIP
+gpio_oe,Input,8,gpio_monitor,Output,Standard 8-bit GPIO output enable bus monitored by VIP (1 = active output, 0 = input/high-Z)

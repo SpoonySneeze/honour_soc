@@ -182,7 +182,12 @@ module soc_top (
     // VGA (optional)
     output wire        vga_hsync,
     output wire        vga_vsync,
-    output wire [11:0] vga_rgb
+    output wire [11:0] vga_rgb,
+
+    // Standard 8-bit bidirectional GPIO split boundary pins
+    input  wire [7:0]  gpio_in,
+    output wire [7:0]  gpio_out,
+    output wire [7:0]  gpio_oe
 );
 
     // ========================================================================
@@ -1350,6 +1355,9 @@ module soc_top (
     ) u_gpio (
         .clk           (clk),
         .rst_n         (rst_n),
+        .gpio_in       (gpio_in),
+        .gpio_out      (gpio_out),
+        .gpio_oe       (gpio_oe),
         .heartbeat_in  (heartbeat_in),
         .reset_out     (reset_out_internal),
         .s_axi_awid    (m02_axi_awid),

@@ -99,13 +99,27 @@ Provides a 32-bit hardware reference clock for system uptime and timestamping re
 
 ## 5. Slave 2: GPIO Peripheral (`0x0002_0200`)
 
-Exposes direct physical pin status between the BMC and the monitored host system.
+Provides standard 8-bit general-purpose bidirectional I/O control (`gpio_in[7:0]`, `gpio_out[7:0]`, `gpio_oe[7:0]`) along with direct hardware pin status sensing.
 
 | Address | Offset | Register Name | Access | Reset | Description |
 |---|---|---|---|---|---|
-| `0x0002_0200` | `0x00` | `GPIO_STAT` | RO | `0x0000_0000` | Hardware Pin Status Register |
+| `0x0002_0200` | `0x00` | `GPIO_DATA` | R/W | `0x0000_0000` | GPIO Data Register (read `gpio_in`, write `gpio_out`) |
+| `0x0002_0204` | `0x04` | `GPIO_DIR` | R/W | `0x0000_0000` | GPIO Direction / Output Enable Register (`1` = Output, `0` = Input) |
+| `0x0002_0208` | `0x08` | `GPIO_STAT` | RO | `0x0000_0002` | Hardware Pin Status Register (`reset_out`, `heartbeat_in`) |
 
-### Bitfield Breakdown: `GPIO_STAT` (Offset `0x00`)
+### Bitfield Breakdown: `GPIO_DATA` (Offset `0x00`)
+- **Bits `[7:0]` (`DATA`)**: 
+  - Write: Drives `gpio_out[7:0]` to external package pads.
+  - Read: Samples live `gpio_in[7:0]` from external pads (or output loopback when `GPIO_DIR` = 1).
+- **Bits `[31:8]`**: Reserved, read as `0`.
+
+### Bitfield Breakdown: `GPIO_DIR` (Offset `0x04`)
+- **Bits `[7:0]` (`DIR`)**: Pin direction / tri-state driver control.
+  - `0`: Input mode (`gpio_oe[i] = 0`, high-Z pad mode, default at reset).
+  - `1`: Output mode (`gpio_oe[i] = 1`, driver actively drives `gpio_out[i]`).
+- **Bits `[31:8]`**: Reserved, read as `0`.
+
+### Bitfield Breakdown: `GPIO_STAT` (Offset `0x08`)
 ```
  31                                                    2       1       0
 +-------------------------------------------------------+-------+-------+

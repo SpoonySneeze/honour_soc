@@ -47,6 +47,9 @@ module tb_soc_core;
     wire        vga_hsync;
     wire        vga_vsync;
     wire [11:0] vga_rgb;
+    reg  [7:0]  gpio_in;
+    wire [7:0]  gpio_out;
+    wire [7:0]  gpio_oe;
 
     // Simulation tracking
     reg [255:0] line_buf;
@@ -70,7 +73,10 @@ module tb_soc_core;
         .jtag_tdo     (jtag_tdo),
         .vga_hsync    (vga_hsync),
         .vga_vsync    (vga_vsync),
-        .vga_rgb      (vga_rgb)
+        .vga_rgb      (vga_rgb),
+        .gpio_in      (gpio_in),
+        .gpio_out     (gpio_out),
+        .gpio_oe      (gpio_oe)
     );
 
     // ========================================================================
@@ -117,6 +123,7 @@ module tb_soc_core;
         // Initial pin states
         rst_n        = 1'b0;
         uart_rx      = 1'b1; // Idle high
+        gpio_in      = 8'hA5; // Default external input pattern
         jtag_tck     = 1'b0;
         jtag_tms     = 1'b0;
         jtag_tdi     = 1'b0;

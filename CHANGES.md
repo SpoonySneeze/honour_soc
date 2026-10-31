@@ -5,6 +5,33 @@ problem found, and how it was fixed.
 
 ---
 
+## 0. Standard 8-bit Bidirectional GPIO Implementation & Verification Plan Realignment (October 31, 2026)
+
+### Objective
+1. Eliminate obsolete JTAG tests as JTAG is not in the active project scope.
+2. Upgrade the GPIO peripheral from a 2-bit read-only sensor to a full standard 8-bit bidirectional GPIO IP with physical split boundary pins (`gpio_in[7:0]`, `gpio_out[7:0]`, `gpio_oe[7:0]`).
+3. Realign and synchronize all bare-metal C firmware tests and the master verification plan (`docs/honour_soc_verification_plan.xlsx`).
+
+### Changes Executed
+- **RTL (`rtl/custom_ips/axi_gpio.v` & `rtl/soc_top.v`)**:
+  - Implemented standard 8-bit bidirectional GPIO with `GPIO_DATA` (`0x00`), `GPIO_DIR` (`0x04`), and preserved `GPIO_STAT` (`0x08`).
+  - Added physical top-level boundary pins `gpio_in[7:0]`, `gpio_out[7:0]`, `gpio_oe[7:0]`.
+- **Testbenches (`tb/tb_soc_core.v` & `tb/tb_soc_top.v`)**:
+  - Connected GPIO boundary pins to DUT, added stimulus driver `gpio_in = 8'hA5`, and verified JTAG inputs tied low (`1'b0`).
+- **Firmware Suite (`firmware/test/test_gpio.c`, `test_all.c`, `test_common.h`, `main.c`)**:
+  - Upgraded to 4 subtests in `test_gpio.c` verifying reset values, data loopback, input sampling, and status sensing.
+  - Updated `test_all.c` and `main.c` to exercise the full standard GPIO register map.
+- **Verification Plan (`docs/honour_soc_verification_plan.xlsx` & `docs/arch/`)**:
+  - Removed JTAG tests (`SOC-006`, `XBR-004`, `XBR-005`).
+  - Added test case `PER-07` for 8-bit bidirectional GPIO control.
+  - Added dedicated `interface signals` column (Column H across all plan sheets, Column K in Trace sheet).
+  - Total tests realigned to 55 tests (45 Internal, 10 External, 100% C firmware).
+- **Documentation**:
+  - Detailed report created in [`docs/PROJECT_CHANGELOG_VERIFICATION_AND_GPIO.md`](docs/PROJECT_CHANGELOG_VERIFICATION_AND_GPIO.md).
+
+
+---
+
 ## 1. Root Cause: VeeR EL2 MRAC CSR Not Configured (Critical Bug Fix)
 
 ### Problem

@@ -33,8 +33,10 @@
 // Timer Register
 #define TMR_CTR *(volatile uint32_t*)(TMR_BASE + 0x00)
 
-// GPIO Register
-#define GPIO_STAT *(volatile uint32_t*)(GPIO_BASE + 0x00)
+// GPIO Registers (Standard 8-bit bidirectional)
+#define GPIO_DATA *(volatile uint32_t*)(GPIO_BASE + 0x00)
+#define GPIO_DIR  *(volatile uint32_t*)(GPIO_BASE + 0x04)
+#define GPIO_STAT *(volatile uint32_t*)(GPIO_BASE + 0x08)
 
 // Heartbeat Monitor Registers
 #define HB_CTRL      *(volatile uint32_t*)(HB_BASE + 0x00)
@@ -169,14 +171,28 @@ int main(void) {
     report_result("Timer monotonic counter incrementing", (t2 > t1));
 
     // ------------------------------------------------------------------------
-    // TEST 2: GPIO Peripheral (Base: 0x0002_0200)
+    // TEST 2: Standard 8-bit Bidirectional GPIO (Base: 0x0002_0200)
     // ------------------------------------------------------------------------
-    uart_print("\n[TEST 2] Verifying GPIO Pin Status (GPIO_STAT)...\n");
+    uart_print("\n[TEST 2] Verifying Standard 8-bit GPIO Peripheral...\n");
+    // Verify Direction register
+    uint32_t dir_res = GPIO_DIR;
+    report_result("GPIO_DIR defaults to 0x00 (all inputs)", (dir_res & 0xFF) == 0x00);
+    GPIO_DIR = 0x000000FF;
+    report_result("GPIO_DIR configures to 0xFF (all outputs)", (GPIO_DIR & 0xFF) == 0xFF);
+
+    // Verify Data output register
+    GPIO_DATA = 0x000000A5;
+    report_result("GPIO_DATA write/readback (0xA5)", (GPIO_DATA & 0xFF) == 0xA5);
+
+    // Return to input mode & check BMC status
+    GPIO_DIR = 0x00000000;
+    uint32_t in_p = GPIO_DATA;
+    report_result("GPIO_DATA samples external pins (0xA5)", (in_p & 0xFF) == 0xA5);
+
     uint32_t gpio_val = GPIO_STAT;
-    uart_print("  GPIO Status: "); uart_print_hex(gpio_val); uart_print("\n");
-    // Bit 1: reset_out pin level (expected 1, reset is active-low)
+    uart_print("  GPIO Hardware Status: "); uart_print_hex(gpio_val); uart_print("\n");
     int rst_pin_ok = (gpio_val & (1 << 1)) != 0;
-    report_result("GPIO indicates reset_out HIGH (active-low deasserted)", rst_pin_ok);
+    report_result("GPIO_STAT indicates reset_out HIGH (active-low deasserted)", rst_pin_ok);
 
     // ------------------------------------------------------------------------
     // TEST 3: Heartbeat Monitor IP (Base: 0x0002_0300)

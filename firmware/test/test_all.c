@@ -21,11 +21,27 @@ void run_test_timer(void) {
 }
 
 void run_test_gpio(void) {
-    uart_print("\n--- [IP 3/7] GPIO Pin Status Peripheral ---\n");
+    uart_print("\n--- [IP 3/7] Standard 8-bit Bidirectional GPIO Controller ---\n");
+    // 1. Direction register test
+    uint32_t dir_reset = GPIO_DIR;
+    report_test("GPIO_DIR defaults to 0x00 (input mode)", (dir_reset & 0xFF) == 0x00);
+    GPIO_DIR = 0x000000FF;
+    report_test("GPIO_DIR configures to 0xFF (output mode)", (GPIO_DIR & 0xFF) == 0xFF);
+
+    // 2. Data register write & readback
+    GPIO_DATA = 0x0000005A;
+    report_test("GPIO_DATA outputs and loopbacks 0x5A", (GPIO_DATA & 0xFF) == 0x5A);
+
+    // 3. Return to input mode & sample external gpio_in
+    GPIO_DIR = 0x00000000;
+    uint32_t in_val = GPIO_DATA;
+    report_test("GPIO_DATA samples external gpio_in (0xA5)", (in_val & 0xFF) == 0xA5);
+
+    // 4. BMC status compatibility check
     uint32_t gpio_val = GPIO_STAT;
     uart_print("  GPIO Status: "); uart_print_hex(gpio_val); uart_print("\n");
     int rst_pin_ok = (gpio_val & (1 << 1)) != 0;
-    report_test("GPIO reset_out indicates HIGH (active-low deasserted)", rst_pin_ok);
+    report_test("GPIO_STAT reset_out indicates HIGH (active-low deasserted)", rst_pin_ok);
 }
 
 void run_test_heartbeat(void) {

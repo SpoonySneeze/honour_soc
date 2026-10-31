@@ -82,10 +82,13 @@ This document defines the complete verification test plan for the Honour SoC. It
 | `vga_hsync` | out | 1 | VGA horizontal sync |
 | `vga_vsync` | out | 1 | VGA vertical sync |
 | `vga_rgb` | out | 12 | VGA 12-bit RGB444 pixel data |
+| `gpio_in` | in | 8 | Standard 8-bit GPIO input bus |
+| `gpio_out` | out | 8 | Standard 8-bit GPIO output bus |
+| `gpio_oe` | out | 8 | Standard 8-bit GPIO output enable (1 = drive output, 0 = input/high-Z) |
 
 > [!IMPORTANT]
-> `jtag_trst_n` does **NOT** exist as a chip pin. It is internally tied to `rst_n` at `soc_top.v:1766`. Do not drive it externally.  
-> There is NO external `gpio_pins` bus. `u_gpio` is a 2-bit read-only internal status register only.
+> `jtag_*` TAP signals are excluded from active verification scope as JTAG is not in the project scope.  
+> The GPIO peripheral (`u_gpio`) supports standard 8-bit bidirectional operation with split boundary pins (`gpio_in[7:0]`, `gpio_out[7:0]`, `gpio_oe[7:0]`), while retaining internal status sensing for `heartbeat_in` and `reset_out` at offset `0x08` (`GPIO_STAT`).
 
 ### 2.2 Address Map Summary
 
@@ -111,7 +114,7 @@ This document defines the complete verification test plan for the Honour SoC. It
 >
 > Tests in the verification plan (`docs/honour_soc_verification_plan.xlsx`) are classified into:
 > - **Internal Tests (45 tests)**: Stimulus is initiated, controlled, and checked autonomously from within the SoC by software running on the VeeR EL2 core (register sweeps, crossbar routing, backpressure stress, IP functional exercising, counter reads, event logs, interrupt handlers).
-> - **External Tests (12 tests)**: Stimulus must be driven across, or observation captured at, the physical chip boundary pins (`rst_n`, `heartbeat_in`, `uart_rx`, `uart_tx`, `jtag_*`, `vga_*`). All 57 tests have a corresponding bare-metal C test running on the core.
+> - **External Tests (10 tests)**: Stimulus must be driven across, or observation captured at, the physical chip boundary pins (`rst_n`, `heartbeat_in`, `uart_rx`, `uart_tx`, `vga_*`, `gpio_*`). All 55 tests have a corresponding bare-metal C test running on the core (JTAG-related tests were excluded as JTAG is not in the project scope; GPIO was expanded to 8-bit bidirectional with split boundary pins).
 
 ### 3.1 Verification Execution Environments
 

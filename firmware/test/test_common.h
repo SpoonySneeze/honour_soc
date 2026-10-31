@@ -34,8 +34,10 @@
 // 2. Timer (32-bit hardware cycle counter)
 #define TMR_CTR *(volatile uint32_t*)(TMR_BASE + 0x00)
 
-// 3. GPIO Pin Status
-#define GPIO_STAT *(volatile uint32_t*)(GPIO_BASE + 0x00)
+// 3. GPIO Controller (Standard 8-bit bidirectional)
+#define GPIO_DATA *(volatile uint32_t*)(GPIO_BASE + 0x00)
+#define GPIO_DIR  *(volatile uint32_t*)(GPIO_BASE + 0x04)
+#define GPIO_STAT *(volatile uint32_t*)(GPIO_BASE + 0x08)
 
 // 4. Heartbeat Monitor
 #define HB_CTRL      *(volatile uint32_t*)(HB_BASE + 0x00)
