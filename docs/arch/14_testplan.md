@@ -110,8 +110,8 @@ This document defines the complete verification test plan for the Honour SoC. It
 > The primary verification scope of this plan is the **complete Honour SoC** (`soc_top` instantiated with the VeeR EL2 core and all custom IPs in `tb_soc_core.v`), rather than isolated IP-level stubs. Individual peripheral IPs (Heartbeat Monitor, Reset Sequencer, Recovery Policy, UART, VGA, GPIO, Timer, and Interconnect) are verified **internally by the SoC itself** using dedicated bare-metal C test suites running on the VeeR EL2 processor (`firmware/test/*.c`).
 >
 > Tests in the verification plan (`docs/honour_soc_verification_plan.xlsx`) are classified into:
-> - **Internal Tests (43 tests)**: Stimulus is initiated, controlled, and checked autonomously from within the SoC by software running on the VeeR EL2 core (register sweeps, IP functional exercising, counter reads, event logs, interrupt handlers).
-> - **External Tests (14 tests)**: Stimulus must be driven across, or observation captured at, the physical chip boundary pins (`rst_n`, `heartbeat_in`, `uart_rx`, `uart_tx`, `jtag_*`, `vga_*`).
+> - **Internal Tests (45 tests)**: Stimulus is initiated, controlled, and checked autonomously from within the SoC by software running on the VeeR EL2 core (register sweeps, crossbar routing, backpressure stress, IP functional exercising, counter reads, event logs, interrupt handlers).
+> - **External Tests (12 tests)**: Stimulus must be driven across, or observation captured at, the physical chip boundary pins (`rst_n`, `heartbeat_in`, `uart_rx`, `uart_tx`, `jtag_*`, `vga_*`). All 57 tests have a corresponding bare-metal C test running on the core.
 
 ### 3.1 Verification Execution Environments
 
