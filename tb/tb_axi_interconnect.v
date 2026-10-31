@@ -1,18 +1,27 @@
 // ============================================================================
 // Testbench — AXI4 Interconnect Verification
 // ============================================================================
-// Verifies the AXI4 Interconnect (2 Masters x 1 Slave) in the BMC SoC:
-//   - Master 0 (S00): VeeR EL2 Load/Store Unit (LSU)
+// Verifies the 3x8 AXI4 Interconnect Crossbar in the BMC SoC:
+//   - Master 0 (S00): VeeR EL2 Instruction Fetch Unit (IFU) / Load-Store Unit in bench
 //   - Master 1 (S01): VeeR EL2 System Bus / JTAG Debug (SB)
-//   - Slave 0  (M00): AXI4-to-Wishbone Bridge -> Wishbone Interconnect -> Peripherals
+//   - Master 2 (S02): VeeR EL2 Debug / Auxiliary Master
+//   - Dedicated Peripheral Slave Ports:
+//       * M00: UART 16550 Serial Controller       (0x0002_0000)
+//       * M01: System Timer                       (0x0002_0100)
+//       * M02: GPIO Status Register               (0x0002_0200)
+//       * M03: Heartbeat Monitor Watchdog         (0x0002_0300)
+//       * M04: Power/Reset Sequencer              (0x0002_0400)
+//       * M05: Recovery Policy & Circular Log     (0x0002_0500)
+//       * M06: VGA Status Dashboard Engine        (0x0002_0600)
+//       * M07: AXI Boot ROM                       (0x8000_0000)
 //
 // Test Coverage:
-//   1. Master 0 Single-Beat Write & Read with ID tracking (HB Monitor)
-//   2. Master 1 Single-Beat Write & Read with ID tracking (Reset Sequencer)
-//   3. 64-bit to 32-bit Address/Data Steering (addr[2] = 0 vs addr[2] = 1)
-//   4. Read Data Word Replication across 64-bit lanes
-//   5. Simultaneous / Concurrent Master 0 and Master 1 Requests (Arbitration)
-//   6. Unmapped Address Error Handling (Wishbone ERR -> AXI SLVERR)
+//   1. Master 0 (LSU) Write & Read with ID tracking (HB_THRESHOLD)
+//   2. Master 1 (SB) Write & Read with ID tracking (RST_HOLD_CYCLES)
+//   3. 64-to-32 bit Data Steering (addr[2]=0 and addr[2]=1)
+//   4. Concurrent Arbitration (M0 & M1 request simultaneously)
+//   5. Unmapped Address Error Handling (DECERR)
+//   6. Verify Access across All 7 Dedicated Peripheral Slave Ports
 // ============================================================================
 
 `timescale 1ns / 1ps
@@ -1402,17 +1411,17 @@ module tb_axi_interconnect;
         end
 
         // --------------------------------------------------------------------
-        // Test 5: Unmapped Address Handling (DECERR / SLVERR)
+        // Test 5: Unmapped Address Handling (DECERR)
         // --------------------------------------------------------------------
         test_num = test_num + 1;
-        $display("\n[TEST %0d] Unmapped Address Error Handling (DECERR/SLVERR)", test_num);
+        $display("\n[TEST %0d] Unmapped Address Error Handling (DECERR)", test_num);
         // Master 0 reads unmapped address 0x0002_0800
         m0_read(8'hEE, ADDR_UNMAPPED, rdata, resp);
-        if (resp == 2'b11 || resp == 2'b10) begin // 2'b11 = DECERR, 2'b10 = SLVERR
-            $display("  -> Unmapped read correctly returned AXI error (resp=%b) PASS", resp);
+        if (resp == 2'b11) begin // 2'b11 = DECERR
+            $display("  -> Unmapped read correctly returned AXI DECERR (resp=2'b11) PASS");
             pass_count = pass_count + 1;
         end else begin
-            $display("  -> ERROR: Expected DECERR (2'b11) or SLVERR (2'b10), got resp=%b", resp);
+            $display("  -> ERROR: Expected DECERR (2'b11), got resp=%b", resp);
             fail_count = fail_count + 1;
         end
 

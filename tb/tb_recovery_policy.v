@@ -2,14 +2,14 @@
 // Testbench — Recovery Policy & Event Log (Unit Test)
 // ============================================================================
 // Tests:
-//   1. Single event recording
-//   2. Multiple events & log readback
-//   3. Circular buffer wrap (17+ events)
-//   4. No lockout below threshold
-//   5. Lockout triggers at threshold
-//   6. Lockout is sticky
-//   7. Clear lockout via firmware
-//   8. Window reset clears recovery count
+//   1. Single Event Recording
+//   2. Multiple Events & Readback
+//   3. Lockout triggers at threshold
+//   4. Lockout is Sticky
+//   5. Clear Lockout
+//   6. Circular Buffer Wrap
+//   7. Window Reset Clears Recovery Count
+//   8. Rapid events within window trigger lockout
 // ============================================================================
 
 `timescale 1ns / 1ps
