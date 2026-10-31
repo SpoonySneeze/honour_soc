@@ -31,9 +31,6 @@ int main() {
 
     test_summary();
 
-    // Signal completion
-    uart_print(">>> ALL IP INTEGRATION TESTS PASSED SUCCESSFULLY! <<<\n");
-    
     // Halt
     while(1);
     return 0;

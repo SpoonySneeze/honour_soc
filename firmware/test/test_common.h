@@ -29,6 +29,7 @@
 #define UART_MSR *(volatile uint32_t*)(UART_BASE + 0x18)
 #define UART_SCR *(volatile uint32_t*)(UART_BASE + 0x1C)
 #define UART_LSR_THRE 0x20
+#define UART_LSR_TEMT 0x40
 
 // 2. Timer (32-bit hardware cycle counter)
 #define TMR_CTR *(volatile uint32_t*)(TMR_BASE + 0x00)
@@ -115,6 +116,44 @@ static __attribute__((noinline)) void uart_print_dec(uint32_t val) {
     for (int i = idx - 1; i >= 0; i--) {
         uart_putc(buf[i]);
     }
+}
+
+static __attribute__((noinline)) void format_hex(char* buf, uint32_t val) {
+    const char hex_chars[] = "0123456789ABCDEF";
+    buf[0] = '0';
+    buf[1] = 'x';
+    for (int i = 7; i >= 0; i--) {
+        uint32_t nibble = (val >> (i * 4)) & 0xF;
+        buf[2 + (7 - i)] = hex_chars[nibble];
+    }
+    buf[10] = '\0';
+}
+
+static __attribute__((noinline)) void format_dec(char* buf, uint32_t val) {
+    if (val == 0) {
+        buf[0] = '0';
+        buf[1] = '\0';
+        return;
+    }
+    char temp[12];
+    int idx = 0;
+    while (val > 0) {
+        temp[idx++] = (char)('0' + (val % 10));
+        val /= 10;
+    }
+    int out_idx = 0;
+    for (int i = idx - 1; i >= 0; i--) {
+        buf[out_idx++] = temp[i];
+    }
+    buf[out_idx] = '\0';
+}
+
+static __attribute__((noinline)) int str_equals(const char* s1, const char* s2) {
+    while (*s1 && (*s1 == *s2)) {
+        s1++;
+        s2++;
+    }
+    return (*s1 == *s2);
 }
 
 static __attribute__((noinline)) void delay(uint32_t count) {

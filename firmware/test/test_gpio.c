@@ -13,7 +13,7 @@ int main(void) {
 
     int hb_pin = (gpio_val & (1 << 0)) != 0;
     uart_print("  heartbeat_in pin (Bit 0): "); uart_print_dec(hb_pin); uart_print("\n");
-    report_test("GPIO heartbeat_in pin readable without bus fault", 1);
+    uart_print("  [INFO] GPIO heartbeat_in pin sampled: "); uart_print_dec(hb_pin); uart_print("\n");
 
     uart_print("\n[SUBTEST 2] Verifying Reserved Bitfields...\n");
     // Bits [7:2] are reserved low

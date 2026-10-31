@@ -33,22 +33,25 @@ int main(void) {
     report_test("VGA_CTRL disable display (Bit 0 == 0)", (ctrl_off & 1) == 0);
     VGA_CTRL = 1; // Re-enable for dashboard
 
-    uart_print("\n[SUBTEST 3] Reading VGA_STATUS Register...\n");
+    uart_print("\n[SUBTEST 3] Reading VGA_STATUS Register & Buffer Direct Write/Readback...\n");
     uint32_t vga_status = VGA_STATUS;
     uart_print("  VGA_STATUS register value: "); uart_print_hex(vga_status); uart_print("\n");
-    report_test("VGA_STATUS read completes without bus error", 1);
+    VGA_TEXT_BUFFER[29] = 0xA5A55A5A;
+    uint32_t rb_word = VGA_TEXT_BUFFER[29];
+    report_test("VGA text buffer direct word write/readback (0xA5A55A5A)", (rb_word == 0xA5A55A5A));
 
     uart_print("\n[SUBTEST 4] Programming 120-Character Status Dashboard Buffer...\n");
     vga_print_str(0, 0, "BMC SoC Video Core - VeeR EL2 Active!");
     vga_print_str(1, 0, "Pure Native AXI4 Bus - 0 Wishbone");
     vga_print_str(2, 0, "STATUS: ALL SUBSYSTEMS OPERATIONAL!");
-    report_test("VGA 3x40 text buffer programmed with multi-line dashboard", 1);
+    uint32_t w10 = VGA_TEXT_BUFFER[10]; // "Pure" -> 0x50757265
+    report_test("VGA 3x40 text buffer programmed with multi-line dashboard", (w10 == 0x50757265));
 
     uart_print("\n[SUBTEST 5] Verifying Text Buffer Direct Word Writes...\n");
     // Word 0 holds first 4 chars: "BMC " -> ASCII 0x42, 0x4D, 0x43, 0x20
     uint32_t w0 = VGA_TEXT_BUFFER[0];
     uart_print("  Buffer Word 0 (Big-Endian packed): "); uart_print_hex(w0); uart_print("\n");
-    report_test("Text buffer word 0 contains expected ASCII header chars", (w0 != 0));
+    report_test("Text buffer word 0 contains expected ASCII header chars", (w0 == 0x424D4320));
 
     test_summary();
     return 0;

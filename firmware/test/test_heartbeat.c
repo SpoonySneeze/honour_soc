@@ -36,7 +36,23 @@ int main(void) {
     uart_print("  HB_STATUS after pet: "); uart_print_hex(status_after_pet); uart_print("\n");
     report_test("Watchdog serviced cleanly; unresponsive flag remains 0", ((status_after_pet & 1) == 0));
 
-    uart_print("\n[SUBTEST 5] Disabling Heartbeat Monitor...\n");
+    uart_print("\n[SUBTEST 5] Watchdog Timeout and Recovery Check...\n");
+    uint32_t prev_thresh = HB_THRESHOLD;
+    HB_THRESHOLD = 200;
+    HB_CTRL = 3; // Bit 0: enable, Bit 1: clear_flag
+    delay(100);
+    uint32_t status_timeout = HB_STATUS;
+    uart_print("  HB_STATUS after timeout: "); uart_print_hex(status_timeout); uart_print("\n");
+    report_test("Watchdog timeout asserts unresponsive flag (HB_STATUS[0] == 1)", ((status_timeout & 1) == 1));
+
+    HB_CTRL = 3; // Clear flag and service
+    delay(10);
+    uint32_t status_cleared = HB_STATUS;
+    uart_print("  HB_STATUS after clear: "); uart_print_hex(status_cleared); uart_print("\n");
+    report_test("Watchdog unresponsive flag cleared after servicing (HB_STATUS[0] == 0)", ((status_cleared & 1) == 0));
+    HB_THRESHOLD = prev_thresh;
+
+    uart_print("\n[SUBTEST 6] Disabling Heartbeat Monitor...\n");
     HB_CTRL = 0; // Disable
     delay(10);
     uint32_t ctrl_rb = HB_CTRL;

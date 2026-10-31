@@ -60,6 +60,33 @@ int main(void) {
     uart_print("  Circular Log[2] readback: "); uart_print_hex(log2); uart_print("\n");
     report_test("Circular Log[2] matches staged timestamp 0x99887766", (log2 == 0x99887766));
 
+    uart_print("\n[SUBTEST 6] Verifying Crash-Loop Lockout & Recovery...\n");
+    POL_WINDOW = 500000;
+    POL_THRESHOLD = 2;
+    POL_CTRL = 2; // clear_lockout
+    delay(10);
+
+    // Record Event 1
+    POL_EVENT_TS = 0x12340001;
+    POL_CTRL = 1;
+    delay(10);
+
+    // Record Event 2
+    POL_EVENT_TS = 0x12340002;
+    POL_CTRL = 1;
+    delay(10);
+
+    uint32_t stat_locked = POL_STATUS;
+    uart_print("  POL_STATUS after 2 events: "); uart_print_hex(stat_locked); uart_print("\n");
+    report_test("POL_STATUS indicates lockout active after threshold events (Bit 0 == 1)", ((stat_locked & 1) == 1));
+
+    // Clear lockout
+    POL_CTRL = 2; // clear_lockout
+    delay(10);
+    uint32_t stat_unlocked = POL_STATUS;
+    uart_print("  POL_STATUS after clear_lockout: "); uart_print_hex(stat_unlocked); uart_print("\n");
+    report_test("POL_STATUS lockout cleared via POL_CTRL (Bit 0 == 0)", ((stat_unlocked & 1) == 0));
+
     test_summary();
     return 0;
 }

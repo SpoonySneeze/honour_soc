@@ -30,12 +30,19 @@ int main(void) {
     report_test("RST_STATUS indicates sequencer idle (in_progress == 0)", (in_prog == 0));
 
     uart_print("\n[SUBTEST 4] Triggering Reset Sequence via RST_CTRL...\n");
-    RST_CTRL = 1; // Trigger reset sequence
-    delay(150);   // Wait for 100 hold cycles + margin
+    RST_HOLD_CYCLES = 500; // Extend duration to guarantee sampling in_progress
+    RST_CTRL = 1;          // Trigger reset sequence
+    uint32_t in_prog_status = RST_STATUS;
+    uart_print("  RST_STATUS immediately after trigger: "); uart_print_hex(in_prog_status); uart_print("\n");
+    int in_progress = (in_prog_status & 1) != 0;
+    report_test("RST_STATUS indicates sequence in progress (Bit 0 == 1)", in_progress);
+
+    delay(600);   // Wait for 500 hold cycles + margin
     uint32_t post_status = RST_STATUS;
-    uart_print("  RST_STATUS after sequence: "); uart_print_hex(post_status); uart_print("\n");
-    int complete = (post_status & 2) != 0;
-    report_test("Reset sequence triggered and marked complete (Bit 1 == 1)", complete);
+    uart_print("  RST_STATUS after sequence complete: "); uart_print_hex(post_status); uart_print("\n");
+    int complete = ((post_status & 2) != 0) && ((post_status & 1) == 0);
+    report_test("Reset sequence marked complete (Bit 1 == 1, Bit 0 == 0)", complete);
+    RST_HOLD_CYCLES = 100; // Restore default
 
     test_summary();
     return 0;

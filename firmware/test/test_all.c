@@ -4,7 +4,9 @@ void run_test_uart(void) {
     uart_print("\n--- [IP 1/7] UART 16550 Serial Controller ---\n");
     uint32_t lsr = UART_LSR;
     report_test("LSR indicates Transmitter Ready (THRE)", (lsr & UART_LSR_THRE) != 0);
-    report_test("UART serial transmission stream verified", 1);
+    uint32_t wd = WATCHDOG_TIMEOUT;
+    while ((UART_LSR & UART_LSR_TEMT) == 0 && --wd);
+    report_test("UART serial transmission stream verified", (wd > 0) && ((UART_LSR & UART_LSR_TEMT) != 0));
 }
 
 void run_test_timer(void) {
@@ -36,7 +38,8 @@ void run_test_heartbeat(void) {
     report_test("HB_STATUS unresponsive flag is CLEAR", ((HB_STATUS & 1) == 0));
 
     HB_CTRL = 3; // Pet watchdog (enable + clear)
-    report_test("HB_CTRL petting command executed successfully", 1);
+    delay(10);
+    report_test("HB_CTRL petting command executed successfully", ((HB_STATUS & 1) == 0));
 }
 
 void run_test_reset_sequencer(void) {
@@ -89,7 +92,7 @@ void run_test_vga(void) {
 
     // Write a test pattern to buffer
     VGA_TEXT_BUFFER[0] = 0x41424344; // "ABCD"
-    report_test("VGA text buffer programmed with status dashboard", (VGA_TEXT_BUFFER[0] != 0));
+    report_test("VGA text buffer programmed with status dashboard", (VGA_TEXT_BUFFER[0] == 0x41424344));
 }
 
 int main(void) {
