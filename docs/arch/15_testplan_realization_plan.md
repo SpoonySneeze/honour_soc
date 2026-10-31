@@ -325,11 +325,11 @@ flowchart LR
 | **POL-03** | POL_CTRL Clear Lockout | `TP-REG-06` | **Bench B** | AXI VIP | Writing `POL_CTRL.clear_lockout` clears `lockout_flag` and restores recovery readiness. |
 | **POL-04** | Rolling Window Reset Clears Count | `TP-CTRL-05` | **Bench B** | AXI VIP | Elapsed window cycle expiration clears rolling event count. |
 | **POL-05** | Events Spanning Window Boundary | `TP-CTRL-06` | **Bench B** | AXI VIP | Events spaced across window boundaries do not trip threshold lockout. |
-| **POL-06** | Event Log Circular Wrap-Around | `TP-ERR-02` | **Bench B** | AXI VIP | >16 events wrap circular RAM cleanly; `LOG_COUNT` saturates at 16, latest entries overwrite oldest. |
+| **POL-06** | Event Log Circular Wrap-Around | `TP-ERR-02` | **Bench B** | AXI VIP | >16 events wrap circular RAM cleanly; `LOG_COUNT` increments monotonically (saturates at 32'hFFFF_FFFF), latest entries overwrite oldest in 16-slot RAM. |
 | **POL-07** | Event on Window Rollover Cycle | `TP-GAP-05` | **Bench B** | AXI VIP | Event occurring on exact window expiration cycle correctly counted in new window. |
 | **POL-08** | Lockout Persistence Across Window | `TP-GAP-07` | **Bench B** | AXI VIP | Once tripped, `lockout_flag` remains asserted across window rollovers until explicitly cleared. |
 | **POL-09** | Firmware Lockout Suppression | `TP-ERR-03` | **Bench A** | VeeR / `test_crashloop_lockout.c` | Software supervisor enforces lockout: suppresses reset trigger when `lockout_flag = 1`. |
-| **POL-10** | Log Wrap Detection by Firmware | `TP-GAP-03` | **Bench A** | VeeR / Firmware | Firmware monitors `LOG_COUNT == 16` and handles log overrun telemetry. |
+| **POL-10** | Log Wrap Detection by Firmware | `TP-GAP-03` | **Bench A** | VeeR / Firmware | Firmware monitors `LOG_COUNT > 16` and handles log overrun telemetry. |
 | **PER-01** | UART TX and RX Path Loopback | `TP-DAT-03` | **Bench B** | `uart_agent` | Characters written to `UART_THR` serialized correctly; RX FIFO receives input without errors. |
 | **PER-02** | UART IRQ Assertion/Deassertion | `TP-IRQ-03` | **Bench B** | `uart_agent` / VIP | RX data available and TX FIFO empty assert `uart_irq`; cleared by reading `RBR`/`IIR`. |
 | **PER-03** | System Timer Monotonic Increment | Spec | **Bench B** | AXI VIP | `TMR_CTR` increments by 1 on every clock; read-only protection enforced. |

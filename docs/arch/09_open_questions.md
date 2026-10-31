@@ -41,20 +41,21 @@ In accordance with Ground Rule 4, the table below documents all locations where 
 
 ## 3. Specification Gaps & Undefined Behaviors
 
-The following functional scenarios are not defined in the specification or code comments and represent ambiguous corner cases:
+The following functional scenarios represent boundary corner cases analyzed against RTL implementation:
 
 1. **Heartbeat Pulse vs. Timeout Comparator Collision**:
-   - *Undefined Behavior*: What happens if a rising edge on `heartbeat_in` occurs on the **exact clock cycle** that `hb_counter` reaches `HB_THRESHOLD`?
-   - *Verification Risk*: Does the synchronous counter reset take precedence (clearing the counter and suppressing timeout), or does the comparator latch `unresponsive_flag = 1` and assert `hb_irq` for a single cycle?
+   - *Status*: **RESOLVED IN RTL** (`heartbeat_monitor.v:113-117`). In `ST_COUNTING`, `else if (hb_rising_edge)` is evaluated prior to `else if (hb_counter >= hb_threshold_reg)`. The rising edge wins: `hb_counter` resets to 0, suppressing the timeout compare and preventing `hb_unresponsive_flag` assertion.
+   - *Verification Action*: Validate via `TP-GAP-01` ensuring deterministic edge priority without spurious IRQ pulses.
 2. **Access During Active Reset**:
    - *Undefined Behavior*: If an AXI master attempts an access while `rst_n` is asserted, or on the exact cycle of reset release, does the interconnect deadlock, drop the transaction silently, or return `DECERR`?
 3. **Circular Log Buffer Pointer Wrap & Overwrite Policy**:
-   - *Undefined Behavior*: When `log_count > 16`, the 4-bit write pointer wraps around, overwriting older timestamps. There is no `log_full` or `overflow_flag` register bit to notify firmware that records were discarded.
-   - *Verification Risk*: Testbench must verify that firmware can detect wrap-around strictly by comparing `LOG_COUNT` against 16.
+   - *Status*: **RESOLVED IN RTL** (`recovery_policy.v:180-185`). In RTL, `log_count` does NOT clamp at 16; it saturates at `32'hFFFF_FFFF` (`tb_recovery_policy` verifies `LOG_COUNT == 18` after 18 events). Only the 4-bit buffer write pointer (`log_wr_ptr`) wraps modulo 16, overwriting slots 0..15 in a circular fashion. There is no dedicated hardware `log_full` bit in `POL_STATUS`.
+   - *Verification Action*: Firmware detects wrap-around by checking `LOG_COUNT > 16`. Verified via `TP-REG-04`, `TP-ERR-02`, and `TP-GAP-03`.
 4. **Reset Sequencer Re-trigger Collision**:
    - *Undefined Behavior*: What happens if firmware writes `RST_CTRL.trigger = 1` on the exact clock cycle that `rst_countdown` reaches 0 (transition from `ASSERT` to `DONE`)? Does the new trigger launch immediately, or is it discarded?
 5. **Recovery Policy Window Rollover vs. Event Recording Race**:
-   - *Undefined Behavior*: If `POL_CTRL.record_event` is written on the exact clock cycle that `window_counter` reaches `POL_WINDOW`, does `window_recovery_count` reset to 0 first (resulting in count = 1 in the new window), or does it increment before the reset (resulting in count = 0 or count = old+1)?
+   - *Status*: **RESOLVED IN RTL** (`recovery_policy.v:166-196`). In RTL, the procedural execution order places the `record_event_req` block after the window rollover check. The non-blocking assignment `window_recovery_count <= window_recovery_count + 8'd1` supersedes the window counter reset to 0, and the threshold check evaluates against the incremented count ($2 + 1 = 3 \ge 3$). Event recording wins over window rollover, and lockout is asserted.
+   - *Verification Action*: Verified via `TP-CTRL-06`.
 6. **Concurrent Multi-Master Access to UART Gasket**:
    - *Undefined Behavior*: The 64-to-32 bit bus gasket in `soc_top.v:687-693` uses a shared register `uart_awaddr2_r` latched on `AWVALID & AWREADY`. If two masters issue interleaved write addresses and write data beats, can `uart_awaddr2_r` become corrupted, causing data to be steered to the wrong 32-bit lane?
 

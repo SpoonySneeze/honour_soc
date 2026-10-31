@@ -560,14 +560,14 @@ All SVAs are bound via `bind` modules (not inline in RTL). Each SVA lists the pr
 | **Priority** | HIGH |
 | **UVM Test Class** | `soc_rst_trigger_test` |
 | **Sequence** | `rst_trigger_seq` — write `RST_HOLD_CYCLES`, write `RST_CTRL.trigger=1`, monitor `reset_out` |
-| **Stimulus** | 1. Write `RST_HOLD_CYCLES = N` (parameterized: try N=10, 100, 1000). 2. Write `RST_CTRL[0]=1`. |
+| **Stimulus** | 1. Write `RST_HOLD_CYCLES = N` (parameterized: N=10, 100, 1000; and N=4294967295 for countdown load check). 2. Write `RST_CTRL[0]=1`. |
 | **Internal Signals Checked** | `rst_state`, `rst_countdown` |
-| **Expected Result** | `reset_out` falls to 0 within 1 cycle of trigger write. `reset_out` remains low for exactly N cycles. `reset_out` returns to 1. `RST_STATUS.complete` becomes 1. |
-| **Pass Criterion** | `reset_out_monitor` measures `duration_cycles == N` (±1 cycle for synchronous pipeline). RAL readback of `RST_STATUS[0] == 1`. SVA-RST-01 through SVA-RST-04 pass. |
+| **Expected Result** | `reset_out` falls to 0 within 1 cycle of trigger write. `reset_out` remains low for exactly N cycles. `reset_out` returns to 1. `RST_STATUS.complete` (bit 1) becomes 1, while `RST_STATUS.in_progress` (bit 0) returns to 0. |
+| **Pass Criterion** | `reset_out_monitor` measures `duration_cycles == N` (±1 cycle for synchronous pipeline). RAL readback of `RST_STATUS[1] == 1` (`complete`) and `RST_STATUS[0] == 0` (`in_progress`). SVA-RST-01 through SVA-RST-04 pass. |
 | **Fail Criterion** | Duration off by more than 1 cycle; `reset_out` doesn't return to 1; `RST_STATUS.complete` not set. |
 | **SVA Coverage** | SVA-RST-01, SVA-RST-02, SVA-RST-03, SVA-RST-04 |
 | **Functional Coverage** | `cg_rst_seq_fsm`: all 3 state bins + all 3 transitions; `cg_rst_hold_cycles`: multiple bins |
-| **Parameters** | Run with N = 10, 100, 1000, 4294967295 (max 32-bit) |
+| **Parameters** | Run with N = 10, 100, 1000. For N = 4294967295 (max 32-bit), check only the countdown load (`rst_countdown`) and first cycles to confirm `reset_out == 0` and `RST_STATUS[0] == 1` (`in_progress`) without waiting $2^{32}$ cycles. |
 
 ---
 
@@ -762,7 +762,7 @@ All SVAs are bound via `bind` modules (not inline in RTL). Each SVA lists the pr
 | **UVM Test Class** | `soc_log_readback_test` |
 | **Sequence** | Record N events; iterate `LOG_READ_IDX` = 0..N-1; compare `LOG_READ_DATA` |
 | **Stimulus** | 1. Write `POL_CTRL.record_event=1` N times (N=1, 8, 16). 2. Write `LOG_READ_IDX = 0`. Read `LOG_READ_DATA`. Increment index and repeat. |
-| **Expected Result** | Each `LOG_READ_DATA` returns the timestamp that was sampled when the corresponding event was recorded. `LOG_COUNT` equals N (saturates at 16). |
+| **Expected Result** | Each `LOG_READ_DATA` returns the timestamp that was sampled when the corresponding event was recorded. `LOG_COUNT` equals N (increments monotonically up to `32'hFFFF_FFFF`; circular log buffer holds the last 16 entries indexed 0..15). |
 | **Pass Criterion** | Scoreboard compares timestamps from `LOG_READ_DATA` against timestamps captured by the `axi_master_agent` at the time of each `record_event` write (cycle-accurate). |
 | **Fail Criterion** | Data mismatch at any index; LOG_COUNT incorrect; accessing index ≥ N returns garbage timestamp. |
 | **Functional Coverage** | `cg_rec_policy_log`: log_entries_1_8, log_entries_9_15 bins |
@@ -1032,17 +1032,17 @@ All SVAs are bound via `bind` modules (not inline in RTL). Each SVA lists the pr
 | Field | Value |
 |---|---|
 | **Test ID** | TP-CTRL-06 |
-| **Title** | Events near window boundary do not falsely cause lockout |
+| **Title** | Events at window boundary: event increment wins over window counter reset |
 | **Feature(s)** | SOC-CTRL-010 |
 | **Bench** | Bench B |
 | **Priority** | HIGH |
 | **UVM Test Class** | `soc_window_boundary_test` |
 | **Sequence** | Record events timed to straddle the window boundary |
 | **Stimulus** | `POL_THRESHOLD=3`, `POL_WINDOW=100`. Record 2 events at cycles 1 and 2. At cycle 100 (window boundary), record 1 event simultaneously with window expiry. |
-| **Expected Result** | Whichever happens first (counter reset or increment) determines count. No lockout should fire (2 events in old window + 1 at boundary). This test documents actual RTL behavior. |
-| **Pass Criterion** | `lockout_flag` remains 0. `window_recovery_count` is either 0 or 1 after boundary (both acceptable; must be consistent). |
-| **Fail Criterion** | Lockout asserted; undefined/X state on `window_recovery_count`. |
-| **Notes** | This is Spec Gap 5 from `09_open_questions.md`. The test captures actual behavior, not defined behavior. |
+| **Expected Result** | In `recovery_policy.v:166-196`, procedural execution order places the `record_event_req` block after the window counter block. The non-blocking assignment `window_recovery_count <= window_recovery_count + 8'd1` supersedes the window reset (`window_recovery_count <= 8'd0`), and `(window_recovery_count + 8'd1) >= policy_threshold_reg` evaluates to $2 + 1 = 3 \ge 3$. Therefore, event increment wins over window reset, and `lockout_flag` asserts (`lockout_flag <= 1'b1`). |
+| **Pass Criterion** | `lockout_flag == 1`. Event increment takes precedence over window counter reset at the boundary. |
+| **Fail Criterion** | `lockout_flag` remains 0; undefined/X state on `window_recovery_count`. |
+| **Notes** | Resolves Spec Gap 5 from `09_open_questions.md`. RTL procedural priority establishes that event recording wins over window rollover. |
 
 ---
 
@@ -1278,7 +1278,7 @@ All SVAs are bound via `bind` modules (not inline in RTL). Each SVA lists the pr
 | **Sequence** | Record 20 events; read back all 16 slots; confirm oldest entries overwritten |
 | **Stimulus** | Set large `POL_WINDOW`. Record 20 events (more than 16). Read all 16 log slots via `LOG_READ_IDX`. |
 | **Internal Signals Checked** | `log_wr_ptr` (bind) |
-| **Expected Result** | After 16 events: `log_wr_ptr == 0` (wrapped). Events 17–20 overwrite slots 0–3. `LOG_COUNT` reflects wrapped state. `log_wr_ptr` advances modulo-16 per SVA-POL-01. |
+| **Expected Result** | After 16 events: `log_wr_ptr == 0` (wrapped). Events 17–20 overwrite slots 0–3. `LOG_COUNT` reaches 20 (increments monotonically up to `32'hFFFF_FFFF`). `log_wr_ptr` advances modulo-16 per SVA-POL-01. |
 | **Pass Criterion** | SVA-POL-01 passes for all 20 writes. Log scoreboard confirms slots 0–3 contain events 17–20 timestamps; slots 4–15 contain events 5–16. |
 | **Fail Criterion** | Pointer does not wrap (sticks at 15); older slots not overwritten; data corruption at wrap boundary. |
 | **SVA Coverage** | SVA-POL-01 |
@@ -1449,11 +1449,11 @@ All SVAs are bound via `bind` modules (not inline in RTL). Each SVA lists the pr
 | **Priority** | HIGH |
 | **UVM Test Class** | `soc_crashloop_lockout_test` |
 | **Sequence** | Repeat watchdog→reset cycle K times, then verify lockout; then send UART clear command |
-| **Stimulus** | Repeat watchdog timeout+reset cycle `POL_THRESHOLD` times within `POL_WINDOW`. After K-th event: observe `lockout_irq` and `lockout_flag`. Then: UART agent sends clear command; firmware writes `POL_CTRL.clear_lockout=1`. |
-| **Expected Result** | After K events: `lockout_flag=1`, `lockout_irq` fires once. Firmware stops triggering `reset_out`. After clear: `lockout_flag=0`, watchdog monitoring resumes. |
+| **Stimulus** | Repeat watchdog timeout+reset cycle `POL_THRESHOLD` times within `POL_WINDOW`. In the testbench sequence (`tb_soc_top.v:1265-1268`), the reset trigger is issued BEFORE recording the recovery event. Therefore, exactly K resets occur before the K-th recorded event triggers lockout. After K-th event: observe `lockout_irq` and `lockout_flag`. Then: UART agent sends clear command; firmware writes `POL_CTRL.clear_lockout=1`. |
+| **Expected Result** | After K resets and K event recordings: `lockout_flag=1`, `lockout_irq` fires once. Firmware stops triggering `reset_out`. After clear: `lockout_flag=0`, watchdog monitoring resumes. |
 | **Pass Criterion** | `reset_out_monitor` records exactly K reset pulses then zero. PIC IRQ monitor records exactly one `extintsrc_req[3]` pulse. After clear: another watchdog timeout generates another reset. |
 | **Fail Criterion** | More than K resets before lockout; lockout persists after clear; second lockout_irq pulse on clear. |
-| **Notes** | Lockout suppression in step "firmware stops triggering" is **firmware-enforced only** — hardware does NOT prevent the trigger. |
+| **Notes** | Lockout suppression in step "firmware stops triggering" is **firmware-enforced only** — hardware does NOT prevent the trigger. Note that `tb_soc_top.v` triggers the reset BEFORE recording the event, so lockout appears after K resets, not K-1. |
 
 ---
 
@@ -1508,10 +1508,10 @@ All SVAs are bound via `bind` modules (not inline in RTL). Each SVA lists the pr
 | **Sequence** | Count cycles to threshold, drive rising edge on exact timeout cycle |
 | **Stimulus** | Enable HBM (threshold=50). At cycle 50 exactly (when `hb_counter` would hit `HB_THRESHOLD`), drive `heartbeat_in` rising edge. |
 | **Internal Signals Checked** | `hb_counter`, `unresponsive_flag`, `hb_irq` (bind) |
-| **Expected Result** | **UNDEFINED** — document actual RTL behavior. Either: (a) counter reset wins → no timeout; or (b) comparator wins → 1-cycle `unresponsive_flag`, then cleared by edge. |
-| **Pass Criterion** | Behavior is one of the two options above. **No X-state**. `hb_counter` and `unresponsive_flag` have deterministic values. |
-| **Fail Criterion** | X on any output; oscillation; deadlock. |
-| **Notes** | Spec Gap 1 from `09_open_questions.md`. Result must be documented as the defined hardware behavior. |
+| **Expected Result** | In `heartbeat_monitor.v:113-117`, `ST_COUNTING` evaluates `else if (hb_rising_edge)` prior to `else if (hb_counter >= hb_threshold_reg)`. Therefore, the rising edge wins: `hb_counter` resets to 0, timeout compare is suppressed, `hb_unresponsive_flag` remains 0, and no interrupt is generated. |
+| **Pass Criterion** | Rising edge takes precedence: `hb_counter <= 0`, `HB_STATUS[0] == 0` (`unresponsive_flag`), and no `hb_irq` assertion. |
+| **Fail Criterion** | Spurious `hb_unresponsive_flag` or `hb_irq` asserted; counter not reset; X on any signal. |
+| **Notes** | Resolves Spec Gap 1 from `09_open_questions.md`. RTL priority evaluation defines that incoming edge wins over timeout compare. |
 
 ---
 
@@ -1539,16 +1539,16 @@ All SVAs are bound via `bind` modules (not inline in RTL). Each SVA lists the pr
 | Field | Value |
 |---|---|
 | **Test ID** | TP-GAP-03 |
-| **Title** | No `log_full` flag: verify firmware can detect overflow only via `LOG_COUNT == 16` |
+| **Title** | Log wrap detection: `LOG_COUNT` saturates at `0xFFFFFFFF` while write pointer wraps at 16 |
 | **Feature(s)** | SOC-ERR-004, SOC-REG-010 |
 | **Bench** | Bench B |
 | **Priority** | MEDIUM |
 | **UVM Test Class** | `soc_log_full_detect_test` |
-| **Sequence** | Write 17 events; read LOG_COUNT; confirm no flag exists |
-| **Stimulus** | Write 17 events. Read `LOG_COUNT`. Read `POL_STATUS`. |
-| **Expected Result** | `LOG_COUNT == 16` (or wraps — document actual behavior). No `log_full` bit in `POL_STATUS` (there is no such bit in RTL). Firmware must infer overflow from count. |
-| **Pass Criterion** | `LOG_COUNT` behavior documented. `POL_STATUS` has no `log_full` bit set. |
-| **Fail Criterion** | `POL_STATUS` has an undocumented `log_full` bit (would be RTL vs doc mismatch). |
+| **Sequence** | Write 18 events; read LOG_COUNT; read buffer entries via LOG_READ_IDX; confirm wrap |
+| **Stimulus** | Write 18 events (`POL_CTRL.record_event = 1`). Read `LOG_COUNT`. Read `POL_STATUS`. Read `LOG_READ_DATA` across indices 0..15. |
+| **Expected Result** | `LOG_COUNT == 18` (in `recovery_policy.v:184-185`, `log_count` saturates at `32'hFFFF_FFFF`; only `log_wr_ptr` wraps modulo 16, as confirmed by `tb_recovery_policy` expecting `LOG_COUNT == 18` after 18 events). Indices 0 and 1 contain the timestamps of events 17 and 18. `POL_STATUS` has no hardware `log_full` bit. Firmware detects log wrapping when `LOG_COUNT > 16`. |
+| **Pass Criterion** | `LOG_COUNT == 18`. Indices 0 and 1 match events 17 and 18 timestamps. `POL_STATUS` contains no hardware `log_full` bit. |
+| **Fail Criterion** | `LOG_COUNT != 18` (e.g. clamped at 16 or wrapped to 2); incorrect overwriting order; undocumented `POL_STATUS` bit asserted. |
 
 ---
 
