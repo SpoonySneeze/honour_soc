@@ -426,6 +426,8 @@ compile_uvm:
 	       vga_uvm_tb/vga_pkg.sv heartbeat_uvm_tb/heartbeat_pkg.sv reset_seq_uvm_tb/reset_seq_pkg.sv \
 	       soc_top_uvm_tb/soc_pkg.sv soc_top_uvm_tb/tb_top.sv -o simv_uvm
 
+simv_uvm: compile_uvm
+
 sim_uvm: compile_uvm
 	@echo "Running UVM simulation with FSDB waveform dumping..."
 	./simv_uvm +UVM_TESTNAME=soc_test +fsdb
