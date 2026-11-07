@@ -429,6 +429,10 @@ compile_uvm:
 simv_uvm: compile_uvm
 
 sim_uvm: compile_uvm
+	@if [ ! -f firmware.hex ]; then \
+		echo "Building default UVM firmware (test_uvm_sanity)..."; \
+		$(MAKE) build_firmware TEST=test/test_uvm_sanity; \
+	fi
 	@echo "Running UVM simulation with FSDB waveform dumping..."
 	./simv_uvm +UVM_TESTNAME=soc_test +fsdb
 
