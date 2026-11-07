@@ -47,36 +47,30 @@ class soc_env extends uvm_env;
   virtual function void connect_phase(uvm_phase phase);
     super.connect_phase(phase);
 
-    // Retrieve and bind virtual interfaces to drivers & monitors
-    if (uvm_config_db#(virtual clk_rst_if)::get(this, "", "clk_rst_vif", clk_rst_vif)) begin
-      clk_rst_agnt.drv.vif = clk_rst_vif;
-      clk_rst_agnt.mon.vif = clk_rst_vif;
-    end
+    // Retrieve and bind virtual interfaces directly to drivers & monitors
+    void'(uvm_config_db#(virtual clk_rst_if)::get(this, "", "clk_rst_vif", clk_rst_vif));
+    clk_rst_agnt.drv.vif = clk_rst_vif;
+    clk_rst_agnt.mon.vif = clk_rst_vif;
 
-    if (uvm_config_db#(virtual uart_if)::get(this, "", "uart_vif", uart_vif)) begin
-      uart_agnt.drv.vif = uart_vif;
-      uart_agnt.mon.vif = uart_vif;
-    end
+    void'(uvm_config_db#(virtual uart_if)::get(this, "", "uart_vif", uart_vif));
+    uart_agnt.drv.vif = uart_vif;
+    uart_agnt.mon.vif = uart_vif;
 
-    if (uvm_config_db#(virtual gpio_if)::get(this, "", "gpio_vif", gpio_vif)) begin
-      gpio_agnt.drv.vif = gpio_vif;
-      gpio_agnt.mon.vif = gpio_vif;
-    end
+    void'(uvm_config_db#(virtual gpio_if)::get(this, "", "gpio_vif", gpio_vif));
+    gpio_agnt.drv.vif = gpio_vif;
+    gpio_agnt.mon.vif = gpio_vif;
 
-    if (uvm_config_db#(virtual vga_if)::get(this, "", "vga_vif", vga_vif)) begin
-      vga_agnt.drv.vif = vga_vif;
-      vga_agnt.mon.vif = vga_vif;
-    end
+    void'(uvm_config_db#(virtual vga_if)::get(this, "", "vga_vif", vga_vif));
+    vga_agnt.drv.vif = vga_vif;
+    vga_agnt.mon.vif = vga_vif;
 
-    if (uvm_config_db#(virtual heartbeat_if)::get(this, "", "hb_vif", hb_vif)) begin
-      hb_agnt.drv.vif = hb_vif;
-      hb_agnt.mon.vif = hb_vif;
-    end
+    void'(uvm_config_db#(virtual heartbeat_if)::get(this, "", "hb_vif", hb_vif));
+    hb_agnt.drv.vif = hb_vif;
+    hb_agnt.mon.vif = hb_vif;
 
-    if (uvm_config_db#(virtual reset_seq_if)::get(this, "", "rst_seq_vif", rst_seq_vif)) begin
-      rst_seq_agnt.drv.vif = rst_seq_vif;
-      rst_seq_agnt.mon.vif = rst_seq_vif;
-    end
+    void'(uvm_config_db#(virtual reset_seq_if)::get(this, "", "rst_seq_vif", rst_seq_vif));
+    rst_seq_agnt.drv.vif = rst_seq_vif;
+    rst_seq_agnt.mon.vif = rst_seq_vif;
   endfunction
 
 endclass
