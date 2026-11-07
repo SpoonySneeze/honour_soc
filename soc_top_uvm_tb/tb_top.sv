@@ -136,6 +136,17 @@ module tb_top;
   // Virtual Interface Registration and Test Execution
   // --------------------------------------------------------------------------
   initial begin
+    // Waveform dumping support (Verdi FSDB or GTKWave VCD)
+    if ($test$plusargs("fsdb")) begin
+`ifdef VCS
+      $fsdbDumpfile("soc_uvm.fsdb");
+      $fsdbDumpvars(0, tb_top);
+`endif
+    end else if ($test$plusargs("vcd")) begin
+      $dumpfile("soc_uvm.vcd");
+      $dumpvars(0, tb_top);
+    end
+
     // Register all virtual interfaces in UVM config DB for the top env
     uvm_config_db#(virtual clk_rst_if)::set(null, "*", "clk_rst_vif", clk_rst_vif);
     uvm_config_db#(virtual uart_if)::set(null, "*", "uart_vif", uart_vif);
