@@ -437,8 +437,8 @@ sim_uvm: compile_uvm
 	./simv_uvm +UVM_TESTNAME=soc_test +fsdb
 
 waves_uvm:
-	@echo "Opening soc_uvm.fsdb in Synopsys Verdi..."
-	$(VERDI) -ssf soc_uvm.fsdb &
+	@echo "Opening soc_uvm.fsdb with UVM testbench database in Synopsys Verdi..."
+	$(VERDI) -dbdir simv_uvm.daidir -ssf soc_uvm.fsdb &
 
 # ----------------------------------------------------------------------------
 # Verilator Overrides
