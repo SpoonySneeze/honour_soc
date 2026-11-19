@@ -34,7 +34,7 @@ export RV_ROOT
 # Simulator & Debug Flags
 VCS       = vcs
 VCS_FLAGS = -full64 -sverilog +v2k -notice -debug_access+all -kdb -timescale=1ns/1ps +define+SIMULATION=1 +define+GTLSIM=1
-VERDI     = verdi
+VERDI     = verdi -Apex
 
 # Build directories & outputs
 BUILD_DIR = build
@@ -438,7 +438,7 @@ sim_uvm: compile_uvm
 
 waves_uvm:
 	@echo "Opening soc_uvm.fsdb with UVM testbench database in Synopsys Verdi..."
-	$(VERDI) -dbdir simv_uvm.daidir -ssf soc_uvm.fsdb &
+	$(VERDI) -dbdir simv_uvm.daidir -ssf soc_uvm.fsdb -sswr waves/soc_uvm_wave.rc &
 
 # ----------------------------------------------------------------------------
 # Verilator Overrides

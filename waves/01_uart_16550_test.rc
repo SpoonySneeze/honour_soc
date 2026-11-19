@@ -1,0 +1,42 @@
+Magic 271485
+Revision Verdi_U-2023.03-SP1
+
+; UART 16550 Transmitter & AXI Interface Test
+; Target: soc_top_uvm_tb/tb_top.sv (FSDB: soc_uvm.fsdb)
+
+viewPort 0 0 1600 900 320 65
+signalSpacing 5
+
+zoom 9000000.000000 12500000.000000
+cursor 9625000.000000
+marker 0.000000
+
+top 0
+markerPos 0
+
+COMPLEX_EVENT_BEGIN
+COMPLEX_EVENT_END
+
+curSTATUS ByChange
+
+addGroup "1. Clock & Reset"
+addSignal -h 15 /tb_top/clk
+addSignal -h 15 /tb_top/rst_n
+
+addGroup "2. External UART Pins & VIP"
+addSignal -h 15 /tb_top/u_dut/uart_tx
+addSignal -h 15 /tb_top/u_dut/uart_rx
+addSignal -h 15 /tb_top/uart_vif/uart_tx
+
+addGroup "3. CPU LSU AXI Bus"
+addSignal -h 15 /tb_top/u_dut/lsu_axi_awvalid
+addSignal -h 15 -UNSIGNED -HEX /tb_top/u_dut/lsu_axi_awaddr[31:0]
+addSignal -h 15 /tb_top/u_dut/lsu_axi_wvalid
+addSignal -h 15 -UNSIGNED -HEX /tb_top/u_dut/lsu_axi_wdata[63:0]
+
+addGroup "4. UART Controller Internals"
+addSignal -h 15 /tb_top/u_dut/u_uart/tx_fifo_push_int
+addSignal -h 15 -UNSIGNED -HEX /tb_top/u_dut/u_uart/tx_fifo_data_in_int[7:0]
+addSignal -h 15 -UNSIGNED -UDEC /tb_top/u_dut/u_uart/tx_fifo_available_int[5:0]
+addSignal -h 15 -UNSIGNED -HEX /tb_top/u_dut/u_uart/uart_lsr_reg_int[31:0]
+

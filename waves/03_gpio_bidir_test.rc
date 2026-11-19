@@ -1,0 +1,41 @@
+Magic 271485
+Revision Verdi_U-2023.03-SP1
+
+; Standard 8-bit Bidirectional GPIO Pin Driving Test
+; Target: soc_top_uvm_tb/tb_top.sv (FSDB: soc_uvm.fsdb)
+
+viewPort 0 0 1600 900 320 65
+signalSpacing 5
+
+zoom 1650000000.000000 1800000000.000000
+cursor 1666525000.000000
+marker 0.000000
+
+top 0
+markerPos 0
+
+COMPLEX_EVENT_BEGIN
+COMPLEX_EVENT_END
+
+curSTATUS ByChange
+
+addGroup "1. Clock & Reset"
+addSignal -h 15 /tb_top/clk
+addSignal -h 15 /tb_top/rst_n
+
+addGroup "2. DUT GPIO Boundary Pins"
+addSignal -h 15 -UNSIGNED -HEX /tb_top/u_dut/gpio_out[7:0]
+addSignal -h 15 -UNSIGNED -HEX /tb_top/u_dut/gpio_oe[7:0]
+addSignal -h 15 -UNSIGNED -HEX /tb_top/u_dut/gpio_in[7:0]
+
+addGroup "3. UVM VIP GPIO Interface"
+addSignal -h 15 -UNSIGNED -HEX /tb_top/gpio_vif/gpio_out[7:0]
+addSignal -h 15 -UNSIGNED -HEX /tb_top/gpio_vif/gpio_oe[7:0]
+addSignal -h 15 -UNSIGNED -HEX /tb_top/gpio_vif/gpio_in[7:0]
+
+addGroup "4. CPU AXI MMIO Writes (0xA5 & 0x5A)"
+addSignal -h 15 /tb_top/u_dut/lsu_axi_awvalid
+addSignal -h 15 -UNSIGNED -HEX /tb_top/u_dut/lsu_axi_awaddr[31:0]
+addSignal -h 15 /tb_top/u_dut/lsu_axi_wvalid
+addSignal -h 15 -UNSIGNED -HEX /tb_top/u_dut/lsu_axi_wdata[63:0]
+

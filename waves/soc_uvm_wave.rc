@@ -1,0 +1,156 @@
+Magic 271485
+Revision Verdi_U-2023.03-SP1
+
+; ============================================================
+; Honour SoC Top-Level UVM Verification – Verdi Waveform RC
+; Target: soc_top_uvm_tb/tb_top.sv (FSDB: soc_uvm.fsdb)
+; ============================================================
+
+viewPort 0 0 1600 900 320 65
+signalSpacing 5
+
+zoom 0.000000 25000000.000000
+cursor 9625000.000000
+marker 7295000.000000
+
+top 0
+markerPos 0
+
+COMPLEX_EVENT_BEGIN
+COMPLEX_EVENT_END
+
+curSTATUS ByChange
+
+; ============================================================
+; Group 1: Primary Clock & Reset Generation
+; ============================================================
+addGroup "1. Clock & Reset"
+addSignal -h 15 /tb_top/clk
+addSignal -h 15 -holdScope rst_n
+
+; ============================================================
+; Group 2: SoC External Boundary Pins
+; ============================================================
+addGroup "2. External SoC Boundary Pins"
+addSignal -h 15 /tb_top/u_dut/uart_tx
+addSignal -h 15 -holdScope uart_rx
+addSignal -h 15 -UNSIGNED -HEX -holdScope gpio_out[7:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope gpio_oe[7:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope gpio_in[7:0]
+addSignal -h 15 -holdScope heartbeat_in
+addSignal -h 15 -holdScope reset_out
+addSignal -h 15 -holdScope vga_hsync
+addSignal -h 15 -holdScope vga_vsync
+addSignal -h 15 -UNSIGNED -HEX -holdScope vga_rgb[11:0]
+
+; ============================================================
+; Group 3: UVM VIP Virtual Interfaces
+; ============================================================
+addGroup "3. UVM VIP Interfaces"
+addSignal -h 15 /tb_top/uart_vif/uart_tx
+addSignal -h 15 /tb_top/uart_vif/uart_rx
+addSignal -h 15 -UNSIGNED -HEX /tb_top/gpio_vif/gpio_out[7:0]
+addSignal -h 15 -UNSIGNED -HEX /tb_top/gpio_vif/gpio_oe[7:0]
+addSignal -h 15 -UNSIGNED -HEX /tb_top/gpio_vif/gpio_in[7:0]
+addSignal -h 15 /tb_top/hb_vif/heartbeat_in
+addSignal -h 15 /tb_top/rst_seq_vif/reset_out
+addSignal -h 15 /tb_top/vga_vif/vga_hsync
+addSignal -h 15 /tb_top/vga_vif/vga_vsync
+addSignal -h 15 -UNSIGNED -HEX /tb_top/vga_vif/vga_rgb[11:0]
+
+; ============================================================
+; Group 4: VeeR EL2 CPU LSU AXI Master Interface
+; ============================================================
+addGroup "4. CPU LSU AXI Master (S01)"
+addSignal -h 15 -UNSIGNED -HEX /tb_top/u_dut/lsu_axi_awaddr[31:0]
+addSignal -h 15 -holdScope lsu_axi_awvalid
+addSignal -h 15 -holdScope lsu_axi_awready
+addSignal -h 15 -UNSIGNED -HEX -holdScope lsu_axi_wdata[63:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope lsu_axi_wstrb[7:0]
+addSignal -h 15 -holdScope lsu_axi_wvalid
+addSignal -h 15 -holdScope lsu_axi_wready
+addSignal -h 15 -holdScope lsu_axi_bvalid
+addSignal -h 15 -holdScope lsu_axi_bready
+addSignal -h 15 -UNSIGNED -HEX -holdScope lsu_axi_araddr[31:0]
+addSignal -h 15 -holdScope lsu_axi_arvalid
+addSignal -h 15 -holdScope lsu_axi_arready
+addSignal -h 15 -UNSIGNED -HEX -holdScope lsu_axi_rdata[63:0]
+addSignal -h 15 -holdScope lsu_axi_rvalid
+addSignal -h 15 -holdScope lsu_axi_rready
+
+; ============================================================
+; Group 5: UART 16550 IP Subsystem
+; ============================================================
+addGroup "5. UART 16550 Subsystem"
+addSignal -h 15 /tb_top/u_dut/u_uart/uart_tx_o
+addSignal -h 15 -holdScope uart_rx_i
+addSignal -h 15 -UNSIGNED -HEX -holdScope tx_fifo_data_in_int[7:0]
+addSignal -h 15 -holdScope tx_fifo_push_int
+addSignal -h 15 -UNSIGNED -UDEC -holdScope tx_fifo_available_int[5:0]
+addSignal -h 15 -holdScope tx_fifo_full_int
+addSignal -h 15 -UNSIGNED -HEX -holdScope read_state[3:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope write_state[2:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope uart_lsr_reg_int[31:0]
+
+; ============================================================
+; Group 6: System Timer IP Subsystem
+; ============================================================
+addGroup "6. System Timer Subsystem"
+addSignal -h 15 -UNSIGNED -HEX /tb_top/u_dut/u_timer/timer_ctr[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope s_axi_awaddr[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope s_axi_wdata[63:0]
+addSignal -h 15 -holdScope s_axi_awvalid
+addSignal -h 15 -holdScope s_axi_wvalid
+addSignal -h 15 -UNSIGNED -HEX -holdScope s_axi_araddr[31:0]
+addSignal -h 15 -UNSIGNED -HEX -holdScope s_axi_rdata[63:0]
+addSignal -h 15 -holdScope s_axi_arvalid
+addSignal -h 15 -holdScope s_axi_rvalid
+
+; ============================================================
+; Group 7: Heartbeat Monitor IP Subsystem
+; ============================================================
+addGroup "7. Heartbeat Monitor Subsystem"
+addSignal -h 15 /tb_top/u_dut/u_heartbeat/u_core/hb_enable
+addSignal -h 15 -holdScope hb_rising_edge
+addSignal -h 15 -UNSIGNED -UDEC -holdScope hb_counter[31:0]
+addSignal -h 15 -UNSIGNED -UDEC -holdScope hb_threshold_reg[31:0]
+addSignal -h 15 -holdScope hb_unresponsive_flag
+addSignal -h 15 -holdScope hb_irq
+addSignal -h 15 -UNSIGNED -HEX -holdScope hb_state[1:0]
+
+; ============================================================
+; Group 8: Reset Sequencer IP Subsystem
+; ============================================================
+addGroup "8. Reset Sequencer Subsystem"
+addSignal -h 15 /tb_top/u_dut/u_reset_seq/u_core/trigger_req
+addSignal -h 15 -holdScope reset_out
+addSignal -h 15 -holdScope in_progress
+addSignal -h 15 -holdScope complete
+addSignal -h 15 -UNSIGNED -HEX -holdScope rst_state[1:0]
+addSignal -h 15 -UNSIGNED -UDEC -holdScope rst_countdown[31:0]
+addSignal -h 15 -UNSIGNED -UDEC -holdScope rst_hold_cycles_reg[31:0]
+
+; ============================================================
+; Group 9: Recovery Policy IP Subsystem
+; ============================================================
+addGroup "9. Recovery Policy Subsystem"
+addSignal -h 15 /tb_top/u_dut/u_rec_policy/u_core/record_event_req
+addSignal -h 15 -UNSIGNED -UDEC -holdScope window_recovery_count[7:0]
+addSignal -h 15 -UNSIGNED -UDEC -holdScope policy_threshold_reg[7:0]
+addSignal -h 15 -holdScope lockout_flag
+addSignal -h 15 -holdScope lockout_irq
+addSignal -h 15 -UNSIGNED -UDEC -holdScope log_wr_ptr[3:0]
+addSignal -h 15 -UNSIGNED -UDEC -holdScope log_count[31:0]
+
+; ============================================================
+; Group 10: VGA Display Controller Subsystem
+; ============================================================
+addGroup "10. VGA Controller Subsystem"
+addSignal -h 15 /tb_top/u_dut/u_vga/u_core/vga_enable
+addSignal -h 15 -holdScope vga_hsync
+addSignal -h 15 -holdScope vga_vsync
+addSignal -h 15 -UNSIGNED -HEX -holdScope vga_rgb[11:0]
+addSignal -h 15 -UNSIGNED -UDEC -holdScope h_count[9:0]
+addSignal -h 15 -UNSIGNED -UDEC -holdScope v_count[9:0]
+addSignal -h 15 -holdScope active_video
+addSignal -h 15 -holdScope vblank_irq

@@ -1,0 +1,40 @@
+Magic 271485
+Revision Verdi_U-2023.03-SP1
+
+; Power/Reset Sequencer Trigger & Pulse Verification
+; Target: soc_top_uvm_tb/tb_top.sv (FSDB: soc_uvm.fsdb)
+
+viewPort 0 0 1600 900 320 65
+signalSpacing 5
+
+zoom 2600000000.000000 2620000000.000000
+cursor 2607815000.000000
+marker 0.000000
+
+top 0
+markerPos 0
+
+COMPLEX_EVENT_BEGIN
+COMPLEX_EVENT_END
+
+curSTATUS ByChange
+
+addGroup "1. Clock & Reset"
+addSignal -h 15 /tb_top/clk
+addSignal -h 15 /tb_top/rst_n
+
+addGroup "2. Reset Sequencer Output Pin & VIP"
+addSignal -h 15 /tb_top/u_dut/reset_out
+addSignal -h 15 /tb_top/rst_seq_vif/reset_out
+
+addGroup "3. Sequencer State Machine Internals"
+addSignal -h 15 /tb_top/u_dut/u_reset_seq/u_core/trigger_req
+addSignal -h 15 /tb_top/u_dut/u_reset_seq/u_core/in_progress
+addSignal -h 15 /tb_top/u_dut/u_reset_seq/u_core/complete
+addSignal -h 15 -UNSIGNED -HEX /tb_top/u_dut/u_reset_seq/u_core/rst_state[1:0]
+addSignal -h 15 -UNSIGNED -UDEC /tb_top/u_dut/u_reset_seq/u_core/rst_countdown[31:0]
+
+addGroup "4. AXI Status Register Interface"
+addSignal -h 15 /tb_top/u_dut/u_reset_seq/s_axi_arvalid
+addSignal -h 15 -UNSIGNED -HEX /tb_top/u_dut/u_reset_seq/s_axi_rdata[63:0]
+

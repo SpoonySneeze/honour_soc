@@ -1,0 +1,39 @@
+Magic 271485
+Revision Verdi_U-2023.03-SP1
+
+; System Timer Monotonic Counter Progression Test
+; Target: soc_top_uvm_tb/tb_top.sv (FSDB: soc_uvm.fsdb)
+
+viewPort 0 0 1600 900 320 65
+signalSpacing 5
+
+zoom 1150000000.000000 1195000000.000000
+cursor 1157035000.000000
+marker 0.000000
+
+top 0
+markerPos 0
+
+COMPLEX_EVENT_BEGIN
+COMPLEX_EVENT_END
+
+curSTATUS ByChange
+
+addGroup "1. Clock & Reset"
+addSignal -h 15 /tb_top/clk
+addSignal -h 15 /tb_top/rst_n
+
+addGroup "2. Timer Hardware Counter"
+addSignal -h 15 -UNSIGNED -HEX /tb_top/u_dut/u_timer/timer_ctr[31:0]
+
+addGroup "3. Timer AXI Slave Interface"
+addSignal -h 15 /tb_top/u_dut/u_timer/s_axi_arvalid
+addSignal -h 15 /tb_top/u_dut/u_timer/s_axi_arready
+addSignal -h 15 -UNSIGNED -HEX /tb_top/u_dut/u_timer/s_axi_araddr[31:0]
+addSignal -h 15 /tb_top/u_dut/u_timer/s_axi_rvalid
+addSignal -h 15 -UNSIGNED -HEX /tb_top/u_dut/u_timer/s_axi_rdata[63:0]
+
+addGroup "4. CPU LSU Read Transactions"
+addSignal -h 15 -UNSIGNED -HEX /tb_top/u_dut/lsu_axi_araddr[31:0]
+addSignal -h 15 -UNSIGNED -HEX /tb_top/u_dut/lsu_axi_rdata[63:0]
+

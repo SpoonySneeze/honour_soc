@@ -1,0 +1,40 @@
+Magic 271485
+Revision Verdi_U-2023.03-SP1
+
+; Fault Escalation Recovery Policy & Circular Event Log
+; Target: soc_top_uvm_tb/tb_top.sv (FSDB: soc_uvm.fsdb)
+
+viewPort 0 0 1600 900 320 65
+signalSpacing 5
+
+zoom 0.000000 3000000000.000000
+cursor 100000.000000
+marker 0.000000
+
+top 0
+markerPos 0
+
+COMPLEX_EVENT_BEGIN
+COMPLEX_EVENT_END
+
+curSTATUS ByChange
+
+addGroup "1. Clock & Reset"
+addSignal -h 15 /tb_top/clk
+addSignal -h 15 /tb_top/rst_n
+
+addGroup "2. Recovery Escalation Engine"
+addSignal -h 15 /tb_top/u_dut/u_rec_policy/u_core/record_event_req
+addSignal -h 15 -UNSIGNED -UDEC /tb_top/u_dut/u_rec_policy/u_core/window_recovery_count[7:0]
+addSignal -h 15 -UNSIGNED -UDEC /tb_top/u_dut/u_rec_policy/u_core/policy_threshold_reg[7:0]
+addSignal -h 15 /tb_top/u_dut/u_rec_policy/u_core/lockout_flag
+addSignal -h 15 /tb_top/u_dut/u_rec_policy/u_core/lockout_irq
+
+addGroup "3. Circular Fault Event Log"
+addSignal -h 15 -UNSIGNED -UDEC /tb_top/u_dut/u_rec_policy/u_core/log_wr_ptr[3:0]
+addSignal -h 15 -UNSIGNED -UDEC /tb_top/u_dut/u_rec_policy/u_core/log_count[31:0]
+
+addGroup "4. AXI Interface Registers"
+addSignal -h 15 /tb_top/u_dut/u_rec_policy/s_axi_arvalid
+addSignal -h 15 -UNSIGNED -HEX /tb_top/u_dut/u_rec_policy/s_axi_rdata[63:0]
+
