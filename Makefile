@@ -408,23 +408,24 @@ gen_vips:
 	@echo "Generating all individual UVM VIPs..."
 	./scripts/generate_all_vips.sh
 
-UVM_INCDIRS = +incdir+clk_rst_uvm_tb \
-              +incdir+uart_uvm_tb \
-              +incdir+gpio_uvm_tb \
-              +incdir+vga_uvm_tb \
-              +incdir+heartbeat_uvm_tb \
-              +incdir+reset_seq_uvm_tb \
-              +incdir+soc_top_uvm_tb
+UVM_DIR     = uvm_tb
+UVM_INCDIRS = +incdir+$(UVM_DIR)/clk_rst_uvm_tb \
+              +incdir+$(UVM_DIR)/uart_uvm_tb \
+              +incdir+$(UVM_DIR)/gpio_uvm_tb \
+              +incdir+$(UVM_DIR)/vga_uvm_tb \
+              +incdir+$(UVM_DIR)/heartbeat_uvm_tb \
+              +incdir+$(UVM_DIR)/reset_seq_uvm_tb \
+              +incdir+$(UVM_DIR)/soc_top_uvm_tb
 
 compile_uvm:
 	@echo "Compiling UVM top-level testbench with VCS..."
 	$(VCS) $(VCS_FLAGS) -ntb_opts uvm $(UVM_INCDIRS) $(INC_DIRS) $(VEER_DEFINES) \
 	       -f $(RV_ROOT)/design/flist $(SOC_RTL) \
-	       clk_rst_uvm_tb/clk_rst_if.sv uart_uvm_tb/uart_if.sv gpio_uvm_tb/gpio_if.sv \
-	       vga_uvm_tb/vga_if.sv heartbeat_uvm_tb/heartbeat_if.sv reset_seq_uvm_tb/reset_seq_if.sv \
-	       clk_rst_uvm_tb/clk_rst_pkg.sv uart_uvm_tb/uart_pkg.sv gpio_uvm_tb/gpio_pkg.sv \
-	       vga_uvm_tb/vga_pkg.sv heartbeat_uvm_tb/heartbeat_pkg.sv reset_seq_uvm_tb/reset_seq_pkg.sv \
-	       soc_top_uvm_tb/soc_pkg.sv soc_top_uvm_tb/tb_top.sv -o simv_uvm
+	       $(UVM_DIR)/clk_rst_uvm_tb/clk_rst_if.sv $(UVM_DIR)/uart_uvm_tb/uart_if.sv $(UVM_DIR)/gpio_uvm_tb/gpio_if.sv \
+	       $(UVM_DIR)/vga_uvm_tb/vga_if.sv $(UVM_DIR)/heartbeat_uvm_tb/heartbeat_if.sv $(UVM_DIR)/reset_seq_uvm_tb/reset_seq_if.sv \
+	       $(UVM_DIR)/clk_rst_uvm_tb/clk_rst_pkg.sv $(UVM_DIR)/uart_uvm_tb/uart_pkg.sv $(UVM_DIR)/gpio_uvm_tb/gpio_pkg.sv \
+	       $(UVM_DIR)/vga_uvm_tb/vga_pkg.sv $(UVM_DIR)/heartbeat_uvm_tb/heartbeat_pkg.sv $(UVM_DIR)/reset_seq_uvm_tb/reset_seq_pkg.sv \
+	       $(UVM_DIR)/soc_top_uvm_tb/soc_pkg.sv $(UVM_DIR)/soc_top_uvm_tb/tb_top.sv -o simv_uvm
 
 simv_uvm: compile_uvm
 

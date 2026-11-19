@@ -18,10 +18,10 @@ python3 scripts/uvm_full_tb_generator.py heartbeat docs/interfaces/heartbeat_int
 python3 scripts/uvm_full_tb_generator.py reset_seq docs/interfaces/reset_seq_interface.csv
 
 echo "[INFO] All 6 individual VIP directories successfully generated:"
-echo "  - clk_rst_uvm_tb/"
-echo "  - uart_uvm_tb/"
-echo "  - gpio_uvm_tb/"
-echo "  - vga_uvm_tb/"
-echo "  - heartbeat_uvm_tb/"
-echo "  - reset_seq_uvm_tb/"
-echo "[INFO] Wrapped by top-level testbench in soc_top_uvm_tb/"
+echo "  - uvm_tb/clk_rst_uvm_tb/"
+echo "  - uvm_tb/uart_uvm_tb/"
+echo "  - uvm_tb/gpio_uvm_tb/"
+echo "  - uvm_tb/vga_uvm_tb/"
+echo "  - uvm_tb/heartbeat_uvm_tb/"
+echo "  - uvm_tb/reset_seq_uvm_tb/"
+echo "[INFO] Wrapped by top-level testbench in uvm_tb/soc_top_uvm_tb/"

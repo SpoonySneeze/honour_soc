@@ -181,7 +181,7 @@ static inline void uvm_handshake(uint32_t send_token, uint32_t wait_token) {
 }
 ```
 
-### 5.2 UVM Testbench Synchronization Methods ([`soc_top_uvm_tb/soc_test.sv`](file:///home/student/sriv_183/honour_soc/soc_top_uvm_tb/soc_test.sv))
+### 5.2 UVM Testbench Synchronization Methods ([`uvm_tb/soc_top_uvm_tb/soc_test.sv`](file:///home/student/sriv_183/honour_soc/uvm_tb/soc_top_uvm_tb/soc_test.sv))
 
 ```systemverilog
 class soc_test extends uvm_test;
@@ -229,7 +229,7 @@ endclass
                                          |
                                          v
 +------------------------------------------------------------------------------------+
-| Phase 3: UVM Test Coordination (`soc_top_uvm_tb/soc_test.sv`)                      |
+| Phase 3: UVM Test Coordination (`uvm_tb/soc_top_uvm_tb/soc_test.sv`)                      |
 |   - Implement XMR monitoring tasks (`wait_c_token`, `send_uvm_token`).             |
 |   - Replace static simulation delays (`#3000000`) with dynamic event handshakes.   |
 |   - Drop UVM test objection only after C reaches `C_TOKEN_ALL_PASS`.               |

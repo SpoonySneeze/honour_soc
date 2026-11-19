@@ -3,7 +3,7 @@ Revision Verdi_U-2023.03-SP1
 
 ; ============================================================
 ; Honour SoC Top-Level UVM Verification – Verdi Waveform RC
-; Target: soc_top_uvm_tb/tb_top.sv (FSDB: soc_uvm.fsdb)
+; Target: uvm_tb/soc_top_uvm_tb/tb_top.sv (FSDB: soc_uvm.fsdb)
 ; ============================================================
 
 viewPort 0 0 1600 900 320 65
